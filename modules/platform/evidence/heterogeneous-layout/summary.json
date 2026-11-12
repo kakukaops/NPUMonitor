@@ -1,0 +1,42 @@
+{
+  "version": "0.5.1",
+  "status": "passed",
+  "relocated_path_records": 696,
+  "frozen_payloads_unchanged": 45,
+  "common_views": 10,
+  "compose_configs": 5,
+  "unit_tests": {
+    "gpu_ml": 39,
+    "model_platform": 8,
+    "gpu_rules": 27,
+    "total": 74
+  },
+  "promtool": {
+    "suites": 6,
+    "cases": 351,
+    "assertions": 830
+  },
+  "business_identity": {
+    "passed": true,
+    "tasks": 21,
+    "model_refs": 34,
+    "nightingale_rules": 86,
+    "named_volumes_unchanged": true,
+    "platform_id_unchanged": true
+  },
+  "legacy_models_loaded": 30,
+  "existing_remote_model_inference": "passed",
+  "frontend_dom_pages": 7,
+  "generic_runtime_without_device_plugin": "passed: fit, score, artifact roundtrip",
+  "model_service_without_monitor_control_plane": "passed",
+  "shared_integrations": "passed",
+  "legacy_shell_entrypoints": "passed",
+  "runtime_evidence": "runtime.json",
+  "service_evidence": "services.json",
+  "gpu_web_and_orchestration": "retained in device module until actual NPU schema is available",
+  "huawei_npu_implementation": "not_started: separate entry and development boundary only",
+  "browser_visual_click": "not_run",
+  "real_hardware_effectiveness": "not_run",
+  "company_platform_integration": "not_run",
+  "production_HA_capacity": "not_qualified"
+}

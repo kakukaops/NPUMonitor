@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "monitor_backup_restored": true,
+  "remote_refs": 4,
+  "scope": "monitor configuration, snapshots and legacy local artifacts; remote weights need platform backup",
+  "recorded_at": 1794469461.8592525
+}

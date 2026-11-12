@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "compose_files": [
+    "deploy/shared/compose.yaml",
+    "deploy/model-platform/compose.yaml",
+    "deploy/nvidia-gpu/lab/compose.yaml",
+    "deploy/nvidia-gpu/review/compose.yaml",
+    "deploy/nvidia-gpu/ml/compose.yaml"
+  ],
+  "services": [
+    {
+      "service": "comprehensive-source",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "recovery-adapter",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "comprehensive-lifecycle",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "nightingale",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "notification-receiver",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "prometheus",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "gpu-simulator",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "ml-anomaly-demo",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "redis",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "gpu-ml",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "model-platform",
+      "state": "running",
+      "health": "healthy"
+    }
+  ]
+}

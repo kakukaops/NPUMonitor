@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "root": "/home/mqq/github/zj/NPUMonitor",
+  "project_files_moved_and_hashed": 486,
+  "relative_links_preserved": 10,
+  "target_git_preserved": true,
+  "private_local_ignored": true,
+  "business_identity_unchanged": true,
+  "healthy_services": [
+    "comprehensive-source",
+    "recovery-adapter",
+    "comprehensive-lifecycle",
+    "nightingale",
+    "notification-receiver",
+    "prometheus",
+    "gpu-simulator",
+    "ml-anomaly-demo",
+    "redis",
+    "gpu-ml",
+    "model-platform"
+  ],
+  "bind_mounts_using_new_root": 19,
+  "monitor_and_model_platform_ready": true,
+  "committed": false,
+  "pushed": false
+}

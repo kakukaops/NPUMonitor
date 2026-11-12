@@ -1,0 +1,52 @@
+[
+  {
+    "key": "platform_query_failure",
+    "name": "H100平台-查询或评估失败",
+    "expression": "(n9e_alert_eval_query_series_count{job=\"nightingale-self\",rule_id=~\"18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58\"} < 0) and on(job,instance) (up{job=\"nightingale-self\"} == 1) and on() (DEMO_ADAPTER_UP{job=\"h100-comprehensive\"} == 1)",
+    "severity": 1,
+    "for_seconds": 10,
+    "eval_interval_seconds": 5,
+    "desired_for_seconds": 5,
+    "note": "实际夜莺评估结果为负值，保存rule_id及原始错误。备用通道发送。"
+  },
+  {
+    "key": "platform_evaluation_stall",
+    "name": "H100平台-评估调度停滞",
+    "expression": "((increase(n9e_alert_query_data_total{job=\"nightingale-self\",rule_id=\"18\"}[20s]) == 0) and (count_over_time(n9e_alert_query_data_total{job=\"nightingale-self\",rule_id=\"18\"}[20s]) >= 2)) and on(job,instance) (up{job=\"nightingale-self\"} == 1)",
+    "severity": 1,
+    "for_seconds": 10,
+    "eval_interval_seconds": 5,
+    "desired_for_seconds": 5,
+    "note": "固定5秒调度的探针在20秒窗口无新查询尝试。故障演练将探针周期改为3600秒，恢复时回到5秒。"
+  },
+  {
+    "key": "platform_notify_failure",
+    "name": "H100平台-主通知投递失败",
+    "expression": "increase(DEMO_NOTIFY_FAILURES_TOTAL{job=\"h100-comprehensive\"}[30s]) > 0",
+    "severity": 1,
+    "for_seconds": 0,
+    "eval_interval_seconds": 5,
+    "desired_for_seconds": 0,
+    "note": "实际Night POST失败记录的累计计数，备用独立本地接收通道发送，窗口退出表示近期无失败。"
+  },
+  {
+    "key": "platform_adapter_down",
+    "name": "H100平台-状态适配器不可用",
+    "expression": "DEMO_ADAPTER_UP{job=\"h100-comprehensive\"} == 0",
+    "severity": 1,
+    "for_seconds": 10,
+    "eval_interval_seconds": 5,
+    "desired_for_seconds": 5,
+    "note": "独立看门狗检测状态适配器健康，错误不按成功空结果处理。"
+  },
+  {
+    "key": "platform_nightingale_metrics_missing",
+    "name": "H100平台-夜莺自监控抓取不可用",
+    "expression": "up{job=\"nightingale-self\"} == 0",
+    "severity": 1,
+    "for_seconds": 10,
+    "eval_interval_seconds": 5,
+    "desired_for_seconds": 5,
+    "note": "外部演示看门狗另记录组件不可达，夜莺进程停止时通过独立页面观察。"
+  }
+]

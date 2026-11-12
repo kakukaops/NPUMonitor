@@ -1,0 +1,23 @@
+schema_version: 0.1.0
+binding_id: h100-batch1-synthetic-review
+purpose: synthetic_review_only_not_real_h100_inventory
+production_admitted: false
+cluster_id: fixture-cluster
+job: dcgm
+targets:
+- instance: fixture-node:9400
+  expected_gpu_uuids:
+  - GPU-FIXTURE-0000
+  - GPU-FIXTURE-0001
+device_observation_fields: &id001
+- DCGM_FI_DEV_GPU_TEMP
+- DCGM_FI_DEV_ECC_DBE_VOL_TOTAL
+- DCGM_FI_DEV_SRAM_EXCEEDED
+- DCGM_FI_DEV_ROW_REMAP_FAILURE
+required_fields: *id001
+max_sample_age_seconds: 90
+eval_interval_seconds: 30
+quality_for_seconds: 60
+hardware_for_seconds: 0
+maintenance_policy: not_implemented_required_before_production
+production_binding: select_verified_existing_source_labels_and_inventory_without_changing_prometheus_collection

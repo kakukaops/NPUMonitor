@@ -1,0 +1,1315 @@
+schema_version: 0.2.0
+rules:
+- rule_id: nvidia.ecc_dbe_new_errors
+  version: 0.3.0
+  name_zh: GPU近期新增不可纠正ECC错误
+  category: hardware.memory.ecc
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.ecc_dbe_new_errors.md
+  coverage_target: nvidia.ecc_dbe_increment
+  metric_ids:
+  - nvidia.ecc_dbe_volatile_total
+  applicability:
+    entity: physical_gpu
+    compatibility_status: unknown
+    mig_status: unverified_not_admitted
+    prerequisites:
+    - ecc_supported_and_enabled
+    - field_collected
+    - one_series_per_device
+    - stable_identity
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  expression_language: promql
+  expression: '(increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) > 0)
+
+    and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+    and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+    and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+    and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+    and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90)'
+  parameters:
+    threshold:
+      value: 0
+      operator: '>'
+      unit: errors
+      basis: positive_increment_semantics
+    window_seconds:
+      value: 300
+      basis: engineering_proposal
+      configurable: true
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_proposal
+      configurable: true
+    for_seconds:
+      value: 0
+      basis: engineering_proposal_no_extra_delay
+      configurable: true
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_proposal_for_30s_scrape
+      configurable: true
+    min_window_samples:
+      value: 2
+      basis: minimum_to_estimate_counter_increase
+      configurable: true
+  severity:
+    business: critical
+    nightingale: 1
+    basis: engineering_risk_classification
+  identity:
+  - cluster_id
+  - UUID
+  lifecycle_semantics:
+    firing: positive_window_increase_with_valid_samples_and_fresh_current_sample
+    condition_exit: no_recent_observed_increment_not_hardware_repair
+    missing_or_invalid: indeterminate_require_companion_data_quality_signal
+    stale: indeterminate_not_healthy
+    query_error: evaluation_error_not_healthy
+    reset: use_increase_counter_reset_semantics_not_hardware_repair
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - UUID
+    - observed_increase
+    - window_seconds
+    - event_time
+    - end_reason
+    firing_summary: GPU近期观测到不可纠正ECC计数新增，请核查设备和作业影响
+    end_summary: 近期新增条件已退出，请核对数据质量；不代表硬件已修复
+  dependencies:
+    source_ids:
+    - nvidia.exporter.counters
+    - nvidia.dcgm.fields
+    - nvidia.nvml.ecc
+    - nvidia.dcgm.blank
+    - prometheus.functions
+    companion_rules: []
+    companion_status: data_quality_and_missing_rules_required_but_not_yet_admitted
+  tests:
+    fixture: ../tests/ecc_dbe.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - full_sample_and_parameter_review
+  - real_hardware_compatibility_and_exporter_value_mapping
+  - nightingale_firing_and_indeterminate_exit_semantics
+  - companion_data_quality_rules_and_duplicate_series_checks
+  - query_budget_and_actual_scrape_interval_validation
+  - h100_variant_and_software_stack_admission
+- rule_id: nvidia.collector_unavailable
+  version: 0.1.0
+  name_zh: H100采集目标不可用
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.collector_unavailable.md
+  coverage_target_ids:
+  - H100-C03
+  metric_ids:
+  - prometheus.target_up
+  - inventory.expected_devices
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: (label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster", "__name__", ".*"), "job",
+    "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*")) unless on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"}
+    == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - job
+  - instance
+  lifecycle_semantics:
+    firing: 预期采集目标缺失、up非1或采样时间无效/超龄
+    condition_exit: 采集可达性恢复，不表示GPU硬件恢复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    firing_summary: H100采集目标不可用：请核对输入及影响
+    end_summary: 采集可达性恢复，不表示GPU硬件恢复
+  runbook: 先检查Prometheus target、网络、认证、Exporter进程与维护清单；不重启GPU
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.expected_gpu_observation_missing
+  version: 0.1.0
+  name_zh: H100已登记设备观测消失
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.expected_gpu_observation_missing.md
+  coverage_target_ids:
+  - H100-C04
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.sram_exceeded
+  - nvidia.remap_failed
+  - prometheus.target_up
+  - inventory.expected_devices
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: ((label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster", "__name__",
+    ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*")) unless on(cluster_id,UUID,job,instance) (count by(cluster_id,UUID,job,instance) (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")))) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"}
+    == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  lifecycle_semantics:
+    firing: 采集正常时，已登记UUID在本批四个必需字段中全部不可见
+    condition_exit: 监控观测恢复，不证明物理GPU已修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100已登记设备观测消失：请核对输入及影响
+    end_summary: 监控观测恢复，不证明物理GPU已修复
+  runbook: 核对预期UUID及字段配置；本批观测全空不等于证明物理掉卡或其他指标也全空
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.required_field_missing
+  version: 0.1.0
+  name_zh: H100必需字段缺失
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.required_field_missing.md
+  coverage_target_ids:
+  - H100-C05
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.sram_exceeded
+  - nvidia.remap_failed
+  - inventory.expected_devices
+  - prometheus.target_up
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: (((label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*")) unless on(cluster_id,UUID,job,instance,metric_name) label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")) and on(cluster_id,UUID,job,instance) (count by(cluster_id,UUID,job,instance)
+    (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")))) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"}
+    == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 采集正常且设备仍有本批其他必需观测时，预期设备×字段组合在当前查询不存在
+    condition_exit: 字段重新可见，不代表输入有效或硬件健康
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100必需字段缺失：请核对输入及影响
+    end_summary: 字段重新可见，不代表输入有效或硬件健康
+  runbook: 先查字段是否被配置采集、是否支持、标签和权限；字段不存在不擅自新增采集
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.required_field_stale
+  version: 0.1.1
+  name_zh: H100必需字段陈旧或时间异常
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.required_field_stale.md
+  coverage_target_ids:
+  - H100-C05
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.sram_exceeded
+  - nvidia.remap_failed
+  - inventory.expected_devices
+  - prometheus.target_up
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: ((((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}), "metric_name",
+    "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) > 90) or ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) < 0)) and on(cluster_id,UUID,job,instance,metric_name)
+    (label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster", "__name__",
+    ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*"))) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"} == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 字段仍可见但样本年龄大于90秒，或时间戳在未来
+    condition_exit: 样本时间恢复正常，不代表硬件修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100必需字段陈旧或时间异常：请核对输入及影响
+    end_summary: 样本时间恢复正常，不代表硬件修复
+  runbook: 核对scrape/刷新周期、显式样本时间戳与时钟；不是检测数值是否长期不变
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.required_input_invalid
+  version: 0.1.1
+  name_zh: H100必需字段输入无效
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.required_input_invalid.md
+  coverage_target_ids:
+  - H100-C06
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.sram_exceeded
+  - nvidia.remap_failed
+  - inventory.expected_devices
+  - prometheus.target_up
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: ((((((label_replace({__name__=~"DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") != bool 0) * (label_replace({__name__=~"DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") != bool 1)) == 1) or (((label_replace(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") != bool label_replace(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")) == 1) or ((abs(label_replace(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")) == bool +Inf) == 1) or ((label_replace(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") >= bool 140737488355328) == 1)) or (((label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") < bool 0) == 1) or ((label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") >= bool 9223372036854775792) == 1) or ((label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") != bool label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")) == 1) or ((abs(label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)")) == bool +Inf) == 1) or ((label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") != bool floor(label_replace(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)"))) == 1))) and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90))) and on(cluster_id,UUID,job,instance,metric_name)
+    (label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster", "__name__",
+    ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*"))) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"} == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 状态字段非0/1，温度非有限或进入blank区间，计数非整数/负值/非有限或INT64无效区间
+    condition_exit: 输入恢复有效，不是硬件修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100必需字段输入无效：请核对输入及影响
+    end_summary: 输入恢复有效，不是硬件修复
+  runbook: 查看原始HELP/TYPE和值、DCGM/Exporter映射；禁止把NaN、sentinel或不支持当0
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.duplicate_input_series
+  version: 0.1.1
+  name_zh: H100同设备字段重复序列
+  category: monitoring.quality
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.duplicate_input_series.md
+  coverage_target_ids:
+  - H100-C02
+  - H100-C06
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.sram_exceeded
+  - nvidia.remap_failed
+  - inventory.expected_devices
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: ((count by(cluster_id,UUID,metric_name) (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) > 1) and on(cluster_id,UUID,metric_name)
+    (label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster", "__name__",
+    ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0000",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__",
+    ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1), "cluster_id", "fixture-cluster",
+    "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400", "__name__", ".*"), "UUID", "GPU-FIXTURE-0001",
+    "__name__", ".*"), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*"), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__",
+    ".*"))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 60
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: quality_predicate
+  severity:
+    business: warning
+    nightingale: 2
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 同一cluster+UUID+字段有多个新鲜序列
+    condition_exit: 唯一映射恢复，不代表GPU修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100同设备字段重复序列：请核对输入及影响
+    end_summary: 唯一映射恢复，不代表GPU修复
+  runbook: 核对重复Exporter、重复抓取和标签变更；不要随意sum/max掩盖重复
+  dependencies:
+    source_ids:
+    - prometheus.up
+    - prometheus.functions
+    - project.scope
+    companion_rules: []
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+- rule_id: nvidia.sram_threshold_exceeded
+  version: 0.1.1
+  name_zh: H100 SRAM超阈值标志
+  category: hardware.memory
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.sram_threshold_exceeded.md
+  coverage_target_ids:
+  - H100-C10
+  metric_ids:
+  - nvidia.sram_exceeded
+  - inventory.expected_devices
+  - prometheus.target_up
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    - field_supported_and_collected
+    - boolean_semantics_confirmed
+    - unique_fresh_sample
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: (((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}, "metric_name", "$1", "__name__",
+    "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+    (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"}
+    == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 0
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: official_boolean_flag
+  severity:
+    business: critical
+    nightingale: 1
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 已登记物理卡的有效、新鲜、唯一SRAM标志=1，且采集正常
+    condition_exit: 标志不再满足条件；数据异常或维护清除不能宣称硬件修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100 SRAM超阈值标志：请核对输入及影响
+    end_summary: 标志不再满足条件；数据异常或维护清除不能宣称硬件修复
+  runbook: 结合原始状态、SRAM错误、XID和授权诊断；不以汇总ECC次数代算bank级RMA，不自动隔离/重置
+  dependencies:
+    source_ids:
+    - nvidia.dcgm.fixed_fields
+    - nvidia.memory.sram
+    companion_rules:
+    - nvidia.collector_unavailable
+    - nvidia.required_field_missing
+    - nvidia.required_field_stale
+    - nvidia.required_input_invalid
+    - nvidia.duplicate_input_series
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+  - data_quality_exit_must_not_be_reported_as_hardware_recovery
+- rule_id: nvidia.row_remap_failed
+  version: 0.1.1
+  name_zh: H100行重映射失败标志
+  category: hardware.memory
+  lifecycle: draft
+  default_policy: disabled
+  owner: gpu-monitoring-maintainers
+  documentation: ../rules/nvidia.row_remap_failed.md
+  coverage_target_ids:
+  - H100-C11
+  metric_ids:
+  - nvidia.remap_failed
+  - inventory.expected_devices
+  - prometheus.target_up
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_scope_binding
+    - confirmed_physical_gpu_scope
+    - existing_source_labels
+    - field_supported_and_collected
+    - boolean_semantics_confirmed
+    - unique_fresh_sample
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  binding:
+    profile_id: h100-batch1-synthetic-review
+    path: batch1-binding.yaml
+    sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+    production_admitted: false
+  expression_language: promql
+  expression: (((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}, "metric_name", "$1",
+    "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+    "cluster_id", "fixture-cluster", "__name__", ".*"), "job", "dcgm", "__name__", ".*"), "instance", "fixture-node:9400",
+    "__name__", ".*"), "UUID", "GPU-FIXTURE-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+    (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="fixture-cluster",job="dcgm"},
+    "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="fixture-cluster",job="dcgm"}),
+    "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm"}
+    == 1) and (((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"})) >= 0) and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm"}))
+    <= 90)))
+  parameters:
+    eval_interval_seconds:
+      value: 30
+      basis: engineering_review_value
+    for_seconds:
+      value: 0
+      basis: engineering_review_value_not_yet_nightingale_tested
+    max_sample_age_seconds:
+      value: 90
+      basis: engineering_assumption_30s_scrape
+    binary_true_value:
+      value: 1
+      basis: official_boolean_flag
+  severity:
+    business: critical
+    nightingale: 1
+    basis: engineering_proposal
+  identity:
+  - cluster_id
+  - UUID
+  - metric_name
+  lifecycle_semantics:
+    firing: 已登记物理卡的有效、新鲜、唯一行重映射失败标志=1，且采集正常
+    condition_exit: 失败标志不再满足条件；清除/缺数不等同修复
+    missing_or_invalid: indeterminate_not_hardware_repair
+    query_error: evaluation_error_requires_platform_observability
+    administrative_close: not_hardware_repair
+  notification:
+    required_fields:
+    - rule_id
+    - version
+    - cluster_id
+    - event_time
+    - end_reason
+    - UUID
+    firing_summary: H100行重映射失败标志：请核对输入及影响
+    end_summary: 失败标志不再满足条件；清除/缺数不等同修复
+  runbook: 核对失败/pending/InfoROM记录及对应XID，按硬件维护流程升级处理；不自动重启
+  dependencies:
+    source_ids:
+    - nvidia.dcgm.fixed_fields
+    - nvidia.memory.statistics
+    companion_rules:
+    - nvidia.collector_unavailable
+    - nvidia.required_field_missing
+    - nvidia.required_field_stale
+    - nvidia.required_input_invalid
+    - nvidia.duplicate_input_series
+    companion_status: draft_not_deployed
+  tests:
+    fixture: ../tests/h100_batch1.promtool.yaml
+    expression_tests: passed
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  release_blockers:
+  - synthetic_binding_requires_verified_real_inventory
+  - h100_variant_software_stack_and_field_mapping
+  - maintenance_and_inventory_upgrade_contract
+  - nightingale_for_and_end_reason_semantics
+  - query_budget_and_actual_scrape_period
+  - data_quality_exit_must_not_be_reported_as_hardware_recovery

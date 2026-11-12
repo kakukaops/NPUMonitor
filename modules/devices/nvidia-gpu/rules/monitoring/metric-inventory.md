@@ -1,0 +1,1 @@
+../../common/monitoring/metric-inventory.md

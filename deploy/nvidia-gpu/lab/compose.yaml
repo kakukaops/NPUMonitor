@@ -1,0 +1,157 @@
+name: gpu-alert-lab
+services:
+  redis:
+    extends:
+      file: ../../shared/compose.yaml
+      service: redis
+  nightingale:
+    extends:
+      file: ../../shared/compose.yaml
+      service: nightingale
+  gpu-simulator:
+    image: python:3.12.9-slim
+    command:
+    - python
+    - /app/simulator.py
+    volumes:
+    - ../../../modules/devices/nvidia-gpu/rules/lab:/app:ro
+    ports:
+    - 127.0.0.1:19400:9400
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:9400/health',
+        timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  notification-receiver:
+    image: python:3.12.9-slim
+    command:
+    - python
+    - /app/receiver.py
+    volumes:
+    - ../../../modules/devices/nvidia-gpu/rules/lab:/app:ro
+    - notification-data:/data
+    ports:
+    - 127.0.0.1:19080:9080
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:9080/health',
+        timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  recovery-adapter:
+    image: python:3.12.9-slim
+    command:
+    - python
+    - /app/recovery_adapter.py
+    - serve
+    volumes:
+    - ../../../modules/devices/nvidia-gpu/rules/lab:/app:ro
+    - ../../../modules/devices/nvidia-gpu/rules/rules:/rules:ro
+    - lifecycle-data:/data
+    ports:
+    - 127.0.0.1:19410:9410
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:9410/health',
+        timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  comprehensive-source:
+    image: python:3.12.9-slim
+    command:
+    - python
+    - /app/comprehensive_source.py
+    volumes:
+    - ../../../modules/devices/nvidia-gpu/rules/lab:/app:ro
+    - ../../../modules/devices/nvidia-gpu/rules/rules:/rules:ro
+    - ../../../.local/n9e-token:/run/secrets/n9e-token:ro
+    - comprehensive-events:/data
+    ports:
+    - 127.0.0.1:19430:9430
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:9430/health',
+        timeout=3)
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  comprehensive-lifecycle:
+    image: python:3.12.9-slim
+    command:
+    - python
+    - /app/recovery_adapter.py
+    - serve
+    environment:
+      LIFECYCLE_CONFIG: /rules/comprehensive-lifecycle.json
+    volumes:
+    - ../../../modules/devices/nvidia-gpu/rules/lab:/app:ro
+    - ../../../modules/devices/nvidia-gpu/rules/rules:/rules:ro
+    - comprehensive-state:/data
+    ports:
+    - 127.0.0.1:19431:9410
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:9410/health',
+        timeout=3)
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  ml-anomaly-demo:
+    build:
+      context: ../../../modules/devices/nvidia-gpu/ml/demo
+    image: gpu-alert-lab-ml-demo:0.1.0
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    ports:
+    - 127.0.0.1:19450:9450
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:9450/health',
+        timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+  prometheus:
+    extends:
+      file: ../../shared/compose.yaml
+      service: prometheus
+volumes:
+  redis-data: null
+  nightingale-data: null
+  nightingale-logs: null
+  prometheus-data: null
+  notification-data: null
+  lifecycle-data: null
+  comprehensive-events: null
+  comprehensive-state: null

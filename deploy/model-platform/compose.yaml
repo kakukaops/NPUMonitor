@@ -1,0 +1,39 @@
+name: gpu-monitoring-ml
+services:
+  model-platform:
+    image: gpu-monitoring-model-platform:0.5.1
+    build:
+      context: ../..
+      dockerfile: modules/model-services/reference-platform/Dockerfile
+    environment:
+      MODEL_DEVICE_PLUGINS: nvidia_gpu_ml.plugin
+      MODEL_PLATFORM_DATA: /platform-data
+      MODEL_PLATFORM_TOKEN_FILE: /run/secrets/model-platform-token
+      GPU_ML_SIMULATION: ${GPU_ML_SIMULATION:-false}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    volumes:
+    - model-platform-data:/platform-data
+    - ../../.local/gpu-ml-model-platform-token:/run/secrets/model-platform-token:ro
+    ports:
+    - 127.0.0.1:19461:9470
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:9470/health',timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+    - existing
+volumes:
+  model-platform-data:
+    name: gpu-monitoring-ml_model-platform-data
+networks:
+  existing:
+    external: true
+    name: gpu-alert-lab_default

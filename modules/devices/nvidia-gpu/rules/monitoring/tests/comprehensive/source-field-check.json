@@ -1,0 +1,276 @@
+{
+  "passed": true,
+  "source_url": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+  "source_sha256": "fa13c73ccc085da7ff280c0d03105ef8f80e31276fcd3f6f94db01ae1c45ade6",
+  "checked_fields": [
+    {
+      "input_name": "DCGM_FI_DEV_GPU_TEMP",
+      "field_id": 150,
+      "canonical_name": "DCGM_FI_DEV_GPU_TEMP_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_GPU_TEMP"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_GPU_MAX_OP_TEMP",
+      "field_id": 152,
+      "canonical_name": "DCGM_FI_DEV_GPU_MAX_OP_TEMP_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_MEMORY_TEMP",
+      "field_id": 140,
+      "canonical_name": "DCGM_FI_DEV_MEMORY_TEMP_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_MEMORY_TEMP"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_MEM_MAX_OP_TEMP",
+      "field_id": 151,
+      "canonical_name": "DCGM_FI_DEV_MEMORY_MAX_OP_TEMP_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_CLOCKS_EVENT_REASONS",
+      "field_id": 112,
+      "canonical_name": "DCGM_FI_DEV_CLOCKS_EVENT_REASONS",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_SRAM_EXCEEDED",
+      "field_id": 346,
+      "canonical_name": "DCGM_FI_DEV_SRAM_EXCEEDED",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ROW_REMAP_FAILURE",
+      "field_id": 395,
+      "canonical_name": "DCGM_FI_DEV_ROW_REMAP_FAILED",
+      "aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ROW_REMAP_PENDING",
+      "field_id": 396,
+      "canonical_name": "DCGM_FI_DEV_ROW_REMAP_PENDING",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL",
+      "field_id": 311,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_VOL_DEV",
+      "field_id": 319,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_VOL_DEV",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_VOL_SRM",
+      "field_id": 343,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_VOL_SRM",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL",
+      "field_id": 310,
+      "canonical_name": "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_SBE_VOL_DEV",
+      "field_id": 318,
+      "canonical_name": "DCGM_FI_DEV_ECC_SBE_VOL_DEV",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_SBE_VOL_SRM",
+      "field_id": 342,
+      "canonical_name": "DCGM_FI_DEV_ECC_SBE_VOL_SRM",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL",
+      "field_id": 313,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_AGG_DEV",
+      "field_id": 329,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_AGG_DEV",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_ECC_DBE_AGG_SRM",
+      "field_id": 345,
+      "canonical_name": "DCGM_FI_DEV_ECC_DBE_AGG_SRM",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_THERMAL_VIOLATION",
+      "field_id": 241,
+      "canonical_name": "DCGM_FI_DEV_THERMAL_VIOLATION",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_PCIE_REPLAY_COUNTER",
+      "field_id": 202,
+      "canonical_name": "DCGM_FI_DEV_PCIE_REPLAY_TOTAL",
+      "aliases": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL",
+      "field_id": 497,
+      "canonical_name": "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL",
+      "field_id": 498,
+      "canonical_name": "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL",
+      "field_id": 499,
+      "canonical_name": "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_XID_ERRORS",
+      "field_id": 230,
+      "canonical_name": "DCGM_FI_DEV_XID_ERROR",
+      "aliases": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_PCIE_LINK_GEN",
+      "field_id": 237,
+      "canonical_name": "DCGM_FI_DEV_PCIE_LINK_GEN",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_PCIE_LINK_WIDTH",
+      "field_id": 238,
+      "canonical_name": "DCGM_FI_DEV_PCIE_LINK_WIDTH",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVLINK_GET_STATE",
+      "field_id": 1508,
+      "canonical_name": "DCGM_FI_DEV_NVLINK_LINK_STATUS",
+      "aliases": [
+        "DCGM_FI_DEV_NVLINK_GET_STATE"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_FABRIC_MANAGER_STATUS",
+      "field_id": 170,
+      "canonical_name": "DCGM_FI_DEV_FABRIC_MANAGER_STATUS",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY",
+      "field_id": 175,
+      "canonical_name": "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS",
+      "field_id": 856,
+      "canonical_name": "DCGM_FI_DEV_SXID_FATAL_ERROR",
+      "aliases": [
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS",
+      "field_id": 857,
+      "canonical_name": "DCGM_FI_DEV_SXID_NON_FATAL_ERROR",
+      "aliases": [
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+      "field_id": 858,
+      "canonical_name": "DCGM_FI_DEV_NVSWITCH_TEMP_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN",
+      "field_id": 859,
+      "canonical_name": "DCGM_FI_DEV_NVSWITCH_TEMP_SLOWDOWN_CELSIUS",
+      "aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN"
+      ],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_LINK_STATUS",
+      "field_id": 870,
+      "canonical_name": "DCGM_FI_DEV_NVSWITCH_LINK_STATUS",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL",
+      "field_id": 784,
+      "canonical_name": "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL",
+      "aliases": [],
+      "passed": true
+    },
+    {
+      "input_name": "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL",
+      "field_id": 785,
+      "canonical_name": "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL",
+      "aliases": [],
+      "passed": true
+    }
+  ]
+}

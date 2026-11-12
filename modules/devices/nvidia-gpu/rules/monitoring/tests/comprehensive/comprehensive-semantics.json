@@ -1,0 +1,47 @@
+{
+  "scope": "H100_training_comprehensive_simulation",
+  "selection": "semantics",
+  "passed": true,
+  "catalog_sha256": "572c4d8a0eda1ac54b27bf475712440f4a46bc7124576bb507555dbd0dac8418",
+  "cases": [
+    {
+      "scenario": "thermal_transient",
+      "passed": true,
+      "observed_seconds": 18.376,
+      "sampled_transient": true
+    },
+    {
+      "scenario": "unused_port",
+      "passed": true,
+      "observed_seconds": 18.373,
+      "sampled_transient": null
+    },
+    {
+      "scenario": "idle_pcie",
+      "passed": true,
+      "observed_seconds": 18.373,
+      "sampled_transient": null
+    },
+    {
+      "scenario": "thermal_then_missing",
+      "passed": true,
+      "active_event_id": 193,
+      "hash": "b21bd1ec11a8d724c4826f2501c7c174",
+      "held_seconds": 25.313
+    },
+    {
+      "scenario": "thermal_hysteresis_band",
+      "passed": true,
+      "active_event_id": 197
+    },
+    {
+      "scenario": "xid79_then45_then_zero_requires_confirmation",
+      "passed": true,
+      "active_event_id": 199
+    }
+  ],
+  "started_at": 1794365085.5219076,
+  "nightingale_version": "9.3.0",
+  "real_h100_tests": "not_run",
+  "finished_at": 1794365253.385005
+}

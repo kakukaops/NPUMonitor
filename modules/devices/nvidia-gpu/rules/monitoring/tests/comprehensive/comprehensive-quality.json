@@ -1,0 +1,133 @@
+{
+  "scope": "H100_training_comprehensive_simulation",
+  "selection": "quality",
+  "passed": true,
+  "catalog_sha256": "572c4d8a0eda1ac54b27bf475712440f4a46bc7124576bb507555dbd0dac8418",
+  "cases": [
+    {
+      "scenario": "field_missing",
+      "rule_id": 54,
+      "started_at": 1794364751.0779252,
+      "passed": true,
+      "active_event_id": 161,
+      "hash": "7e6eeff4061d301d7b23e6878926a9cd",
+      "firing_after_seconds": 10.037,
+      "exit_after_seconds": 4.036,
+      "native_trigger_after_seconds": 9.922
+    },
+    {
+      "scenario": "entity_missing",
+      "rule_id": 53,
+      "started_at": 1794364766.2005768,
+      "passed": true,
+      "active_event_id": 163,
+      "hash": "18143117db3bf155dae1fc6b8ee88a22",
+      "firing_after_seconds": 10.029,
+      "exit_after_seconds": 5.039,
+      "native_trigger_after_seconds": 9.799
+    },
+    {
+      "scenario": "input_invalid",
+      "rule_id": 56,
+      "started_at": 1794364781.3031192,
+      "passed": true,
+      "active_event_id": 165,
+      "hash": "1837473f39664c2dc94ce569f205f17f",
+      "firing_after_seconds": 10.032,
+      "exit_after_seconds": 5.043,
+      "native_trigger_after_seconds": 9.697
+    },
+    {
+      "scenario": "input_stale",
+      "rule_id": 55,
+      "started_at": 1794364796.414347,
+      "passed": true,
+      "active_event_id": 167,
+      "hash": "23b3c1b78c488022a27f4af98d066fe5",
+      "firing_after_seconds": 10.03,
+      "exit_after_seconds": 5.042,
+      "native_trigger_after_seconds": 9.586
+    },
+    {
+      "scenario": "input_duplicate",
+      "rule_id": 57,
+      "started_at": 1794364811.5269418,
+      "passed": true,
+      "active_event_id": 169,
+      "hash": "627c32a8c22a70f4654a63c994e4957e",
+      "firing_after_seconds": 10.031,
+      "exit_after_seconds": 5.046,
+      "native_trigger_after_seconds": 9.473
+    },
+    {
+      "scenario": "collector_down",
+      "rule_id": 58,
+      "started_at": 1794364826.645607,
+      "passed": true,
+      "active_event_id": 171,
+      "hash": "dc7581777f5f798ee7878dab2370f88e",
+      "firing_after_seconds": 10.038,
+      "exit_after_seconds": 5.045,
+      "native_trigger_after_seconds": 9.354
+    },
+    {
+      "scenario": "missing_link",
+      "rule_id": 53,
+      "started_at": 1794364841.7675462,
+      "passed": true,
+      "active_event_id": 173,
+      "hash": "27dd9acbdd5b38982e65b724694af280",
+      "firing_after_seconds": 10.029,
+      "exit_after_seconds": 5.04,
+      "native_trigger_after_seconds": 9.232
+    },
+    {
+      "scenario": "hbm_limit_missing",
+      "rule_id": 54,
+      "started_at": 1794364856.8743174,
+      "passed": true,
+      "active_event_id": 175,
+      "hash": "9a6941d427951232551e59e9725ac346",
+      "firing_after_seconds": 10.03,
+      "exit_after_seconds": 5.041,
+      "native_trigger_after_seconds": 9.126
+    },
+    {
+      "scenario": "switch_unknown",
+      "rule_id": 56,
+      "started_at": 1794364871.982626,
+      "passed": true,
+      "active_event_id": 177,
+      "hash": "d59c0cb6f193edd5e67206bcc5b0623c",
+      "firing_after_seconds": 10.03,
+      "exit_after_seconds": 5.06,
+      "native_trigger_after_seconds": 9.017
+    },
+    {
+      "scenario": "switch_missing",
+      "rule_id": 53,
+      "started_at": 1794364887.111051,
+      "passed": true,
+      "active_event_id": 179,
+      "hash": "2ccfa6134c0ecd91b06e62bc8ca32540",
+      "firing_after_seconds": 9.029,
+      "exit_after_seconds": 5.041,
+      "native_trigger_after_seconds": 8.889
+    },
+    {
+      "scenario": "thermal_pending_missing",
+      "rule_id": 53,
+      "started_at": 1794364901.2180727,
+      "passed": true,
+      "active_event_id": 181,
+      "hash": "18143117db3bf155dae1fc6b8ee88a22",
+      "firing_after_seconds": 15.043,
+      "exit_after_seconds": 5.042,
+      "native_trigger_after_seconds": 14.782
+    }
+  ],
+  "started_at": 1794364751.0424778,
+  "nightingale_version": "9.3.0",
+  "real_h100_tests": "not_run",
+  "finished_at": 1794364921.3369484
+}

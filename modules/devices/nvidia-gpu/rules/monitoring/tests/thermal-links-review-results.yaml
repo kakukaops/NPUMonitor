@@ -1,0 +1,26 @@
+date: '2026-11-11'
+scope: synthetic_review_only
+production_admitted: false
+tool_image: prom/prometheus:v3.2.1
+queries: 15
+cases: 138
+assertions: 138
+result: passed
+fixture_sha256: 591e89bb437d9cc3adeeeb0546ad8c377653d59110f6bcfafd69487c48e51904
+catalog_sha256: 2c320aa93781846faee70371dbaa7b3d22704c5418cf83c017a22bbd946861f8
+json_catalog_sha256: 39fba9f302d13d9cadea6f3624cab631c33ed5d839bd1b8a058f8633b8b96c44
+streaming:
+  result: passed
+  cases:
+  - normal
+  - stress
+  - duplicate
+  - invalid_limit
+  - unknown_mask
+  - unknown_with_thermal
+  - stale
+  - scrape_error
+  report_sha256: 88945afeeaf35f8fd5c766b3fd48f930cc2f4c8d1b56f89dc63d1b0d44a09c91
+  engine_feature_flags: []
+nightingale_tests: not_run
+real_h100_tests: not_run

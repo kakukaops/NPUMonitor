@@ -1,0 +1,76 @@
+{
+  "scope": "actual local Nightingale webhook delivery",
+  "events": [
+    {
+      "id": 221,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395222,
+      "is_recovered": false
+    },
+    {
+      "id": 222,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395222,
+      "is_recovered": true
+    },
+    {
+      "id": 223,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395272,
+      "is_recovered": false
+    },
+    {
+      "id": 224,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395272,
+      "is_recovered": true
+    },
+    {
+      "id": 228,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395302,
+      "is_recovered": false
+    },
+    {
+      "id": 230,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794395302,
+      "is_recovered": true
+    },
+    {
+      "id": 233,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794396067,
+      "is_recovered": false
+    },
+    {
+      "id": 234,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794396067,
+      "is_recovered": true
+    },
+    {
+      "id": 235,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794396457,
+      "is_recovered": false
+    },
+    {
+      "id": 238,
+      "rule_id": 66,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "trigger_time": 1794396457,
+      "is_recovered": true
+    }
+  ],
+  "passed": true
+}

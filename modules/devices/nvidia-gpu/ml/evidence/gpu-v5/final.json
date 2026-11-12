@@ -1,0 +1,20 @@
+{
+  "version": "0.5.0",
+  "passed": true,
+  "inference_ready": true,
+  "model_backend": {
+    "backend_id": "reference-http-v1",
+    "state": "available",
+    "operations": [
+      "fit",
+      "postprocess",
+      "ensemble"
+    ],
+    "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+    "last_checked": 1794469970.237694
+  },
+  "monitor_does_not_ship_trainer": true,
+  "anonymous_platform_denied": true,
+  "company_platform_integrated": false,
+  "recorded_at": 1794469972.4798505
+}

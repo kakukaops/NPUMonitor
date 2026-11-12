@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "notification_delivery": [
+    {
+      "id": 383,
+      "hash": "2e4529b1e1452220dca3d327719b56ef",
+      "rule_id": 76,
+      "trigger_time": 1794449505,
+      "is_recovered": false
+    },
+    {
+      "id": 388,
+      "hash": "2e4529b1e1452220dca3d327719b56ef",
+      "rule_id": 76,
+      "trigger_time": 1794449505,
+      "is_recovered": true
+    }
+  ],
+  "rejected_short_history_models": [
+    {
+      "id": "724ad8b003e742118ce382ce253e82e0",
+      "status": "review_required",
+      "held_out_point_alert_rate": 0.11475409836065574
+    }
+  ],
+  "ready": 200,
+  "inference_error": null,
+  "production_admitted": false,
+  "recorded_at": 1794449709.3900337
+}

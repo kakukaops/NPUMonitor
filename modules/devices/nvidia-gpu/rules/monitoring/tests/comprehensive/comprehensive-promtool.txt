@@ -1,0 +1,14 @@
+ Container gpu-alert-lab-prometheus-run-a94418458eb3 Creating 
+ Container gpu-alert-lab-prometheus-run-a94418458eb3 Created 
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+

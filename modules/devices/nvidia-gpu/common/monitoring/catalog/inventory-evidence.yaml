@@ -1,0 +1,18 @@
+updated_at: '2026-11-09'
+purpose: reference_field_mapping_not_real_h100_validation
+field_header:
+  source_id: nvidia.dcgm.fixed_fields
+  sha256: fa13c73ccc085da7ff280c0d03105ef8f80e31276fcd3f6f94db01ae1c45ade6
+reference_csv:
+  source_id: nvidia.exporter.counters
+  sha256: ddf9d12eb7c004a24241a84221843ce178c5ca075ffdf711e2d46046e7000006
+canonical_dcgm_entries: 82
+auxiliary_inputs: 10
+target_count: 24
+rule_proposals: 33
+xid_review_entries: 78
+not_done:
+- all_dcgm_fields_disposition
+- approve_xid_triage_and_validate_ordered_event_input
+- deployment_stack_field_support
+- real_h100_collection_tests

@@ -1,0 +1,54 @@
+{
+  "catalog_version": "lab-0.1.1",
+  "scope": "simulation-only",
+  "rules": [
+    {
+      "key": "gpu_lab_temperature",
+      "name": "GPU实验-温度超限示范",
+      "expression": "DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"} > 85 and DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"} < 1000",
+      "for_seconds": 30,
+      "severity": 2,
+      "note": "仅用于模拟链路验证；85°C 是测试阈值，不适用于生产型号。缺数不代表设备健康。"
+    },
+    {
+      "key": "gpu_lab_xid79",
+      "name": "GPU实验-XID79状态",
+      "expression": "DCGM_FI_DEV_XID_ERRORS{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"} == 79",
+      "for_seconds": 10,
+      "severity": 1,
+      "note": "最近XID状态码79，不是发生次数；模拟器清零代表测试输入恢复，不能据此定义真实XID恢复。"
+    },
+    {
+      "key": "gpu_lab_ecc_dbe",
+      "name": "GPU实验-DBE计数新增",
+      "expression": "increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"}[1m]) > 0",
+      "for_seconds": 10,
+      "severity": 1,
+      "note": "仅模拟有效counter新增；窗口退出表示无近期新增，不表示硬件修复。生产需补sentinel及型号适用性验证。"
+    },
+    {
+      "key": "gpu_lab_scrape_down",
+      "name": "GPU实验-采集失败",
+      "expression": "up{job=\"gpu-simulator\"} == 0",
+      "for_seconds": 15,
+      "severity": 2,
+      "note": "测试采集目标不可用；监控链路异常，不直接判定GPU硬件故障。"
+    },
+    {
+      "key": "gpu_lab_missing",
+      "name": "GPU实验-已发现设备指标消失",
+      "expression": "(max_over_time(DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"}[10m]) unless DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"}) and on(job,instance) (up{job=\"gpu-simulator\"} == 1)",
+      "for_seconds": 15,
+      "severity": 2,
+      "note": "只检测过去10分钟上报过的设备温度序列消失；不承诺发现从未上报或已超保留窗口的设备，不等于确认掉卡。"
+    },
+    {
+      "key": "gpu_lab_invalid_temp",
+      "name": "GPU实验-温度输入无效",
+      "expression": "(DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"} != bool DCGM_FI_DEV_GPU_TEMP{job=\"gpu-simulator\",cluster_id=\"gpu-sim-lab\",simulated=\"true\"}) == 1",
+      "for_seconds": 10,
+      "severity": 2,
+      "note": "仅检测NaN模拟输入；不代表已覆盖DCGM全部sentinel、无穷值或数据陈旧场景。"
+    }
+  ]
+}

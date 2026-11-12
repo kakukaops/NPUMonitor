@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "scope": "simulated GPU; existing real Prometheus and Nightingale integrations",
+  "core_tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "online_detection": {
+    "passed": true,
+    "evidence": "acceptance.json"
+  },
+  "management": {
+    "passed": true,
+    "evidence": "management.json"
+  },
+  "real_container_restart": {
+    "passed": true,
+    "evidence": "restart.json"
+  },
+  "platform_and_quality_alerts": {
+    "passed": true,
+    "evidence": "platform.json"
+  },
+  "final_live": "final-live.json",
+  "frontend_dom_contract": "passed; not browser QA",
+  "browser_visual_click": "not_run: browser access host unavailable",
+  "real_H100": "not_run",
+  "production_capacity_HA": "not_qualified",
+  "production_admitted": false
+}

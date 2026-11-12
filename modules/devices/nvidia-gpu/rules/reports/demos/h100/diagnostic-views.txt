@@ -1,0 +1,25 @@
+ecc.dbe_history.total	求值成功	空结果（未匹配活动或输入不足）
+ecc.sbe_trend.total	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+ecc.dbe_history.device_memory	求值成功	空结果（未匹配活动或输入不足）
+ecc.sbe_trend.device_memory	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+ecc.dbe_detail.device_memory	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+ecc.dbe_history.sram	求值成功	空结果（未匹配活动或输入不足）
+ecc.sbe_trend.sram	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+ecc.dbe_detail.sram	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+xid.node_incident_review	求值成功	空结果（未匹配活动或输入不足）
+xid.gpu_reset_review	求值成功	空结果（未匹配活动或输入不足）
+memory.remap_pending	求值成功	空结果（未匹配活动或输入不足）
+thermal.gpu_operating_margin	求值成功	GPU-DEMO-0000: 40；GPU-DEMO-0001: 40
+thermal.memory_operating_margin	求值成功	GPU-DEMO-0000: 50；GPU-DEMO-0001: 50
+clock.sw_thermal	求值成功	空结果（未匹配活动或输入不足）
+clock.hw_thermal	求值成功	空结果（未匹配活动或输入不足）
+clock.sw_power_cap	求值成功	空结果（未匹配活动或输入不足）
+clock.hw_power_brake	求值成功	空结果（未匹配活动或输入不足）
+clock.hw_slowdown	求值成功	空结果（未匹配活动或输入不足）
+clock.sync_boost	求值成功	空结果（未匹配活动或输入不足）
+clock.unknown_bits	求值成功	空结果（未匹配活动或输入不足）
+thermal.slowdown_seconds	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+pcie.replay_increase	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+nvlink.crc_increase	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+nvlink.recovery_increase	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0
+nvlink.replay_increase	求值成功	GPU-DEMO-0000: 0；GPU-DEMO-0001: 0

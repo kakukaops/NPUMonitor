@@ -1,0 +1,9 @@
+{
+  "restored_to": "/tmp/platform-restore-v5-0r9i7dtm/restored",
+  "models": 5,
+  "scope": "reference model platform only",
+  "passed": true,
+  "deployed_models_scored": 2,
+  "platform_identity_preserved": true,
+  "control_plane_modules_absent": true
+}

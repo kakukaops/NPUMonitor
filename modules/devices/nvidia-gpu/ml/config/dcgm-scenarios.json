@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "scope": "DCGM-only; no job identity, throughput, ambient temperature or peer comparability assumed",
+  "scenarios": {
+    "thermal_relation": {
+      "name": "负载校正的热关系偏离",
+      "algorithm": "dcgm_conditional",
+      "required": ["gpu_temp", "memory_temp", "power", "util", "mem_util", "mem_clock"],
+      "targets": ["gpu_temp", "memory_temp"],
+      "features": ["power", "util", "mem_util"],
+      "directions": ["high", "high"],
+      "description": "学习该卡功耗/负载与GPU、HBM温度的条件关系；温度偏高是热行为线索，不等同散热器故障"
+    },
+    "power_clock_relation": {
+      "name": "负载校正的功耗与时钟关系偏离",
+      "algorithm": "dcgm_conditional",
+      "required": ["power", "sm_clock", "util", "mem_util", "mem_clock"],
+      "targets": ["power", "sm_clock"],
+      "features": ["util", "mem_util"],
+      "directions": ["both", "both"],
+      "description": "检测可比负载下的功耗/时钟偏离；功率配置、驱动和工作负载变化仍是待排除因素"
+    },
+    "thermal_degradation": {
+      "name": "热行为长期漂移",
+      "algorithm": "dcgm_residual_trend",
+      "required": ["gpu_temp", "memory_temp", "power", "util", "mem_util", "mem_clock"],
+      "targets": ["gpu_temp", "memory_temp"],
+      "features": ["power", "util", "mem_util"],
+      "directions": ["high", "high"],
+      "description": "冻结条件基线后检查温度残差的持续偏移与斜率；不能区分环境升温、配置变化与硬件退化，不预测寿命"
+    },
+    "clock_degradation": {
+      "name": "时钟表现长期漂移",
+      "algorithm": "dcgm_residual_trend",
+      "required": ["sm_clock", "util", "mem_util", "mem_clock"],
+      "targets": ["sm_clock"],
+      "features": ["util", "mem_util"],
+      "directions": ["low"],
+      "description": "检查可比负载下时钟残差持续下降；不能替代有效吞吐评价，不能认定GPU老化"
+    }
+  },
+  "profiles": {
+    "production": {"relation_history_seconds": 86400, "trend_history_seconds": 604800, "trend_seconds": 21600},
+    "laboratory": {"relation_history_seconds": 1800, "trend_history_seconds": 1800, "trend_seconds": 60}
+  },
+  "not_available": [
+    {"name": "同作业同阶段慢卡", "reason": "缺少作业、阶段和角色，不能保证跨GPU可比性"},
+    {"name": "产出/能效退化", "reason": "缺少吞吐或step耗时，不用GPU利用率伪造产出"},
+    {"name": "剩余寿命预测", "reason": "缺少真实失效历史和经过验证的寿命模型"},
+    {"name": "专项通信/显存退化", "reason": "当前字段不足，需专项指标及对应场景验证"}
+  ]
+}

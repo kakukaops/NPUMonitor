@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "version": "0.5.1",
+  "legacy_models_loaded": 30,
+  "active_remote_models_scored": 1,
+  "ready": true,
+  "shared_integrations": true,
+  "fixture": "layout-ui-fixture.json"
+}

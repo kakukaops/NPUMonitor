@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "identity": [
+    "cluster_id",
+    "UUID"
+  ],
+  "metrics": {
+    "gpu_temp": {
+      "metric_id": "nvidia.gpu_temp",
+      "name": "DCGM_FI_DEV_GPU_TEMP",
+      "unit": "°C",
+      "min": -30,
+      "max": 150
+    },
+    "memory_temp": {
+      "metric_id": "nvidia.memory_temp",
+      "name": "DCGM_FI_DEV_MEMORY_TEMP",
+      "unit": "°C",
+      "min": -30,
+      "max": 170
+    },
+    "power": {
+      "metric_id": "nvidia.board_power",
+      "name": "DCGM_FI_DEV_POWER_USAGE",
+      "unit": "W",
+      "min": 0,
+      "max": 1500
+    },
+    "sm_clock": {
+      "metric_id": "nvidia.sm_clock",
+      "name": "DCGM_FI_DEV_SM_CLOCK",
+      "unit": "MHz",
+      "min": 0,
+      "max": 5000
+    },
+    "mem_clock": {
+      "metric_id": "nvidia.mem_clock",
+      "name": "DCGM_FI_DEV_MEM_CLOCK",
+      "unit": "MHz",
+      "min": 0,
+      "max": 5000
+    },
+    "util": {
+      "metric_id": "nvidia.gpu_util",
+      "name": "DCGM_FI_DEV_GPU_UTIL",
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    "mem_util": {
+      "metric_id": "nvidia.mem_copy_util",
+      "name": "DCGM_FI_DEV_MEM_COPY_UTIL",
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    "fb_used": {
+      "metric_id": "nvidia.fb_used",
+      "name": "DCGM_FI_DEV_FB_USED",
+      "unit": "MiB",
+      "min": 0,
+      "max": 150000
+    },
+    "gpu_limit": {
+      "metric_id": "nvidia.gpu_max_temp",
+      "name": "DCGM_FI_DEV_GPU_MAX_OP_TEMP",
+      "unit": "°C",
+      "min": 1,
+      "max": 150
+    },
+    "memory_limit": {
+      "metric_id": "nvidia.memory_max_temp",
+      "name": "DCGM_FI_DEV_MEM_MAX_OP_TEMP",
+      "unit": "°C",
+      "min": 1,
+      "max": 170
+    },
+    "job_running": {
+      "metric_id": "training.job_context",
+      "name": "GPU_ML_SIM_JOB_RUNNING",
+      "unit": "bool",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "templates": {
+    "thermal": {
+      "name": "旧版 · GPU / HBM 条件温度偏离",
+      "required": [
+        "gpu_temp",
+        "memory_temp",
+        "util",
+        "power"
+      ],
+      "targets": [
+        "gpu_temp",
+        "memory_temp"
+      ],
+      "features": [
+        "util",
+        "power"
+      ],
+      "description": "比较相同负载与功耗下的温度；设备门槛另作参考，不替代硬规则",
+      "kind": "legacy"
+    },
+    "relation": {
+      "name": "旧版 · 功耗 / 时钟关系异常",
+      "required": [
+        "power",
+        "sm_clock",
+        "util"
+      ],
+      "targets": [
+        "power",
+        "sm_clock"
+      ],
+      "features": [
+        "util"
+      ],
+      "description": "比较可比利用率下的功耗与SM时钟关系，正常高负载不直接告警",
+      "kind": "legacy"
+    },
+    "activity": {
+      "name": "旧版 · 运行上下文中的活动下降",
+      "required": [
+        "util",
+        "job_running"
+      ],
+      "targets": [
+        "util"
+      ],
+      "features": [],
+      "description": "仅在明确的运行上下文为1时判断；没有作业阶段信息不判训练失败",
+      "kind": "legacy"
+    },
+    "uni_gpu_temp": {
+      "name": "单指标时序 · gpu_temp",
+      "kind": "univariate",
+      "required": [
+        "gpu_temp"
+      ],
+      "targets": [
+        "gpu_temp"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_memory_temp": {
+      "name": "单指标时序 · memory_temp",
+      "kind": "univariate",
+      "required": [
+        "memory_temp"
+      ],
+      "targets": [
+        "memory_temp"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_power": {
+      "name": "单指标时序 · power",
+      "kind": "univariate",
+      "required": [
+        "power"
+      ],
+      "targets": [
+        "power"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_sm_clock": {
+      "name": "单指标时序 · sm_clock",
+      "kind": "univariate",
+      "required": [
+        "sm_clock"
+      ],
+      "targets": [
+        "sm_clock"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_mem_clock": {
+      "name": "单指标时序 · mem_clock",
+      "kind": "univariate",
+      "required": [
+        "mem_clock"
+      ],
+      "targets": [
+        "mem_clock"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_util": {
+      "name": "单指标时序 · util",
+      "kind": "univariate",
+      "required": [
+        "util"
+      ],
+      "targets": [
+        "util"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_mem_util": {
+      "name": "单指标时序 · mem_util",
+      "kind": "univariate",
+      "required": [
+        "mem_util"
+      ],
+      "targets": [
+        "mem_util"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "uni_fb_used": {
+      "name": "单指标时序 · fb_used",
+      "kind": "univariate",
+      "required": [
+        "fb_used"
+      ],
+      "targets": [
+        "fb_used"
+      ],
+      "features": [],
+      "algorithms": [
+        "temporal_mad",
+        "level_mad"
+      ],
+      "description": "使用过去12个连续源样本预测下一点，残差与历史水平分别校准；不是未来故障概率"
+    },
+    "joint_gpu": {
+      "name": "多指标联合 · 自定义指标组",
+      "kind": "multivariate",
+      "required": [
+        "gpu_temp",
+        "power",
+        "sm_clock",
+        "util"
+      ],
+      "targets": [
+        "gpu_temp",
+        "power",
+        "sm_clock",
+        "util"
+      ],
+      "features": [],
+      "algorithms": [
+        "joint_pca",
+        "joint_iforest"
+      ],
+      "description": "标准化PCA联合行为检测，输出重构参考值、残差及潜空间偏离；不是温度预测"
+    }
+  }
+}

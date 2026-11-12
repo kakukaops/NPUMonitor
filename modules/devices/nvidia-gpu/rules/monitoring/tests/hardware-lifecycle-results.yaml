@@ -1,0 +1,106 @@
+scope: isolated_durable_lifecycle_simulation
+date: '2026-11-09'
+result: passed
+nightingale_version: 9.3.0
+binding_sha256: ec0bcda12c7f098a018c74fa63589859ececa11bd228fb51b18ec53bf4e797cd
+production_admitted: false
+real_h100_tests: not_run
+native_probe:
+  configured_recover_config:
+    judge_type: 1
+  native_no_data_hold_supported: false
+  raw_exit_count: 1
+hardware_rules: 2
+hold_and_clear_cases:
+- scenario: field_missing
+  held_seconds: 38.18
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: invalid
+  held_seconds: 38.21
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: duplicate
+  held_seconds: 38.21
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: stale
+  held_seconds: 38.22
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: scrape_error
+  held_seconds: 38.2
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: empty
+  held_seconds: 38.21
+  active_event_id: 76
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  quality: unjudgeable
+  passed: true
+- scenario: sram_valid_zero_clears
+  passed: true
+  hash: 9e83ed59b89611dbccb6fa83ead7be9a
+- scenario: empty
+  held_seconds: 38.18
+  active_event_id: 78
+  hash: 856acb4a1f732dbc77ed2fb508c762eb
+  quality: unjudgeable
+  passed: true
+- scenario: remap_valid_zero_clears
+  passed: true
+  hash: 856acb4a1f732dbc77ed2fb508c762eb
+restart_and_failure:
+  upstream_query_failure:
+    observed_seconds: 24.1259343624115
+    state:
+      rule_id: nvidia.sram_threshold_exceeded
+      uuid: GPU-BATCH1-0000
+      active: 1
+      quality: query_error
+      last_value: 1.0
+      last_valid_at: 1794231639.1811569
+      last_attempt_at: 1794231654.2553246
+    passed: true
+  adapter_outage_observed_seconds: 20.123
+  nightingale_restart_same_active_event: true
+  persisted_active_event_id: 86
+  persisted_hash: 9e83ed59b89611dbccb6fa83ead7be9a
+  cleared_only_after_valid_zero: true
+report_sha256:
+  native: 7a52fb050ab68065388a8519d93d313b3d4b18a21c797102308e181627ae3276
+  lifecycle: 425200f52f736d23e55b3320056d84b3533f969a00aa36c76e924ec04904d3b9
+  restart: 421e4ba36571669983bdfb0de69eaecc48ee4539eceebc37c6836d778f65d67d
+limitations:
+- experimental_extra_stateful_component
+- real_inventory_and_maintenance_unverified
+- production_backup_migration_capacity_and_permissions_not_accepted
+- administrative_close_and_rule_crud_not_accepted
+- evaluation_notification_health_and_failure_budget_not_accepted
+expression_tests:
+  scope: synthetic_clear_evidence_expressions_only
+  date: '2026-11-09'
+  tool_image: prom/prometheus:v3.2.1
+  cases: 12
+  assertions: 24
+  result: passed
+  fixture_sha256: 7c3e70d2488e6207ef063d23858ec9afc88e25c3cdc030815a62a32839b4c493
+  real_h100_tests: not_run
+unit_tests:
+  cases: 25
+  result: passed
+  scope: simulator_receiver_lifecycle_and_real_HTTP
+probe_cleanup:
+  action: administrative_lab_cleanup_not_hardware_recovery
+  verified: true
+  report_sha256: 62c24366fd64dc40ab2ae55c9ddd3ab2abde07d8402aaeebbeccfcf91a1d6b74

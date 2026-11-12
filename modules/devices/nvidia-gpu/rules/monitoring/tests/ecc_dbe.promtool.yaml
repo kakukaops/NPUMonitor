@@ -1,0 +1,562 @@
+# Synthetic fixtures; expression must match catalog/rules.yaml. No live imports.
+rule_files: []
+evaluation_interval: 30s
+tests:
+- name: normal_zero
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x20
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 450s
+    exp_samples: []
+- name: historical_nonzero_no_increment
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 7+0x20
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+- name: new_increment_and_window_exit
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 90s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 450s
+    exp_samples: []
+- name: reset_only
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 5+0x3 0+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: reset_then_new_error
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 5+0x3 0 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1
+- name: nan_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 NaN 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: positive_infinity_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 +Inf 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: negative_infinity_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 -Inf 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: negative_count_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 -1 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: int64_blank_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 9223372036854775792 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: int64_not_supported_in_window
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 9223372036854775794 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 150s
+    exp_samples: []
+- name: missing_current_stale_marker
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1 stale
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 180s
+    exp_samples: []
+- name: old_sample_without_stale_marker
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1 _ _ _ _ _ _ _ _ _
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 240s
+    exp_samples: []
+- name: one_sample_cannot_estimate
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: '1'
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 0s
+    exp_samples: []
+- name: missing_uuid
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400"}
+    values: 0+0x3 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+- name: missing_cluster
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1+0x12
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples: []
+- name: two_gpu_isolation
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1+0x12
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0001"}
+    values: 0+0x20
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1
+- name: same_uuid_different_clusters
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="fixture-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x3 1+0x12
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="other-cluster",job="fixture-dcgm",instance="fixture-node:9400",UUID="GPU-FIXTURE-0000"}
+    values: 0+0x20
+  promql_expr_test:
+  - expr: 'group by (cluster_id, UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >
+      0)
+
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) < 9223372036854775792)
+
+      and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 0)
+
+      and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""}[5m]) >= 2)
+
+      and ((time() - timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id!="",UUID!=""})) <= 90))'
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="fixture-cluster",UUID="GPU-FIXTURE-0000"}'
+      value: 1

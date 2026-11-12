@@ -1,0 +1,11 @@
+date: '2026-11-11'
+scope: synthetic_review_only
+tool_image: prom/prometheus:v3.2.1
+queries: 10
+cases: 90
+assertions: 90
+result: passed
+nightingale_tests: not_run
+real_h100_tests: not_run
+fixture_sha256: c43ac14493df39f16bb4b4784fd30a6475d49f0dd3448451adf36a4836ceb8ff
+catalog_sha256: ec6c5bb32503bf74a8bc82437a20b208fd88faab45a1af60235143c8ab0e7fbb

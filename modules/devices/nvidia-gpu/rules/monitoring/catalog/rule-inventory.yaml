@@ -1,0 +1,923 @@
+schema_version: 0.1.0
+inventory_version: 0.1.0
+updated_at: '2026-11-09'
+baseline_id: h100-training-r595-20261106
+status: proposed_pending_review
+scope: H100 training, no virtualization; candidate inventories, not deployable rules
+actual_h100_validation: not_run
+rules:
+- rule_id: h100.admission
+  name_zh: 型号与采集基线核验
+  target_ids:
+  - H100-C01
+  - H100-C02
+  classification: required_check
+  priority: P0
+  kind: admission_check
+  metric_ids:
+  - nvidia.gpu_name
+  - nvidia.gpu_uuid
+  - nvidia.driver_version
+  - inventory.hardware_stack
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 全部H100训练部署
+  judgment_proposal: 验证H100形态、R595参考/实际差异、DCGM兼容、标签与字段类型；不通过则显示未准入
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 核验完成不等于GPU健康
+  gap: 现场样本、型号准入、字段映射未实现
+  source_ids:
+  - project.scope
+  - nvidia.driver.r595.notes
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.scrape_failed
+  name_zh: 采集目标不可用
+  target_ids:
+  - H100-C03
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - prometheus.target_up
+  - inventory.expected_devices
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 已知且非维护中的采集目标
+  judgment_proposal: up失败持续条件需匹配采样周期；目标被删除的无序列情况另检查
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 采集恢复，不代表硬件恢复
+  gap: 生产target及维护契约缺失
+  source_ids:
+  - prometheus.up
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.collector_unavailable
+  formal_rule_ids:
+  - nvidia.collector_unavailable
+- rule_id: h100.device_missing
+  name_zh: 物理卡或整组卡指标消失
+  target_ids:
+  - H100-C04
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - inventory.expected_devices
+  - nvidia.gpu_uuid
+  - prometheus.target_up
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 已有预期设备清单或有限发现历史
+  judgment_proposal: 按cluster+UUID比对预期与当前，区分单卡、全卡及整源故障
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 重新上报仅表示可见性恢复
+  gap: 目前只有温度序列实验，未知从未上报设备数
+  source_ids:
+  - project.scope
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.expected_gpu_observation_missing
+  formal_rule_ids:
+  - nvidia.expected_gpu_observation_missing
+- rule_id: h100.field_missing_stale
+  name_zh: 必需指标缺失或陈旧
+  target_ids:
+  - H100-C05
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - prometheus.field_quality
+  - prometheus.target_up
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 经审定的逐设备必需字段
+  judgment_proposal: 按字段依赖和采样周期检查缺失、年龄、重复序列；不使用全查询空替代单卡检查
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 数据质量恢复，不代表硬件恢复
+  gap: 必需字段清单及准确查询待实现
+  source_ids:
+  - prometheus.functions
+  - project.scope
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.required_field_missing
+  formal_rule_ids:
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.duplicate_input_series
+- rule_id: h100.invalid_values
+  name_zh: 无效值或不可判断输入
+  target_ids:
+  - H100-C06
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - prometheus.field_quality
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 逐字段定义有效域及不支持映射
+  judgment_proposal: 检测NaN/Inf/sentinel/权限或不支持，不以统一零值处理
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 有效输入恢复，不代表故障排除
+  gap: Exporter实际特殊值映射未知
+  source_ids:
+  - nvidia.dcgm.blank
+  - project.scope
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.required_input_invalid
+  formal_rule_ids:
+  - nvidia.required_input_invalid
+- rule_id: h100.evaluation_failed
+  name_zh: 数据源查询/评估失败
+  target_ids:
+  - H100-C07
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - platform.evaluation_status
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 平台可获取查询/评估状态
+  judgment_proposal: 检测持续失败、超时和评估延迟；预算/阈值待平台指标核实
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 执行能力恢复
+  gap: 平台状态字段未映射
+  source_ids:
+  - project.scope
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.notification_failed
+  name_zh: 通知失败与积压
+  target_ids:
+  - H100-C07
+  classification: mandatory_alert
+  priority: P0
+  kind: alert
+  metric_ids:
+  - platform.notification_status
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 平台具备发送/重试状态
+  judgment_proposal: 区分发送失败、重试和积压；不能仅依赖业务接收器存活
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 通知链路恢复
+  gap: 故障与积压测试未覆盖
+  source_ids:
+  - project.scope
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.ecc_new_errors
+  name_zh: 不可纠正ECC近期新增
+  target_ids:
+  - H100-C08
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.ecc_dbe_volatile_total
+  - nvidia.dram_dbe_volatile
+  - nvidia.sram_dbe_volatile
+  - nvidia.ecc_mode
+  - nvidia.ecc_pending
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: H100字段支持/统计域已核实，物理卡身份有效
+  judgment_proposal: 分别核对汇总与细分；避免重复计数，使用counter重置语义
+  parameters_status: existing_draft_pending_review
+  expression: null
+  default_policy: disabled
+  end_semantics: 窗口内无新增，不是硬件修复
+  gap: 总量已有告警草案，设备内存和 SRAM 已补诊断查询。现场主告警源择一和夜莺验证仍待完成。
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  card_status: draft_card
+  expression_tests: passed_for_existing_draft_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.ecc_dbe_new_errors
+- rule_id: h100.ecc_history
+  name_zh: 首次发现既往不可纠正记录
+  target_ids:
+  - H100-C08
+  classification: dashboard
+  priority: P1
+  kind: context
+  metric_ids:
+  - nvidia.ecc_dbe_aggregate
+  - nvidia.dram_dbe_aggregate
+  - nvidia.sram_dbe_aggregate
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 持久字段可用
+  judgment_proposal: 非零历史标注/人工复核，不伪装本轮新增，不重复呼叫
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 不通过观察窗口自行清除历史
+  gap: 现场持久字段及基线核实。当前查询展示历史非零，首次发现的事件记录仍待实现。
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  card_status: review_query_written
+  expression_tests: passed_synthetic_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.correctable_trend
+  name_zh: 纠正ECC活动趋势
+  target_ids:
+  - H100-C09
+  classification: dashboard
+  priority: P2
+  kind: dashboard
+  metric_ids:
+  - nvidia.ecc_sbe_volatile
+  - nvidia.ecc_sbe_aggregate
+  - nvidia.dram_sbe_volatile
+  - nvidia.sram_sbe_volatile
+  - nvidia.dram_sbe_aggregate
+  - nvidia.sram_sbe_aggregate
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: H100对应统计域有效
+  judgment_proposal: 先展示趋势及驱动事件上下文，没有H100依据不设置统一SBE故障阈值
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 趋势回落不等于根因消失
+  gap: 现场统计域、持久趋势和驱动 CE 风暴判据待核实。
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  card_status: review_query_written
+  expression_tests: passed_synthetic_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.sram_threshold
+  name_zh: SRAM超阈值状态
+  target_ids:
+  - H100-C10
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.sram_exceeded
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: H100字段支持且bool语义已验证
+  judgment_proposal: 依据官方阈值标志判断，不用DBE总数重建bank级RMA算法
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 标志消失的原因需核实，不能自动宣布维修完成
+  gap: 字段采集、保持和清除行为未知
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.sram_threshold_exceeded
+  formal_rule_ids:
+  - nvidia.sram_threshold_exceeded
+- rule_id: h100.row_remap_failed
+  name_zh: 行重映射失败
+  target_ids:
+  - H100-C11
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.remap_failed
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 字段可用且无特殊值
+  judgment_proposal: 依据失败状态，不以累计重映射非零代替失败
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 状态解除需核实维护原因
+  gap: 真实H100字段映射与清除语义未知
+  source_ids:
+  - nvidia.memory.statistics
+  - nvidia.dcgm.fixed_fields
+  card_status: draft_card
+  expression_tests: passed_for_batch1_synthetic_binding_only
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  formal_rule_id: nvidia.row_remap_failed
+  formal_rule_ids:
+  - nvidia.row_remap_failed
+- rule_id: h100.row_remap_pending
+  name_zh: 行重映射待生效
+  target_ids:
+  - H100-C12
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.remap_pending
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 字段有效并有维护流程
+  judgment_proposal: 待生效状态转维护提示；持续/分级不能推断立即停机
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: pending清除需与生效/维护上下文关联
+  gap: 待生效标志复核查询已测试。维护窗口、持续时间与解除语义待现场审定。
+  source_ids:
+  - nvidia.memory.statistics
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.row_remap_resource
+  name_zh: 重映射资源退化
+  target_ids:
+  - H100-C13
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.remap_bank_max
+  - nvidia.remap_bank_high
+  - nvidia.remap_bank_partial
+  - nvidia.remap_bank_low
+  - nvidia.remap_bank_none
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: H100资源桶可用且官方处置映射审定
+  judgment_proposal: 资源分桶用于退化判断；无依据不设low/none银行数量统一阈值
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 资源状态变化不等于维修完成
+  gap: 尚无逐形态资源判据与字段证据
+  source_ids:
+  - nvidia.memory.statistics
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.row_remap_history
+  name_zh: 重映射记录趋势
+  target_ids:
+  - H100-C13
+  classification: dashboard
+  priority: P2
+  kind: dashboard
+  metric_ids:
+  - nvidia.remapped_uncorrectable
+  - nvidia.remapped_correctable
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 统计域与采集映射明确
+  judgment_proposal: 记录InfoROM活动，不等同当前硬件已完成重映射
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 累计历史不按窗口恢复
+  gap: 字段新旧别名待部署版本核对
+  source_ids:
+  - nvidia.memory.statistics
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.xid_classified
+  name_zh: H100适用XID分类与处置
+  target_ids:
+  - H100-C14
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.xid_last
+  - nvidia.recovery_action
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 逐码审定适用性和处置，实际输入路径可用
+  judgment_proposal: 78项先分类；信息/IGNORE不呼叫，需告警项按影响分级；最近码不做increase
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 码值改变不等于旧故障恢复
+  gap: 78 码已完成处置草案。节点事件和 GPU 重置复核有查询，通知与有序事件关联待实现。
+  source_ids:
+  - nvidia.xid.catalog
+  card_status: review_query_written
+  expression_tests: passed_synthetic_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.xid_event_context
+  name_zh: 有序XID与恢复动作关联
+  target_ids:
+  - H100-C14
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.xid_last
+  - nvidia.recovery_action
+  - diagnostics.results
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 现有输入包含足够有序事件及动作信息
+  judgment_proposal: 关联contained/uncontained与恢复动作；缺事件流时只声明状态观测
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 根据事件/动作语义，不用最近值清零代替修复
+  gap: 仅轮询码值无法保证事件完整性
+  source_ids:
+  - nvidia.xid.catalog
+  - nvidia.memory.recovery
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.inforom_driver
+  name_zh: InfoROM与驱动管理状态
+  target_ids:
+  - H100-C15
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.inforom_valid
+  - nvidia.driver_version
+  - inventory.hardware_stack
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 有效状态可读，已核实支持/不支持字典
+  judgment_proposal: 分别检测有效性/初始化问题和版本不匹配，状态不可读单列
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 管理状态恢复不代表所有硬件正常
+  gap: 驱动状态/初始化输入不一定在已有Prometheus
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  - nvidia.driver.r595.notes
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.gpu_thermal_margin
+  name_zh: GPU热余量不足
+  target_ids:
+  - H100-C16
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.gpu_temp
+  - nvidia.gpu_max_temp
+  - nvidia.gpu_temp_margin
+  - nvidia.slowdown_temp
+  - nvidia.shutdown_temp
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 有效温度及设备门槛/余量可读
+  judgment_proposal: 以设备门槛审定预警余量和持续时间，无门槛则显示缺口，不回退85度
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 温度余量恢复，根因需排查
+  gap: 设备运行门槛差值查询已测试。现场温度门槛采集和预警余量待审定。
+  source_ids:
+  - nvidia.smi
+  - nvidia.dcgm.fixed_fields
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.memory_thermal_margin
+  name_zh: 显存热余量不足
+  target_ids:
+  - H100-C16
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.memory_temp
+  - nvidia.memory_max_temp
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: H100显存温度和对应门槛可读
+  judgment_proposal: 单独核对HBM热风险，不用GPU温度替代显存温度
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 热条件退出，不等于负载或散热根因消失
+  gap: 独立显存运行门槛差值查询已测试。现场 HBM 门槛字段仍待核验。
+  source_ids:
+  - nvidia.smi
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.thermal_throttle
+  name_zh: 持续热降频
+  target_ids:
+  - H100-C17
+  classification: mandatory_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.clock_reasons
+  - nvidia.thermal_violation_ns
+  - nvidia.thermal_throttle_seconds
+  - nvidia.gpu_temp
+  - nvidia.memory_temp
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 状态位或累计时长可读且单位映射完成
+  judgment_proposal: 按热限制原因/时长判断；ns和s字段择一，不重复汇总
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 热限制解除
+  gap: 已测试 SW/HW 热降频位和 ns 累计时长换算。持续性及分级仍待审定。
+  source_ids:
+  - nvidia.smi
+  - nvidia.dcgm.fixed_fields
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.power_limited
+  name_zh: 训练功率限制状态
+  target_ids:
+  - H100-C18
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.board_power
+  - nvidia.board_power_raw
+  - nvidia.requested_power_limit
+  - nvidia.enforced_power_limit
+  - nvidia.clock_reasons
+  - nvidia.power_violation_ns
+  - nvidia.power_throttle_seconds
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 具备预期功率配置/负载上下文
+  judgment_proposal: 正常功率管理仅展示；异常配置或有影响的持续限制才告警
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 限制解除或配置确认，不是硬件维修
+  gap: SW 功率限制位视图已测试。功率预算、配置一致性及训练影响仍待核实。
+  source_ids:
+  - nvidia.smi
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.external_power_brake
+  name_zh: 外部供电限制或不可读
+  target_ids:
+  - H100-C19
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.clock_reasons
+  - nvidia.board_power
+  - host.power_context
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 限制原因明确，根因需要主机输入
+  judgment_proposal: 区分power-brake信号与PSU根因；读失败报数据质量，不臆断PSU损坏
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 信号解除，根因需确认
+  gap: 外部 power-brake 与通用 HW slowdown 分列观察。BMC/PSU 根因输入仍待接入。
+  source_ids:
+  - nvidia.smi
+  - project.scope
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.pcie_errors
+  name_zh: PCIe replay异常新增
+  target_ids:
+  - H100-C20
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.pcie_replay
+  - inventory.hardware_stack
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 硬件/驱动计数口径、基线和阈值审定
+  judgment_proposal: 记录新增趋势并核实告警判据；不套主动诊断插件阈值
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 近期错误条件退出，不表示物理修复
+  gap: 五分钟 replay 新增查询已测试。持续监测阈值与现场驱动口径待核验。
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  - nvidia.diag.pcie
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.pcie_degraded
+  name_zh: 负载下PCIe链路退化
+  target_ids:
+  - H100-C20
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.pcie_max_gen
+  - nvidia.pcie_max_width
+  - nvidia.pcie_gen
+  - nvidia.pcie_width
+  - inventory.expected_links
+  - training.job_context
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 预期配置与工作负载可知
+  judgment_proposal: 按预期链路与负载判断代际/宽度退化；空闲降速不直接故障
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 链路配置恢复
+  gap: 预期链路及训练上下文缺失
+  source_ids:
+  - nvidia.topology
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.nvlink_errors
+  name_zh: Hopper NVLink错误活动
+  target_ids:
+  - H100-C21
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.nvlink_crc
+  - nvidia.nvlink_recovery
+  - nvidia.nvlink_replay
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 实际存在NVLink且Hopper字段可读
+  judgment_proposal: 分别核实CRC/replay/recovery新增和严重度，不搬用其他代际字段
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 近期错误条件退出
+  gap: Hopper CRC/recovery/replay 分列查询已测试。现场拓扑、标签与持续参数待核验。
+  source_ids:
+  - nvidia.exporter.counters
+  - nvidia.topology
+  card_status: review_query_written
+  expression_tests: passed_offline_and_streaming_review
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+  review_document: ../thermal-links-review.md
+- rule_id: h100.nvlink_link_down
+  name_zh: 预期NVLink端口掉链
+  target_ids:
+  - H100-C21
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.nvlink_link_state
+  - inventory.expected_links
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 预期启用链路/对端清单完整
+  judgment_proposal: 只检查预期启用端口；disabled/unsupported分开解释
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 预期链路恢复
+  gap: link实体是否导出与预期拓扑未知
+  source_ids:
+  - nvidia.topology
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.fabric_unhealthy
+  name_zh: Fabric Manager/fabric异常
+  target_ids:
+  - H100-C22
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.fm_status
+  - nvidia.fm_error
+  - nvidia.fabric_health_mask
+  - nvidia.fabric_health_summary
+  - inventory.expected_links
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 实际需要FM/fabric管理且状态输入存在
+  judgment_proposal: 按状态字典区分未就绪、异常和不支持，关联预期拓扑
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: fabric状态恢复
+  gap: 不是所有H100形态都有FM/NVSwitch输入
+  source_ids:
+  - nvidia.nvswitch
+  - nvidia.driver.r595.notes
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.switch_sxid
+  name_zh: 交换机SXid异常
+  target_ids:
+  - H100-C22
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.sxid_fatal
+  - nvidia.sxid_nonfatal
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 系统确有NVSwitch，实体身份及码值语义已核实
+  judgment_proposal: 按SXid码分类，不把856/857当counter
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 码值变化不等于修复
+  gap: 交换机实体和SXid处置表未完成
+  source_ids:
+  - nvidia.nvswitch
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.switch_links
+  name_zh: NVSwitch端口与错误
+  target_ids:
+  - H100-C22
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.switch_link_state
+  - nvidia.switch_link_fatal
+  - nvidia.switch_link_nonfatal
+  - nvidia.switch_link_replay
+  - nvidia.switch_link_recovery
+  - inventory.expected_links
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 实际NVSwitch和预期端口存在
+  judgment_proposal: 核实端口状态、错误值类型和对端，不对未使用端口告警
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 预期端口恢复
+  gap: 782/783类型仍未核实，采集实体未知
+  source_ids:
+  - nvidia.nvswitch
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.switch_thermal
+  name_zh: NVSwitch温度异常
+  target_ids:
+  - H100-C22
+  classification: conditional_alert
+  priority: P1
+  kind: alert
+  metric_ids:
+  - nvidia.switch_temp
+  - nvidia.switch_slowdown_temp
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 实际NVSwitch且温度/门槛可读
+  judgment_proposal: 使用交换机自身门槛，不套GPU阈值
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 热条件退出
+  gap: 门槛与交换机实体采集未知
+  source_ids:
+  - nvidia.nvswitch
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.training_efficiency
+  name_zh: 训练容量与效率策略
+  target_ids:
+  - H100-C23
+  classification: optional_policy
+  priority: P2
+  kind: optional_policy
+  metric_ids:
+  - nvidia.gpu_util
+  - nvidia.mem_copy_util
+  - nvidia.fb_free
+  - nvidia.fb_used
+  - nvidia.gr_engine_ratio
+  - nvidia.sm_active_ratio
+  - nvidia.sm_occupancy_ratio
+  - nvidia.tensor_active_ratio
+  - nvidia.dram_active_ratio
+  - nvidia.pcie_tx_rate
+  - nvidia.pcie_rx_rate
+  - nvidia.sm_clock
+  - nvidia.mem_clock
+  - nvidia.pstate
+  - training.job_context
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 有训练任务分配/阶段、profiling支持和权限
+  judgment_proposal: 看板优先；空闲、偏斜和压力策略按作业审定，不给统一高利用率故障阈值
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 策略条件退出，不等于硬件恢复
+  gap: 现有GPU指标没有完整作业上下文
+  source_ids:
+  - nvidia.profiling
+  - project.scope
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers
+- rule_id: h100.diagnostics_boundary
+  name_zh: 主动诊断/RMA及整机根因
+  target_ids:
+  - H100-C24
+  classification: out_of_scope
+  priority: P2
+  kind: external_boundary
+  metric_ids:
+  - diagnostics.results
+  - host.power_context
+  input_binding: candidate_pool_required_optional_alternatives_pending_review
+  applicability_condition: 明确仅被动指标范围
+  judgment_proposal: 保留外部诊断入口；不自动施加负载、重置设备或模拟RMA结论
+  parameters_status: not_finalized
+  expression: null
+  default_policy: disabled
+  end_semantics: 由授权诊断流程判定
+  gap: 需日志、主动诊断或BMC等外部证据
+  source_ids:
+  - nvidia.triage
+  card_status: not_written
+  expression_tests: not_run
+  nightingale_tests: not_run
+  real_h100_tests: not_run
+  owner: gpu-monitoring-maintainers

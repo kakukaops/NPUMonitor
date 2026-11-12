@@ -1,0 +1,45 @@
+{
+  "source": "existing Nightingale Prometheus",
+  "cases": [
+    {
+      "scenario": "spike",
+      "passed": true,
+      "delay_seconds": 8.01,
+      "score": 1.1083287866944254,
+      "threshold": 1.0931034207157653
+    },
+    {
+      "scenario": "drop",
+      "passed": true,
+      "delay_seconds": 8.01,
+      "score": 1.1013282391045498,
+      "threshold": 1.0931034207157653
+    },
+    {
+      "scenario": "drift",
+      "passed": true,
+      "delay_seconds": 10.02,
+      "score": 1.1383676224597588,
+      "threshold": 1.0931034207157653
+    },
+    {
+      "scenario": "correlation",
+      "passed": true,
+      "delay_seconds": 8.01,
+      "score": 1.1383676224597588,
+      "threshold": 1.0931034207157653
+    }
+  ],
+  "started_at": 1794380143.8567545,
+  "passed": true,
+  "output_series": 3,
+  "completed_at": 1794380215.986825,
+  "unit_tests": {
+    "passed": true,
+    "test_count": 5
+  },
+  "browser_verification": {
+    "performed": false,
+    "reason": "Browser access host unavailable; HTTP, HTML structure and JavaScript syntax checked."
+  }
+}

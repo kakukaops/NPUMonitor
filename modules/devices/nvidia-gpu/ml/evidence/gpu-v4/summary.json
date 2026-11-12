@@ -1,0 +1,30 @@
+{
+  "version": "0.4.0",
+  "scope": "DCGM-only",
+  "implemented_scenarios": [
+    "thermal_relation",
+    "power_clock_relation",
+    "thermal_degradation",
+    "clock_degradation"
+  ],
+  "upper_layer_inputs_required": false,
+  "core_tests": {
+    "passed": 32,
+    "failed": 0,
+    "log": "unit.log"
+  },
+  "online": "online.json",
+  "restart_restore_notification": "final.json",
+  "frontend": {
+    "dom_contract": "passed; seven pages and scenario/profile controls",
+    "log": "frontend.log",
+    "browser_visual_click": "not_run"
+  },
+  "new_scenarios_default_notification_mode": "evidence",
+  "real_hardware_degradation": "not_run",
+  "production_capacity_HA": "not_qualified",
+  "production_admitted": false,
+  "module_layout": "passed; 45 frozen payloads unchanged",
+  "production_time_policy": "relation >=1day; drift >=7days and6h window; engineering defaults not qualification",
+  "laboratory_time_policy": "simulated entities only; >=30min history and1min drift window; not physical aging validation"
+}

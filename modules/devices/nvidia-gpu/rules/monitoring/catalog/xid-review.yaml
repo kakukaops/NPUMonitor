@@ -1,0 +1,1105 @@
+schema_version: 0.1.0
+inventory_version: 0.2.0
+updated_at: '2026-11-11'
+baseline_id: h100-training-r595-20261106
+status: draft_triage_reviewed
+scope: H100 training, no virtualization; candidate inventories, not deployable rules
+actual_h100_validation: not_run
+source_snapshot:
+  source_url: https://docs.nvidia.com/deploy/xid-errors/latest/analyzing-xid-catalog.html
+  retrieved_at: '2026-11-06'
+  sha256: ee085d5e99de9f4524ac6233f787eb59ddc382b55bfbcb29a49dd34982d82be2
+  h100_yes_count: 78
+items:
+- code: 8
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 11
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 13
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: WORKFLOW_XID_13
+  xid_154_linkage: null
+- code: 14
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 25
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 31
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: WORKFLOW_XID_31
+  xid_154_linkage: null
+- code: 32
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 37
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 38
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 39
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 40
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 41
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 43
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 44
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 45
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 检查是否伴随其他事件，孤立出现和伴随出现分别处置。
+  immediate_action: WORKFLOW_XID_45
+  investigatory_action: 'Solo: RESTART_FM Not Solo: IGNORE (follow other Xid)'
+  xid_154_linkage: null
+- code: 46
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 48
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 关联 ECC 计数、内存统计域和恢复动作，避免与同一故障重复呼叫。
+  immediate_action: WORKFLOW_XID_48
+  investigatory_action: WORKFLOW_XID_48
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 54
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: node_incident_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 按目录动作复核。
+  immediate_action: CHECK_MECHANICALS
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 60
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: INVESTIGATE_SW
+  xid_154_linkage: null
+- code: 62
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 63
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: IGNORE
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 64
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 66
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: INVESTIGATE_SW
+  xid_154_linkage: null
+- code: 67
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 68
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 69
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 70
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 71
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 72
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 74
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 结合链路两端和拓扑判断根因。
+  immediate_action: WORKFLOW_NVLINK_ERR
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 75
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 76
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 77
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 78
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: deployment_scope_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 目录标为 vGPU 启动错误，若出现在当前物理卡训练范围应核查部署身份。
+  immediate_action: UPDATE_SWFW
+  investigatory_action: UPDATE_SWFW
+  xid_154_linkage: null
+- code: 79
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: node_incident_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 检查 PCIe 与系统日志，协调隔离节点和后续处置。
+  immediate_action: RESTART_BM
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 80
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CHECK_APP/CUDA
+  xid_154_linkage: null
+- code: 82
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 83
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 84
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 85
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 86
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 88
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 89
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 92
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 94
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 结合受影响作业和伴随事件，先确认是否为主事件。
+  immediate_action: RESTART_APP
+  investigatory_action: IGNORE (sympathetic)
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 95
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 确认受影响范围和主事件后再安排 GPU 恢复。
+  immediate_action: RESET_GPU
+  investigatory_action: IGNORE (sympathetic)
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 96
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 97
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 98
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 99
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 100
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 101
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 102
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 103
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 104
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 105
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: training_job_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 核对受影响作业，按调度和作业策略处置。
+  immediate_action: RESTART_APP
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 106
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: IGNORE
+  xid_154_linkage: null
+- code: 107
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: IGNORE
+  xid_154_linkage: null
+- code: 108
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 目录标为未使用，保留异常观测供核查。
+  immediate_action: IGNORE
+  investigatory_action: XID_137_FLOW
+  xid_154_linkage: null
+- code: 109
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.7; GPU driver R570
+- code: 110
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: INVESTIGATE_SW
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 119
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: INVESTIGATE_SW
+  xid_154_linkage: null
+- code: 120
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: INVESTIGATE_SW
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 136
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: INVESTIGATE_LINK_SI
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 137
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保存 NVLink 远端访问和应用诊断上下文。
+  immediate_action: IGNORE
+  investigatory_action: XID_137_FLOW
+  xid_154_linkage: null
+- code: 140
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 141
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 143
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: CUDA 12.9; GPU driver R575
+- code: 151
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: deployment_scope_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 官方动作为重启 VM。物理卡训练场景需先核实适用处置。
+  immediate_action: RESTART_VM
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 154
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 恢复动作变更摘要需要关联主事件和日志中的动作文本。
+  immediate_action: XID_154
+  investigatory_action: N/A Informational only regarding another Xid
+  xid_154_linkage: null
+- code: 156
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 即时和调查动作不同，需保留完整事件上下文再安排处置。
+  immediate_action: RESET_GPU
+  investigatory_action: IGNORE
+  xid_154_linkage: CUDA 12.7; GPU driver R565
+- code: 157
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: context_only
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 保留供调查和事件关联，默认无独立通知。
+  immediate_action: IGNORE
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: null
+- code: 158
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: gpu_reset_review
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 由运维核查排空条件、恢复动作和维护窗口。
+  immediate_action: RESET_GPU
+  investigatory_action: CONTACT_SUPPORT
+  xid_154_linkage: yes; support with Xid introduction
+- code: 167
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: insufficient_guidance
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 目录即时处置为空，保留观测供人工核对。
+  immediate_action: null
+  investigatory_action: null
+  xid_154_linkage: null
+- code: 168
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: insufficient_guidance
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 目录提示与 ECC 关闭有关，先核对 ECC 模式。
+  immediate_action: null
+  investigatory_action: null
+  xid_154_linkage: null
+- code: 169
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: insufficient_guidance
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 目录即时处置为空，保留观测供人工核对。
+  immediate_action: null
+  investigatory_action: null
+  xid_154_linkage: null
+- code: 171
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 与 XID 48 关联的 DRAM 明细。
+  immediate_action: null
+  investigatory_action: null
+  xid_154_linkage: null
+- code: 172
+  h100_applicability_in_snapshot: 'yes'
+  target_id: H100-C14
+  source_ids:
+  - nvidia.xid.catalog
+  disposition: correlate_events
+  official_action_review: snapshot_reviewed
+  rule_id: null
+  input_completeness: latest_value_only_not_event_complete
+  default_policy: disabled
+  reason: 与 XID 48 关联的 SRAM 明细。
+  immediate_action: null
+  investigatory_action: null
+  xid_154_linkage: null

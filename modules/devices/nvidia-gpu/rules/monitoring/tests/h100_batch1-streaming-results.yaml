@@ -1,0 +1,99 @@
+scope: nightingale_streaming_simulation_only
+date: '2026-11-09'
+catalog_version: batch1-lab-0.1.2
+catalog_sha256: 5bbacc3a492658b0b9245a2c4845152fca1dd8381cf733b6362ea1f02519e968
+report_sha256: 7e75fd6655fb4279d7f906b5667d2c7e5669928e8b94a4265fafbe831836f6fe
+started_at: '2026-11-09T12:31:11.351536+00:00'
+finished_at: '2026-11-09T12:50:19.888593+00:00'
+rules: 8
+cases: 11
+result: passed
+real_h100_tests: not_run
+production_admitted: false
+desired_quality_for_seconds: 60
+native_quality_for_seconds: 90
+eval_interval_seconds: 30
+cases_detail:
+- scenario: sram
+  passed: true
+  firing_after_seconds: 30.1
+  exit_after_seconds: 30.1
+- scenario: remap
+  passed: true
+  firing_after_seconds: 30.1
+  exit_after_seconds: 30.1
+- scenario: transient_invalid
+  passed: true
+  observed_seconds: 100.42
+- scenario: invalid
+  passed: true
+  firing_after_seconds: 78.25
+  exit_after_seconds: 30.11
+- scenario: duplicate
+  passed: true
+  firing_after_seconds: 90.31
+  exit_after_seconds: 30.11
+- scenario: field_missing
+  passed: true
+  firing_after_seconds: 68.26
+  exit_after_seconds: 30.12
+- scenario: device_missing
+  passed: true
+  firing_after_seconds: 90.36
+  exit_after_seconds: 30.12
+- scenario: empty
+  passed: true
+  firing_after_seconds: 90.35
+  exit_after_seconds: 30.13
+- scenario: scrape_error
+  passed: true
+  firing_after_seconds: 90.38
+  exit_after_seconds: 30.13
+- scenario: stale
+  passed: true
+  firing_after_seconds: 80.32
+  exit_after_seconds: 30.13
+- scenario: sram_then_field_missing
+  passed: true
+  interpretation: input_unjudgeable_not_hardware_recovered
+native_trigger_timings:
+- scenario: invalid
+  hash: fc95f9cfcdc4633f56fc2d8ef82a2664
+  native_trigger_after_seconds: 77.794
+- scenario: duplicate
+  hash: bbef4167d7c2de488f97a3341a44c9db
+  native_trigger_after_seconds: 89.433
+- scenario: field_missing
+  hash: 19736a55abe2c8abd0276b12cebfdcd9
+  native_trigger_after_seconds: 68.007
+- scenario: device_missing
+  hash: 7f131665ceace0da675c40bbba445174
+  native_trigger_after_seconds: 89.627
+- scenario: empty
+  hash: deb5cdf8cd9b83f974d3a8d1f544ba18
+  native_trigger_after_seconds: 89.149
+- scenario: empty
+  hash: 7f131665ceace0da675c40bbba445174
+  native_trigger_after_seconds: 89.149
+- scenario: scrape_error
+  hash: fd6deeed00177c1f76ac19dd3eb4d39f
+  native_trigger_after_seconds: 88.672
+- scenario: stale
+  hash: ae8e61f7bec899e8d5ec576a829e596b
+  native_trigger_after_seconds: 79.167
+input_loss_exit_notification:
+  rule_id: batch1_sram_threshold_exceeded
+  UUID: GPU-BATCH1-0000
+  metric_name: DCGM_FI_DEV_SRAM_EXCEEDED
+  cluster_id: batch1-sim-lab
+  hash: a4246bc1401b595ac31876627da6ce14
+  state: condition_exited
+  end_reason: unverified_condition_exit
+  hardware_recovery_confirmed: false
+  raw_nightingale_is_recovered: true
+  message: 检测条件退出，原因待核验；不能据此判断硬件修复
+production_blockers:
+- native_recovered_does_not_mean_hardware_repaired
+- verified_inventory_and_maintenance_binding
+- real_h100_field_software_and_entity_admission
+- evaluation_and_notification_self_health

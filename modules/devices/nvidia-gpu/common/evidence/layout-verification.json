@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-11T09:48:07.033260+00:00",
+  "scope": "Directory ownership and runtime mount migration, not new hardware/model qualification",
+  "passed": true,
+  "moved_files": 278,
+  "frozen_payloads_unchanged": 45,
+  "relative_common_views": 10,
+  "promtool": {
+    "passed": true,
+    "files": [
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/ecc-xid-review.promtool.yaml",
+        "cases": 90,
+        "assertions": 90
+      },
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/ecc_dbe.promtool.yaml",
+        "cases": 18,
+        "assertions": 31
+      },
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/h100-training.promtool.yaml",
+        "cases": 44,
+        "assertions": 155
+      },
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/h100_batch1.promtool.yaml",
+        "cases": 49,
+        "assertions": 392
+      },
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/hardware-lifecycle.promtool.yaml",
+        "cases": 12,
+        "assertions": 24
+      },
+      {
+        "path": "modules/gpu-monitoring-rules/monitoring/tests/thermal-links-review.promtool.yaml",
+        "cases": 138,
+        "assertions": 138
+      }
+    ],
+    "total_cases": 351,
+    "total_assertions": 830
+  },
+  "rule_unit_tests": {
+    "passed": true,
+    "count": 27
+  },
+  "ml_unit_tests": {
+    "passed": true,
+    "count": 5
+  },
+  "catalog_and_renderer_checks": {
+    "passed": true,
+    "formal_consistency_assertions": 675,
+    "comprehensive_documents": 114
+  },
+  "legacy_command_entrypoint": {
+    "lab_verify": "passed",
+    "test_monitoring": "passed",
+    "anomaly_demo": "forwarding and bash syntax validated"
+  },
+  "runtime": {
+    "services": [
+      {
+        "service": "comprehensive-lifecycle",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": [
+          "modules/gpu-monitoring-rules/lab",
+          "modules/gpu-monitoring-rules/rules"
+        ]
+      },
+      {
+        "service": "comprehensive-source",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": [
+          "modules/gpu-monitoring-rules/lab",
+          "modules/gpu-monitoring-rules/rules"
+        ]
+      },
+      {
+        "service": "gpu-simulator",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": [
+          "modules/gpu-monitoring-rules/lab"
+        ]
+      },
+      {
+        "service": "ml-anomaly-demo",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": []
+      },
+      {
+        "service": "nightingale",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": []
+      },
+      {
+        "service": "notification-receiver",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": [
+          "modules/gpu-monitoring-rules/lab"
+        ]
+      },
+      {
+        "service": "prometheus",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": []
+      },
+      {
+        "service": "recovery-adapter",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": [
+          "modules/gpu-monitoring-rules/lab",
+          "modules/gpu-monitoring-rules/rules"
+        ]
+      },
+      {
+        "service": "redis",
+        "state": "running",
+        "health": "healthy",
+        "host_code_mounts": []
+      }
+    ],
+    "prometheus_targets": [
+      {
+        "job": "gpu-simulator",
+        "health": "up"
+      },
+      {
+        "job": "h100-batch1-simulator",
+        "health": "up"
+      },
+      {
+        "job": "h100-comprehensive",
+        "health": "up"
+      },
+      {
+        "job": "ml-anomaly-demo",
+        "health": "up"
+      },
+      {
+        "job": "nightingale-self",
+        "health": "up"
+      },
+      {
+        "job": "prometheus",
+        "health": "up"
+      }
+    ],
+    "volumes_preserved": true,
+    "runtime_configuration": "same compose project, ports, service names and named volumes; updated module bind sources only"
+  },
+  "limitations": [
+    "No new real-H100 validation",
+    "No browser visual revalidation for unchanged page behavior",
+    "No full 56-scenario fault injection rerun; immutable fixtures, unit/contract suites and live readiness checked",
+    "GPU-specific ML implementation remains planned; relocated demo is the existing generic prototype"
+  ]
+}

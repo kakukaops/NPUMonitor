@@ -1,0 +1,116 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H100训练规则综合演示</title>
+<style>
+body{font:15px/1.6 system-ui,sans-serif;background:#f4f6f8;color:#172b42;margin:0}main{max-width:1300px;margin:auto;padding:28px}h1{margin:0;font-size:27px}h2{font-size:18px;margin:20px 0 10px}p{margin:6px 0;color:#586a7d}header{display:flex;justify-content:space-between;align-items:center;gap:20px}a{color:#2464ae}section{background:white;border:1px solid #dbe2e9;border-radius:10px;padding:18px;margin-top:18px}.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}select,button{font:inherit;padding:8px 13px;border:1px solid #bdc9d5;border-radius:6px;background:white}button{cursor:pointer;background:#1d5b99;color:white;border-color:#1d5b99}button.secondary{background:#fff;color:#1d5b99}.status{padding:7px 12px;background:#eaf1f8;border-radius:5px}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e5ebf0;vertical-align:top}th{color:#5c6f80;font-weight:600}.critical{color:#bd2d32;font-weight:600}.unknown{color:#ad6a11}.good{color:#19764f}.small{font-size:12px;color:#6e7f8d}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.scroll{max-height:390px;overflow:auto}.error{color:#b32731}#live{font-size:13px}.pill{display:inline-block;background:#eff4f8;padding:2px 7px;border-radius:4px}details summary{cursor:pointer}code{font-size:12px;overflow-wrap:anywhere}@media(max-width:800px){.grid{grid-template-columns:1fr}header{display:block}main{padding:14px}}</style>
+<main><header><div><h1>H100训练规则综合演示</h1><p>模拟GPU、交换机与链路输入 · 夜莺实际事件和本地通知</p></div><div><a href="http://localhost:17000" target="_blank">打开夜莺</a><div id="live">正在连接</div></div></header>
+<section><div class="bar"><select id="scenario"></select><button id="apply">注入场景</button><button class="secondary" id="normal">正常输入</button><button class="secondary" id="recover">恢复并确认</button></div><p id="description">触发需要等待持续时间。码值事件需恢复确认，缺数期间已有硬件异常保持活动。</p><div class="bar" id="summary"></div><button id="autoplay">一键演示：高温 → 缺数保持 → 恢复</button><p id="demoStep">准备就绪，约需一分钟。演示使用真实夜莺事件和通知。</p><div id="demoProof"></div><div class="error" id="error"></div></section>
+<div class="grid"><section><h2>当前夜莺活动事件</h2><div class="scroll"><table><thead><tr><th>规则</th><th>对象</th><th>事件ID</th></tr></thead><tbody id="alerts"></tbody></table></div></section><section><h2>未解除状态与输入质量</h2><div class="scroll"><table><thead><tr><th>检测目标</th><th>对象</th><th>质量</th></tr></thead><tbody id="states"></tbody></table></div><p class="small">未知输入保持已确认异常。解除仅表示对应检测条件退出。</p></section></div>
+<div class="grid"><section><h2>最近结束事件</h2><div class="scroll"><table><thead><tr><th>规则</th><th>对象</th><th>结束时间</th></tr></thead><tbody id="history"></tbody></table></div></section><section><h2>主通知通道实际投递</h2><div class="scroll"><table><thead><tr><th>时间</th><th>结果</th><th>事件</th></tr></thead><tbody id="notifications"></tbody></table></div><h2>备用通道实际接收</h2><div class="scroll"><table><thead><tr><th>时间</th><th>状态</th><th>事件</th></tr></thead><tbody id="backup"></tbody></table></div></section></div>
+<section><h2>诊断与上下文</h2><button id="viewsButton" class="secondary">查询25个只读诊断视图</button><p class="small">读取实际Prometheus求值；空结果需结合输入质量解释。</p><div class="scroll"><table><thead><tr><th>视图</th><th>状态</th><th>对象与数值</th></tr></thead><tbody id="views"></tbody></table></div></section><section><h2>演示顺序</h2><p>先注入GPU温度异常，观察持续条件满足后的事件。再切换“设备观测消失”，核对同一事件ID保持活动。点击“恢复并确认”结束。随后分别查看链路掉线、Fabric Manager异常、查询失败和通知失败。</p><details><summary>本次参数与边界</summary><p>所有对象均为SIMULATED。温度门槛来自模拟设备输入。硬件条件默认持续10秒，计数活动持续5秒，计数演示窗口30秒。生产候选窗口和持续时间需要真实H100及现场策略验收。</p></details></section></main>
+<script>
+const titles={sram:'SRAM超阈值',remap_failed:'行重映射失败',remap_pending:'行重映射待维护',gpu_thermal:'GPU温度达到门槛',memory_thermal:'HBM温度达到门槛',switch_thermal:'NVSwitch温度达到门槛',sw_thermal:'软件热降频',hw_thermal:'硬件热降频',power_cap:'功率限制',power_brake:'外部power-brake',hw_slowdown:'HW slowdown',sync_boost:'Sync boost',clock_unknown:'未知时钟位',ecc_new:'ECC近期新增',thermal_time:'热限制时长增加',pcie_replay:'PCIe replay新增',nvlink_crc:'NVLink CRC新增',nvlink_recovery:'NVLink recovery新增',nvlink_replay:'NVLink replay新增',switch_replay:'交换机端口replay',switch_recovery:'交换机端口recovery',xid_node:'XID79节点事件',xid_reset:'XID重置复核',xid_app:'XID作业复核',xid_context:'XID上下文码45',xid_unknown:'未知XID码',xid_scope:'XID部署范围复核',sxid_fatal:'fatal SXid',sxid_nonfatal:'nonfatal SXid',gpu_link_down:'预期GPU链路掉线',switch_link_down:'预期交换机端口掉线',pcie_degraded:'负载下PCIe退化',fabric_manager:'Fabric Manager失败',fabric_capability:'Fabric能力不支持',fabric_health:'Fabric不健康',field_missing:'必需字段缺失',entity_missing:'设备观测消失',input_invalid:'NaN无效输入',input_stale:'陈旧样本',input_duplicate:'重复输入',collector_down:'采集HTTP503',query_failure:'夜莺查询失败',evaluation_stall:'评估调度间隔异常',notification_failure:'主通知通道失败',unused_port:'未使用端口',missing_link:'预期端口输入消失',thermal_transient:'短暂高温',thermal_hysteresis:'热回差区间',hbm_limit_missing:'HBM门槛缺失',engine_metrics_failure:'夜莺自监控抓取503',thermal_pending_missing:'短暂高温后缺数',idle_pcie:'空闲PCIe降速',switch_unknown:'交换机端口未知状态',switch_missing:'交换机观测消失',normal:'正常输入',recover:'恢复并确认'};
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tag=e=>e.tags_map||Object.fromEntries((e.tags||[]).map(t=>{let i=t.indexOf('=');return[t.slice(0,i),t.slice(i+1)]}));
+const subject=e=>{let t=tag(e);return t.entity_id||t.UUID||t.switch_id||t.rule_id||'监控平台'};
+const rows=(id,data,fn)=>document.getElementById(id).innerHTML=data.length?data.map(fn).join(''):'<tr><td colspan="3" class="good">暂无记录</td></tr>';
+let configured=false,busy=false,polling=false;
+const qualityNames={valid:'有效',unknown:'未知',missing:'缺失',invalid:'无效',unjudgeable:'不可判定',query_error:'查询错误',stale:'陈旧'};
+async function refresh(){
+ if(polling)return;
+ polling=true;
+ try{
+  const response=await fetch('/api/status');
+  if(!response.ok)throw Error('status unavailable');
+  const s=await response.json();
+  if(!configured){
+   document.querySelector('#scenario').innerHTML=s.scenarios.map(v=>'<option value="'+esc(v)+'">'+esc(titles[v]||v)+'</option>').join('');
+   configured=true;
+  }
+  document.querySelector('#live').textContent='已连接 · '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  document.querySelector('#summary').innerHTML='<span class="status">场景 '+esc(titles[s.model.scenario]||s.model.scenario)+'</span>'+ 
+   '<span class="status">活动事件 '+(s.api_error?'未知':s.alerts.length)+'</span>'+ 
+   '<span class="status">主通道成功 '+s.notification_counts.delivered+'</span>'+ 
+   '<span class="status">主通道失败 '+s.notification_counts.failed+'</span>'+ 
+   '<span class="status">夜莺 '+(s.watchdog.engine_up?'可达':'不可达')+'</span>';
+  document.querySelector('#error').textContent=s.api_error||'';
+  // A failed event API retains the last confirmed rows; absence is never inferred.
+  if(!s.api_error){
+   rows('alerts',s.alerts,e=>'<tr><td class="'+(e.severity===3?'unknown':'critical')+'">'+esc(e.rule_name)+'</td><td>'+esc(subject(e))+'</td><td>'+esc(e.id)+'</td></tr>');
+   rows('history',s.history.filter(e=>e.is_recovered).slice(0,15),e=>'<tr><td>'+esc(e.rule_name)+'</td><td>'+esc(subject(e))+'</td><td>'+new Date(e.recover_time*1000).toLocaleTimeString('zh-CN',{hour12:false})+'</td></tr>');
+  }
+  if(s.lifecycle.unavailable){
+   document.querySelector('#states').innerHTML='<tr><td colspan="3" class="unknown">状态服务不可用，保留夜莺已确认事件</td></tr>';
+  }else{
+   const pending=s.lifecycle.pending||[];
+   const states=s.lifecycle.states.filter(e=>e.active||pending.some(p=>p.rule_id===e.rule_id&&p.uuid===e.uuid));
+   rows('states',states,e=>'<tr><td>'+esc(s.rule_titles[e.rule_id]||e.rule_id)+(e.active?'':'（持续确认中）')+'</td><td>'+esc(e.uuid)+'</td><td class="'+(e.quality==='valid'?'good':'unknown')+'">'+esc(qualityNames[e.quality]||e.quality)+'</td></tr>');
+  }
+  rows('notifications',s.notifications.slice().reverse().slice(0,15),r=>'<tr><td>'+new Date(r.received_at).toLocaleTimeString('zh-CN',{hour12:false})+'</td><td class="'+(r.payload.status==='delivered'?'good':'critical')+'">'+(r.payload.status==='delivered'?'成功':'失败')+'</td><td>'+esc((r.payload.events||[]).map(e=>e.rule_name+(e.is_recovered?' · 解除':' · 触发')).join('、'))+'</td></tr>');
+  rows('backup',s.backup_notifications.slice().reverse(),r=>'<tr><td>'+new Date(r.received_at).toLocaleTimeString('zh-CN',{hour12:false})+'</td><td class="good">已接收</td><td>'+esc(r.events.map(e=>e.rule_name+(e.is_recovered?' · 解除':' · 触发')).join('、'))+'</td></tr>');
+ }catch(e){
+  document.querySelector('#live').textContent='连接中断';
+  document.querySelector('#error').textContent='演示服务连接暂不可用；表格保留上次确认结果。';
+ }finally{polling=false;}
+}
+async function select(name){if(busy)return;busy=true;try{let r=await fetch('/api/scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});if(!r.ok)throw Error();await refresh()}catch(e){document.querySelector('#error').textContent='场景切换失败，请检查服务状态'}finally{busy=false}}
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function waitStatus(predicate,seconds=70){
+ const end=Date.now()+seconds*1000;
+ while(Date.now()<end){
+  const response=await fetch('/api/status');
+  if(!response.ok)throw Error('状态查询失败');
+  const state=await response.json();
+  if(state.api_error)throw Error(state.api_error);
+  if(predicate(state))return state;
+  await pause(1000);
+ }
+ throw Error('等待实际事件超时');
+}
+window.demoResult=null;
+document.querySelector('#autoplay').onclick=async()=>{
+ const controls=[...document.querySelectorAll('button,select')];
+ controls.forEach(c=>c.disabled=true);
+ const step=document.querySelector('#demoStep');
+ const records=[];
+ const show=(phase,message)=>{window.demoPhase=phase;step.textContent=message;};
+ try{
+  show('baseline','1/4 正在确认正常输入');
+  await select('recover');
+  await waitStatus(s=>s.alerts.length===0&&s.lifecycle.states.every(r=>r.quality==='valid'&&!r.active));
+  await refresh();await pause(5000);
+  show('confirming','2/4 注入GPU高温，等待持续条件与夜莺事件');
+  await select('gpu_thermal');
+  let state=await waitStatus(s=>s.alerts.some(e=>e.rule_id===s.runtime.rule_ids['training.gpu_thermal']));
+  const incident=state.alerts.find(e=>e.rule_id===state.runtime.rule_ids['training.gpu_thermal']);
+  records.push({step:'高温触发',event_id:incident.id,hash:incident.hash});
+  show('active','高温已触发：事件ID '+incident.id+'。现在可核对活动事件与投递记录。');
+  await refresh();await pause(8000);
+  await select('entity_missing');
+  state=await waitStatus(s=>s.alerts.some(e=>e.rule_id===s.runtime.rule_ids['training.entity_missing']));
+  const held=state.alerts.find(e=>e.rule_id===state.runtime.rule_ids['training.gpu_thermal']);
+  if(!held||held.id!==incident.id||held.hash!==incident.hash)throw Error('缺数后事件身份发生变化');
+  records.push({step:'缺数保持',event_id:held.id,hash:held.hash});
+  show('missing','3/4 设备观测已消失，高温仍保持同一事件ID '+held.id+'。');
+  await refresh();await pause(8000);
+  await select('recover');
+  state=await waitStatus(s=>s.alerts.length===0&&s.history.some(e=>e.hash===incident.hash&&e.trigger_time===incident.trigger_time&&e.is_recovered));
+  const recovery=state.history.find(e=>e.hash===incident.hash&&e.trigger_time===incident.trigger_time&&e.is_recovered);
+  records.push({step:'有效恢复',event_id:incident.id,recovery_event_id:recovery.id,hash:incident.hash,recovered:true});
+  window.demoResult={passed:true,records};
+  show('recovered','4/4 已确认有效恢复，同一事件已结束。演示通过。');
+  document.querySelector('#demoProof').innerHTML='<table><tr><th>阶段</th><th>事件ID</th><th>结果</th></tr>'+records.map(r=>'<tr><td>'+esc(r.step)+'</td><td>'+r.event_id+'</td><td class="good">通过</td></tr>').join('')+'</table>';
+  await refresh();
+ }catch(e){
+  window.demoResult={passed:false,error:e.message,records};
+  show('failed','演示未通过：'+e.message+'。请查看当前事件与服务状态。');
+ }finally{controls.forEach(c=>c.disabled=false);}
+};
+document.querySelector('#viewsButton').onclick=async()=>{
+ const button=document.querySelector('#viewsButton');button.disabled=true;
+ try{
+  const response=await fetch('/api/views');if(!response.ok)throw Error();
+  const data=await response.json();
+  rows('views',data.views,v=>'<tr><td>'+esc(v.query_id)+'</td><td class="'+(v.status==='success'?'good':'critical')+'">'+(v.status==='success'?'求值成功':'查询失败')+'</td><td>'+esc(v.result.length?v.result.map(r=>(r.metric.UUID||r.metric.entity_id||'对象')+': '+r.value[1]).join('；'):'空结果（未匹配活动或输入不足）')+'</td></tr>');
+ }catch(e){document.querySelector('#error').textContent='诊断查询未完成';}finally{button.disabled=false;}
+};
+document.querySelector('#apply').onclick=()=>select(document.querySelector('#scenario').value);document.querySelector('#normal').onclick=()=>select('normal');document.querySelector('#recover').onclick=()=>select('recover');refresh();setInterval(refresh,3000);
+</script></html>

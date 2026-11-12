@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "records": [
+    {
+      "step": "高温触发",
+      "event_id": 217,
+      "hash": "b21bd1ec11a8d724c4826f2501c7c174"
+    },
+    {
+      "step": "缺数保持",
+      "event_id": 217,
+      "hash": "b21bd1ec11a8d724c4826f2501c7c174"
+    },
+    {
+      "step": "有效恢复",
+      "event_id": 217,
+      "recovery_event_id": 220,
+      "hash": "b21bd1ec11a8d724c4826f2501c7c174",
+      "recovered": true
+    }
+  ],
+  "browser_exceptions": [],
+  "notification_proof": {
+    "firing_event_id": 217,
+    "recovery_event_id": 220,
+    "hash": "b21bd1ec11a8d724c4826f2501c7c174",
+    "trigger_time": 1794365638,
+    "delivered": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "version": "0.3.0",
+  "core_tests": {
+    "passed": 23,
+    "failed": 0
+  },
+  "online": "online.json",
+  "restart_restore_notification": "final.json",
+  "frontend_dom_contract": "passed; actual v3 API payload, capability-based legends and dialogs",
+  "browser_visual_click": "not_run",
+  "module_layout": "passed; 45 frozen payloads unchanged",
+  "merlion_runtime_dependency": false,
+  "real_GPU_effectiveness": "not_run",
+  "production_capacity_HA": "not_qualified",
+  "production_admitted": false
+}

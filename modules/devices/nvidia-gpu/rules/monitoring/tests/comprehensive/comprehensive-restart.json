@@ -1,0 +1,25 @@
+{
+  "scope": "simulated_component_restart",
+  "passed": true,
+  "cases": [
+    {
+      "scenario": "adapter_stop_restart_with_active_missing_input",
+      "passed": true,
+      "derivative_query_alerts_suppressed": true,
+      "same_event_identity": true,
+      "backup_firing_and_recovery": true
+    }
+  ],
+  "hardware_event_id": 207,
+  "hardware_hash": "7854170a304eb75ab325a376b86d1f91",
+  "component_event_id": 209,
+  "verified_rule_ids": [
+    "platform_adapter_down"
+  ],
+  "component_notification_proof": {
+    "firing_event_id": 209,
+    "recovery_event_id": 210,
+    "hash": "4d581dc5db2d92540d62bd6a9c2aed47",
+    "trigger_time": 1794365466
+  }
+}

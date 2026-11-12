@@ -1,0 +1,56 @@
+{
+  "scope": "H100_training_comprehensive_simulation",
+  "selection": "platform",
+  "passed": true,
+  "catalog_sha256": "572c4d8a0eda1ac54b27bf475712440f4a46bc7124576bb507555dbd0dac8418",
+  "cases": [
+    {
+      "scenario": "query_failure",
+      "rule_id": 59,
+      "started_at": 1794364948.9204285,
+      "passed": true,
+      "active_event_id": 183,
+      "hash": "d262a85e4ddd3f1685b841a0c441d250",
+      "firing_after_seconds": 12.032,
+      "exit_after_seconds": 5.044,
+      "native_trigger_after_seconds": 11.08
+    },
+    {
+      "scenario": "evaluation_stall",
+      "rule_id": 60,
+      "started_at": 1794364966.0333674,
+      "passed": true,
+      "active_event_id": 185,
+      "hash": "774fad028ba85ad5e23864b36751bce2",
+      "firing_after_seconds": 25.165,
+      "exit_after_seconds": 15.184,
+      "native_trigger_after_seconds": 24.967
+    },
+    {
+      "scenario": "notification_failure",
+      "rule_id": 61,
+      "started_at": 1794365006.4196458,
+      "passed": true,
+      "active_event_id": 188,
+      "hash": "37731d058178ab0a1a864b323963003e",
+      "firing_after_seconds": 5.023,
+      "exit_after_seconds": 30.083,
+      "native_trigger_after_seconds": 4.58
+    },
+    {
+      "scenario": "engine_metrics_failure",
+      "rule_id": 63,
+      "started_at": 1794365041.5630949,
+      "passed": true,
+      "active_event_id": 191,
+      "hash": "7998be0a51f40ebc3b487c9b9236cfe4",
+      "firing_after_seconds": 10.03,
+      "exit_after_seconds": 5.043,
+      "native_trigger_after_seconds": 9.437
+    }
+  ],
+  "started_at": 1794364948.886673,
+  "nightingale_version": "9.3.0",
+  "real_h100_tests": "not_run",
+  "finished_at": 1794365056.6720366
+}

@@ -1,0 +1,16 @@
+{
+  "version": "v2",
+  "core_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "online": "online.json",
+  "restart": "restart.json",
+  "notification_and_ready": "final.json",
+  "frontend_contract": "passed including batch dialog and algorithm filters; actual v2 API payload",
+  "browser_visual_click": "not_run",
+  "module_layout": "passed; 45 frozen payloads unchanged",
+  "real_GPU": "not_run",
+  "production_capacity_HA": "not_qualified",
+  "production_admitted": false
+}

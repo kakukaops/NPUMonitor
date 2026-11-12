@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "scope": "real image replacement and container restart",
+  "models_preserved": 3,
+  "custom_schema_preserved": true,
+  "windows_rebuilt_from_prometheus": true,
+  "recorded_at": 1794449655.7070272
+}

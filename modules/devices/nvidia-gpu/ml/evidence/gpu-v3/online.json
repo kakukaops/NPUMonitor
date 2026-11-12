@@ -1,0 +1,52 @@
+{
+  "scope": "v3 pipeline / actual Prometheus and Nightingale / simulated GPU",
+  "production_admitted": false,
+  "cases": [
+    {
+      "name": "train-and-independent-postprocess-versions",
+      "passed": true,
+      "base": "daf226e1da7f4aa7ab8a0b89cbc1e973",
+      "threshold_version": "ee570c6030924de19cde9deadfcd31ab",
+      "recalibration_version": "37edeb754fbf4988850daa2acd7c79a6",
+      "samples": 884
+    },
+    {
+      "name": "online-units-provenance-labelled-replay",
+      "passed": true,
+      "scored_points": 126,
+      "normal_labelled_alert_rate": 0.0
+    },
+    {
+      "name": "same-snapshot-candidate-comparison-and-score-only",
+      "passed": true,
+      "comparison": "4752b42d03454e80abc2876b266ee6a9",
+      "models": [
+        "1aaf4f95b02048978a5c5dd9f1aca8b7",
+        "18d388344964460a9dbf86263e6ceaae"
+      ]
+    },
+    {
+      "name": "same-source-frozen-ensemble-and-independent-threshold",
+      "passed": true,
+      "ensemble": "43438d128c4a4b848db67e9450cb258f",
+      "postprocess": "f233d48ec201463a8fc76af4e32e95cd"
+    },
+    {
+      "name": "score-only-shadow-does-not-switch-primary",
+      "passed": true
+    },
+    {
+      "name": "v3-native-nightingale-event",
+      "passed": true,
+      "event_id": 408,
+      "rule_id": 76,
+      "hash": "43fe0ca724a9d332764dc6a1d5fb85a1"
+    },
+    {
+      "name": "legacy-online-version-rollback-and-v3-publish",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "recorded_at": 1794452176.0262458
+}

@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 2s
+scrape_configs:
+  - job_name: dcgm
+    track_timestamps_staleness: true
+    static_configs:
+      - targets: ['review-simulator:9412']
+        labels:
+          cluster_id: fixture-cluster
+          instance: fixture-node:9400

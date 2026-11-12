@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "version": "0.3.0",
+  "scope": "real image/container replacement; actual backup restore; simulated GPU",
+  "model_pointers_preserved": 13,
+  "pipeline_components_preserved": true,
+  "v3_artifacts_restored_and_scored": 12,
+  "ready": true,
+  "notification_deliveries": [
+    {
+      "id": 399,
+      "rule_id": 76,
+      "hash": "43fe0ca724a9d332764dc6a1d5fb85a1",
+      "trigger_time": 1794451675,
+      "is_recovered": false
+    },
+    {
+      "id": 402,
+      "rule_id": 76,
+      "hash": "43fe0ca724a9d332764dc6a1d5fb85a1",
+      "trigger_time": 1794451675,
+      "is_recovered": true
+    },
+    {
+      "id": 408,
+      "rule_id": 76,
+      "hash": "43fe0ca724a9d332764dc6a1d5fb85a1",
+      "trigger_time": 1794452120,
+      "is_recovered": false
+    },
+    {
+      "id": 412,
+      "rule_id": 76,
+      "hash": "43fe0ca724a9d332764dc6a1d5fb85a1",
+      "trigger_time": 1794452120,
+      "is_recovered": true
+    }
+  ],
+  "active_v3_conditions": 0,
+  "production_admitted": false,
+  "recorded_at": 1794452365.5143917
+}

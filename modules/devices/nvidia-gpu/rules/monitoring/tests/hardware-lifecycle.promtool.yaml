@@ -1,0 +1,1297 @@
+rule_files: []
+evaluation_interval: 30s
+tests:
+- name: valid_zero_provides_clear_evidence
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0000",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0000",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: valid_one_provides_firing_evidence
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0000",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 1
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0000",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 1
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: nan_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: NaN+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: NaN+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: infinity_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: Inf+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: Inf+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: invalid_enum_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 2+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 2+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: negative_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: -1+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: -1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: blank_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 9223372036854775792+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 9223372036854775792+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: missing_flag_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: old_flag_zero_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0 _ _ _ _ _ _ _ _
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0 _ _ _ _ _ _ _ _
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: duplicate_zero_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 1+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000",replica="other"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000",replica="other"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_SRAM_EXCEEDED"}'
+      value: 0
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples:
+    - labels: '{cluster_id="batch1-sim-lab",UUID="GPU-BATCH1-0001",metric_name="DCGM_FI_DEV_ROW_REMAP_FAILURE"}'
+      value: 0
+- name: failed_collector_cannot_clear
+  interval: 30s
+  input_series:
+  - series: up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples: []
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples: []
+- name: missing_collector_cannot_clear
+  interval: 30s
+  input_series:
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0000"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 55+0x8
+  - series: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  - series: DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator",instance="gpu-simulator:9400",UUID="GPU-BATCH1-0001"}
+    values: 0+0x8
+  promql_expr_test:
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples: []
+  - expr: max by (cluster_id,UUID,metric_name) (((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 1) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))) or ((((label_replace(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") == 0) and (((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) >= 0) and ((time() - label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*")) <= 90))) and on(cluster_id,UUID,job,instance) (label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0000", "__name__", ".*") or label_replace(label_replace(label_replace(label_replace(vector(1),
+      "cluster_id", "batch1-sim-lab", "__name__", ".*"), "job", "h100-batch1-simulator", "__name__", ".*"), "instance", "gpu-simulator:9400",
+      "__name__", ".*"), "UUID", "GPU-BATCH1-0001", "__name__", ".*")) and on(cluster_id,UUID,metric_name) ((count by(cluster_id,UUID,metric_name)
+      (label_replace({__name__=~"DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ECC_DBE_VOL_TOTAL|DCGM_FI_DEV_SRAM_EXCEEDED|DCGM_FI_DEV_ROW_REMAP_FAILURE",cluster_id="batch1-sim-lab",job="h100-batch1-simulator"},
+      "metric_name", "$1", "__name__", "(.+)") and (((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) >= 0) and ((time() - (label_replace(timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace(timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*"))) <= 90)))) == 1)) and on(cluster_id,job,instance)
+      ((up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"} == 1) and (((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"}))
+      >= 0) and ((time() - timestamp(up{cluster_id="batch1-sim-lab",job="h100-batch1-simulator"})) <= 90)))))
+    eval_time: 120s
+    exp_samples: []

@@ -1,0 +1,249 @@
+schema_version: 0.2.0
+sources:
+- source_id: nvidia.exporter.counters
+  title: NVIDIA DCGM Exporter counters configuration
+  kind: official_source
+  url: https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv
+  version: fafd151148052628061a80450b4ee037a5fa0c3c
+  locator: line 57, DCGM_FI_DEV_ECC_DBE_VOL_TOTAL
+  checked_at: '2026-11-06'
+  supports:
+  - counter_type
+  - field_commented_out_in_this_configuration
+  reuse: reference_only_no_source_file_copied
+- source_id: nvidia.dcgm.fields
+  title: DCGM Field Identifiers
+  kind: official_documentation
+  url: https://docs.nvidia.com/datacenter/dcgm/3.0/dcgm-api/dcgm-api-field-ids.html
+  version: 3.0 URL path; page header says Latest
+  locator: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL, field ID 311
+  checked_at: '2026-11-06'
+  supports:
+  - field_name
+  - field_id
+  - total_double_bit_volatile_ecc_semantics
+  limitation: versioned_path_has_rolling_header_verify_again_for_target_release
+  reuse: reference_only
+- source_id: nvidia.nvml.ecc
+  title: NVML R550 Device Enums
+  kind: official_documentation
+  url: https://docs.nvidia.com/deploy/archive/R550/nvml-api/group__nvmlDeviceEnumvs.html
+  version: R550, documentation updated 2024-03-12
+  locator: nvmlEccCounterType_t and NVML_DOUBLE_BIT_ECC
+  checked_at: '2026-11-06'
+  supports:
+  - volatile_reset_on_driver_load
+  - uncorrected_error_classification
+  limitation: semantics_reference_not_hardware_compatibility_evidence
+  reuse: reference_only
+- source_id: nvidia.dcgm.blank
+  title: DCGM blank values
+  kind: official_source
+  url: https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_structs.h
+  version: 9fae2867e6e5264fa0fca22a07dc898d591baa21
+  locator: DCGM_INT64_BLANK and DCGM_INT64_IS_BLANK
+  checked_at: '2026-11-06'
+  supports:
+  - int64_blank_lower_bound
+  - not_found_supported_permissioned_sentinels
+  limitation: does_not_prove_how_target_exporter_represents_invalid_fields
+  reuse: reference_only_no_source_file_copied
+- source_id: prometheus.functions
+  title: Prometheus v3.2.1 query functions
+  kind: official_source
+  url: https://github.com/prometheus/prometheus/blob/v3.2.1/docs/querying/functions.md
+  version: v3.2.1
+  locator: increase, timestamp, aggregation_over_time
+  checked_at: '2026-11-06'
+  supports:
+  - counter_reset_handling
+  - extrapolated_increase
+  - sample_timestamp
+  reuse: reference_only
+- source_id: project.lab.acceptance
+  title: Existing lab rule acceptance report
+  kind: project_test_evidence
+  path: ../../docs/07-首批模拟规则验收报告.md
+  version: lab-0.1.1
+  checked_at: '2026-11-06'
+  supports:
+  - old_lab_ecc_rule_trigger_recovery
+  - old_lab_counter_reset_case
+  limitation: different_expression_and_parameters_not_new_candidate_acceptance
+- source_id: nvidia.h100.product
+  title: NVIDIA H100 product specifications
+  kind: official_documentation
+  url: https://www.nvidia.com/en-us/data-center/h100/
+  version: rolling
+  locator: Product Specifications
+  checked_at: '2026-11-06'
+  supports:
+  - h100_hopper_family
+  - h100_sxm_and_nvl_variants
+  limitation: product_specifications_not_dcgm_metric_support_or_alert_threshold_evidence
+  reuse: reference_only
+- source_id: nvidia.h100.driver550
+  title: NVIDIA driver 550.90.07 hardware support
+  kind: official_documentation
+  url: https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-550-90-07/index.html
+  version: 550.90.07
+  locator: Supported NVIDIA Data Center GPUs; H100 PCIe and H100 NVL
+  checked_at: '2026-11-06'
+  supports:
+  - h100_pcie_and_nvl_model_identity
+  limitation: does_not_select_deployment_driver_or_prove_field_availability
+  reuse: reference_only
+- source_id: nvidia.memory.support
+  title: NVIDIA GPU Memory Error Management supported GPUs
+  kind: official_documentation
+  url: https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/latest/supported-gpus.html
+  version: rolling; page updated 2026-11-04
+  locator: Supported GPUs table, GH100
+  checked_at: '2026-11-06'
+  supports:
+  - architecture_level_memory_feature_research_entry
+  limitation: not_per_h100_variant_or_dcgm_field_compatibility_evidence
+  reuse: reference_only
+- source_id: nvidia.driver.support_matrix
+  title: NVIDIA supported driver branches
+  kind: official_documentation
+  url: https://docs.nvidia.com/datacenter/tesla/drivers/supported-drivers-and-cuda-toolkit-versions.html
+  version: rolling; page updated 2026-11-04
+  locator: Branch Designation table
+  supports:
+  - R595_is_production_branch_at_check_date
+  limitation: classification_can_change_recheck_before_upgrade
+  checked_at: '2026-11-06'
+  reuse: reference_only
+- source_id: nvidia.driver.releases
+  title: NVIDIA data center driver releases metadata
+  kind: official_release_metadata
+  url: https://docs.nvidia.com/datacenter/tesla/drivers/releases.json
+  version: rolling snapshot checked 2026-11-06
+  locator: 595; type=production branch; driver_info
+  supports:
+  - latest_production_linux_patch_595.112.07
+  - release_date_2026-10-22
+  limitation: selection_at_check_date_not_current_host_inventory
+  checked_at: '2026-11-06'
+  reuse: reference_only
+- source_id: nvidia.driver.r595.notes
+  title: NVIDIA 595.112.07 release notes
+  kind: official_documentation
+  url: https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-595-112-07/index.html
+  version: 595.112.07 Linux; page updated 2026-11-04
+  locator: Software Versions, Known Issues, Supported Hardware
+  supports:
+  - driver_and_fabric_manager_reference_version
+  - dcgm_4.3.x_or_newer_compatibility
+  - conditional_hopper_subrevision3_vbios_requirement
+  limitation: hardware_support_does_not_certify_each_metric_or_training_stack
+  checked_at: '2026-11-06'
+  reuse: reference_only
+- source_id: nvidia.dcgm.fixed_fields
+  title: DCGM fixed field identifiers
+  kind: official_source_or_documentation
+  version: 9fae2867e6e5264fa0fca22a07dc898d591baa21
+  checked_at: '2026-11-09'
+  limitation: Canonical field IDs and aliases; not deployment-version support
+  reuse: reference_only_no_source_file_copied
+  url: https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h
+- source_id: nvidia.memory.statistics
+  title: NVIDIA memory error visible statistics
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Row remapping statistics and scope; per-H100 field support still unknown
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/latest/user-visible-statistics.html
+- source_id: nvidia.memory.recovery
+  title: Memory recovery and response flags
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Recovery semantics do not prove Prometheus availability
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/latest/error-recovery-and-response-flags.html
+- source_id: nvidia.xid.catalog
+  title: NVIDIA XID Catalog H100 applicability
+  kind: official_source_or_documentation
+  version: rolling snapshot 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: 78 H100 YES rows, dispositions not yet approved
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/deploy/xid-errors/latest/analyzing-xid-catalog.html
+- source_id: nvidia.smi
+  title: NVIDIA SMI telemetry semantics
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Temperature, power and clock reason semantics, not universal thresholds
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/deploy/nvidia-smi/index.html
+- source_id: nvidia.topology
+  title: DCGM topology and links
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Topology and generation-specific fields, not actual H100 collector mapping
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/datacenter/dcgm/latest/learn/core-services/topology-and-links.html
+- source_id: nvidia.nvswitch
+  title: DCGM NVSwitch monitoring
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Separate switch/link entities and visibility limitations
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/datacenter/dcgm/latest/learn/modules/nvswitch.html
+- source_id: nvidia.profiling
+  title: DCGM profiling
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Activity ratios, profiling availability and pauses
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/datacenter/dcgm/latest/learn/modules/profiling.html
+- source_id: nvidia.diag.pcie
+  title: DCGM PCIe diagnostics
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: Diagnostic thresholds are not continuous-monitoring H100 thresholds
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/diag-pcie-plugin.html
+- source_id: nvidia.triage
+  title: NVIDIA GPU node triage
+  kind: official_source_or_documentation
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: External diagnosis and RMA boundary
+  reuse: reference_only_no_source_file_copied
+  url: https://docs.nvidia.com/deploy/gpu-debug-guidelines/gpu-node-triage.html
+- source_id: prometheus.up
+  title: Prometheus jobs and instances
+  kind: official_source_or_documentation
+  version: rolling reference from coverage audit 2026-11-06
+  checked_at: '2026-11-06'
+  limitation: up is scrape success, not all required GPU inputs
+  reuse: reference_only_no_source_file_copied
+  url: https://prometheus.io/docs/concepts/jobs_instances/
+- source_id: project.scope
+  title: Confirmed H100 scope
+  kind: project_scope
+  version: 2026-11-06 baseline
+  checked_at: '2026-11-06'
+  limitation: Training/no virtualization/readonly Prometheus; project requirement not NVIDIA recommendation
+  reuse: reference_only_no_source_file_copied
+  path: ../hardware/H100训练基线.md
+- source_id: nvidia.memory.sram
+  title: NVIDIA SRAM uncorrectable error criteria
+  kind: official_documentation
+  url: https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/latest/sram-uncorrectable-errors.html
+  version: rolling reviewed 2026-11-06
+  checked_at: '2026-11-06'
+  locator: SRAM Uncorrectable Errors
+  supports:
+  - bank_level_rma_not_aggregate_ecc_threshold
+  limitation: field_availability_and_flag_clear_semantics_on_target_h100_remain_unknown
+  reuse: reference_only

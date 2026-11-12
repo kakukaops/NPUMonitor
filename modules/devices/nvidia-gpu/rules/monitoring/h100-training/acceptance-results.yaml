@@ -1,0 +1,92 @@
+schema_version: 0.1.0
+scope: H100 physical training, CPU-only simulation
+recorded_at: '2026-11-11T02:54:50.963940+00:00'
+passed: true
+production_admitted: false
+real_h100_tests: not_run
+nightingale_version: 9.3.0
+catalog_sha256: 572c4d8a0eda1ac54b27bf475712440f4a46bc7124576bb507555dbd0dac8418
+metric_contracts: 42
+candidate_rules: 45
+read_only_views: 25
+verified_rule_ids:
+- platform_adapter_down
+- platform_evaluation_stall
+- platform_nightingale_metrics_missing
+- platform_notify_failure
+- platform_query_failure
+- training.clock_unknown
+- training.collector_down
+- training.ecc_new
+- training.entity_missing
+- training.fabric_capability
+- training.fabric_health
+- training.fabric_manager
+- training.field_missing
+- training.gpu_link_down
+- training.gpu_thermal
+- training.hw_slowdown
+- training.hw_thermal
+- training.input_duplicate
+- training.input_invalid
+- training.input_stale
+- training.memory_thermal
+- training.nvlink_crc
+- training.nvlink_recovery
+- training.nvlink_replay
+- training.pcie_degraded
+- training.pcie_replay
+- training.power_brake
+- training.power_cap
+- training.remap_failed
+- training.remap_pending
+- training.sram
+- training.sw_thermal
+- training.switch_link_down
+- training.switch_recovery
+- training.switch_replay
+- training.switch_thermal
+- training.sxid_fatal
+- training.sxid_nonfatal
+- training.sync_boost
+- training.thermal_time
+- training.xid_app
+- training.xid_node
+- training.xid_reset
+- training.xid_scope
+- training.xid_unknown
+live_cases: 56
+offline:
+  promtool_files: 6
+  cases: 351
+  assertions: 830
+  unit_tests: 27
+reports:
+- selection: hardware
+  path: monitoring/tests/comprehensive/comprehensive-hardware.json
+  sha256: a4cb51d0da5aceb461266fd33a66c6074009ae2f9a52e55b83775085d0e494f4
+  passed_cases: 34
+- selection: quality
+  path: monitoring/tests/comprehensive/comprehensive-quality.json
+  sha256: e871bb8c435c282c4c8f9a1e2705cf3b197d330d5c90ba8a375414896c60d08c
+  passed_cases: 11
+- selection: platform
+  path: monitoring/tests/comprehensive/comprehensive-platform.json
+  sha256: 661015a0fb582a466d93834beb0b7e689d1f70ad21228b81644fd0c2130ff825
+  passed_cases: 4
+- selection: semantics
+  path: monitoring/tests/comprehensive/comprehensive-semantics.json
+  sha256: f2f1be274fa75c396aaf4ac9e71e548b51779be4c6d06e9a85c6925704e1e4b1
+  passed_cases: 6
+- selection: restart
+  path: monitoring/tests/comprehensive/comprehensive-restart.json
+  sha256: 0575a49dd0161aa7da21c3d51ebac9e0fa9a66c733c00b271d81065ff7902c76
+  passed_cases: 1
+limitations:
+- No real H100, NVSwitch or Fabric Manager was exercised.
+- GPU modelName explicitly SIMULATED; software and topology admission remain unknown.
+- Demo counter window is 30 seconds; proposed production 300 seconds requires site
+  approval.
+- Last-XID metric is not an ordered event log; no hardware repair or reset is performed.
+- Production packaging, upgrade/override lifecycle and external HA monitoring remain
+  separate gates.

@@ -1,0 +1,21 @@
+{
+  "scope": "actual separate container stop/restart and offline training",
+  "company_platform_integrated": false,
+  "cases": [
+    {
+      "name": "model-platform-outage-preserves-active-and-source-watermark",
+      "passed": true
+    },
+    {
+      "name": "platform-restart-keeps-deployment-identity-and-recovers",
+      "passed": true
+    },
+    {
+      "name": "training-deployment-prediction-with-monitor-stopped",
+      "passed": true,
+      "platform_job": "6595c46cb7914ed29c94d1b38ddb848b"
+    }
+  ],
+  "passed": true,
+  "recorded_at": 1794468660.9940186
+}

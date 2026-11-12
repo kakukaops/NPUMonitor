@@ -1,0 +1,39 @@
+ Container gpu-monitoring-ml-gpu-ml-run-038491ad9fd3 Creating 
+ Container gpu-monitoring-ml-gpu-ml-run-038491ad9fd3 Created 
+test_registered_adapter_and_shadow_never_updates_live_state (test_core.ExtensionTests.test_registered_adapter_and_shadow_never_updates_live_state) ... ok
+test_lost_volume_and_source_change_refuse_silent_reinitialization (test_core.InitializationTests.test_lost_volume_and_source_change_refuse_silent_reinitialization) ... ok
+test_duplicates_do_not_confirm_and_unknown_holds_across_restart (test_core.LifecycleTests.test_duplicates_do_not_confirm_and_unknown_holds_across_restart) ... ok
+test_gap_resets_pending_and_out_of_order_ignored (test_core.LifecycleTests.test_gap_resets_pending_and_out_of_order_ignored) ... ok
+test_revision_backup_and_jobs_interrupted (test_core.LifecycleTests.test_revision_backup_and_jobs_interrupted) ... ok
+test_gpu_anomalies_and_normal_high_load (test_core.ModelTests.test_gpu_anomalies_and_normal_high_load) ... ok
+test_insufficient_and_duplicate_training_rejected (test_core.ModelTests.test_insufficient_and_duplicate_training_rejected) ... ok
+test_robust_model_and_artifact_integrity (test_core.ModelTests.test_robust_model_and_artifact_integrity) ... ok
+test_quality_duplicate_stale_and_mig_exclusion (test_core.SourceTests.test_quality_duplicate_stale_and_mig_exclusion) ... ok
+test_query_limits_and_simulator_scope (test_core.SourceTests.test_query_limits_and_simulator_scope) ... ok
+test_catalog_uses_only_existing_dcgm_fields (test_dcgm_scenarios.DCGMScenarioTests.test_catalog_uses_only_existing_dcgm_fields) ... ok
+test_conditional_relations_detect_deviations_and_holdout_normal (test_dcgm_scenarios.DCGMScenarioTests.test_conditional_relations_detect_deviations_and_holdout_normal) ... ok
+test_engine_rejects_laboratory_training_and_publish_to_real_entities (test_dcgm_scenarios.DCGMScenarioTests.test_engine_rejects_laboratory_training_and_publish_to_real_entities) ... ok
+test_gaps_configuration_and_provenance_roundtrip (test_dcgm_scenarios.DCGMScenarioTests.test_gaps_configuration_and_provenance_roundtrip) ... ok
+test_normal_high_load_and_outside_reference_are_not_forced_faults (test_dcgm_scenarios.DCGMScenarioTests.test_normal_high_load_and_outside_reference_are_not_forced_faults) ... ok
+test_preprocessing_inverse_keeps_evidence_in_original_units (test_dcgm_scenarios.DCGMScenarioTests.test_preprocessing_inverse_keeps_evidence_in_original_units) ... ok
+test_production_reference_length_is_enforced (test_dcgm_scenarios.DCGMScenarioTests.test_production_reference_length_is_enforced) ... ok
+test_short_pulse_does_not_become_sustained_degradation (test_dcgm_scenarios.DCGMScenarioTests.test_short_pulse_does_not_become_sustained_degradation) ... ok
+test_sustained_thermal_and_clock_residuals (test_dcgm_scenarios.DCGMScenarioTests.test_sustained_thermal_and_clock_residuals) ... ok
+test_frozen_ensemble_threshold_ratios_and_roundtrip (test_pipeline.PipelineTests.test_frozen_ensemble_threshold_ratios_and_roundtrip) ... ok
+test_labelled_evaluation_does_not_label_unknown_as_normal (test_pipeline.PipelineTests.test_labelled_evaluation_does_not_label_unknown_as_normal) ... ok
+test_no_interpolation_and_strict_source_times (test_pipeline.PipelineTests.test_no_interpolation_and_strict_source_times) ... ok
+test_preprocessing_inverse_and_causal_prefix (test_pipeline.PipelineTests.test_preprocessing_inverse_and_causal_prefix) ... ok
+test_recalibration_separate_and_bad_config_rejected (test_pipeline.PipelineTests.test_recalibration_separate_and_bad_config_rejected) ... ok
+test_score_only_capability_and_save_load (test_pipeline.PipelineTests.test_score_only_capability_and_save_load) ... ok
+test_threshold_revision_without_detector_refit (test_pipeline.PipelineTests.test_threshold_revision_without_detector_refit) ... ok
+test_time_split_and_train_only_fit_no_future_leak (test_pipeline.PipelineTests.test_time_split_and_train_only_fit_no_future_leak) ... ok
+test_artifact_roundtrip_and_algorithm_mismatch (test_v2.V2Tests.test_artifact_roundtrip_and_algorithm_mismatch) ... ok
+test_duplicate_and_insufficient_rejected (test_v2.V2Tests.test_duplicate_and_insufficient_rejected) ... ok
+test_joint_detects_relationship_break_and_reference_not_forecast (test_v2.V2Tests.test_joint_detects_relationship_break_and_reference_not_forecast) ... ok
+test_no_windows_across_gaps_or_short_input (test_v2.V2Tests.test_no_windows_across_gaps_or_short_input) ... ok
+test_temporal_causal_alignment_and_spike (test_v2.V2Tests.test_temporal_causal_alignment_and_spike) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 2.632s
+
+OK

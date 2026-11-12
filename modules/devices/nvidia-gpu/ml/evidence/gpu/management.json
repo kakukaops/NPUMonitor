@@ -1,0 +1,48 @@
+{
+  "scope": "live-management-and-Prometheus-history",
+  "cases": [
+    {
+      "name": "access-control",
+      "passed": true,
+      "result": "anonymous denied / roles / CSRF / HttpOnly session"
+    },
+    {
+      "name": "normal-workload-counterexamples",
+      "passed": true,
+      "result": "normal high load and idle are not hardware faults"
+    },
+    {
+      "name": "train-from-actual-prometheus-history",
+      "passed": true,
+      "model": "c4a6acc0da064a4c93828ad3ad7e9fbc",
+      "samples": 304,
+      "excluded_known_fault_samples": 33
+    },
+    {
+      "name": "shadow-without-online-switch",
+      "passed": true
+    },
+    {
+      "name": "publish-and-rollback",
+      "passed": true
+    },
+    {
+      "name": "isolated-history-replay",
+      "passed": true,
+      "points": 88
+    },
+    {
+      "name": "reuse-model-rename-stable-rule-and-retire",
+      "passed": true,
+      "stable_rule_id": 74
+    },
+    {
+      "name": "consistent-backup-and-offline-restore",
+      "passed": true,
+      "sha256": "089e3f73a97ab09d69dc1c2de7ae673b962f65b18301506ad8963c01ee392344"
+    }
+  ],
+  "passed": true,
+  "recorded_at": 1794395834.879995,
+  "production_admitted": false
+}

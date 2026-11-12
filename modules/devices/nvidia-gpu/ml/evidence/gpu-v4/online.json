@@ -1,0 +1,106 @@
+{
+  "scope": "DCGM-only / real Prometheus and Nightingale / accelerated simulated drift",
+  "production_admitted": false,
+  "cases": [
+    {
+      "name": "catalog-idempotence-role-and-profile-guards",
+      "passed": true,
+      "scenarios": [
+        "thermal_relation",
+        "power_clock_relation",
+        "thermal_degradation",
+        "clock_degradation"
+      ]
+    },
+    {
+      "name": "train-publish-power_clock_relation",
+      "passed": true,
+      "model": "29cea22ed596446fbe6440634d9846ed",
+      "samples": 1798
+    },
+    {
+      "name": "train-publish-thermal_relation",
+      "passed": true,
+      "model": "2eafdf49a643440dbb4da4c903664159",
+      "samples": 1798
+    },
+    {
+      "name": "train-publish-clock_degradation",
+      "passed": true,
+      "model": "ba255910150a4553a02168846b3c87ee",
+      "samples": 1798
+    },
+    {
+      "name": "train-publish-thermal_degradation",
+      "passed": true,
+      "model": "3c8c1f5ac4bb43e3924854e027d0b81d",
+      "samples": 1798
+    },
+    {
+      "name": "evidence-only-does-not-notify",
+      "passed": true
+    },
+    {
+      "name": "manual-admission-native-event-and-missing-hold",
+      "passed": true,
+      "event_id": 420,
+      "rule_id": 80,
+      "hash": "9002b6893591f801647c09a8b80bae8e"
+    },
+    {
+      "name": "normal-high-load-counterexample",
+      "passed": true
+    },
+    {
+      "name": "accelerated-thermal_degradation",
+      "passed": true,
+      "detection_seconds": 20.22,
+      "evidence": {
+        "residuals": {
+          "gpu_temp": 1.318828734736833,
+          "memory_temp": 1.587900536556944
+        },
+        "residual_medians": {
+          "gpu_temp": 0.062114730288580944,
+          "memory_temp": 0.017328295875159938
+        },
+        "residual_slope_per_hour": {
+          "gpu_temp": 51.98078368793439,
+          "memory_temp": 38.83609079927773
+        },
+        "window_start": 1794454859.168,
+        "window_end": 1794454917.168,
+        "window_seconds": 60,
+        "conclusion": "sustained residual shift / trend; ambient, workload and configuration changes not excluded; not a lifetime prediction",
+        "profile": "laboratory"
+      }
+    },
+    {
+      "name": "accelerated-clock_degradation",
+      "passed": true,
+      "detection_seconds": 20.25,
+      "evidence": {
+        "residuals": {
+          "sm_clock": -26.884695804675403
+        },
+        "residual_medians": {
+          "sm_clock": -2.410694470404337
+        },
+        "residual_slope_per_hour": {
+          "sm_clock": -1155.8128882589924
+        },
+        "window_start": 1794454899.168,
+        "window_end": 1794454957.168,
+        "window_seconds": 60,
+        "conclusion": "sustained residual shift / trend; ambient, workload and configuration changes not excluded; not a lifetime prediction",
+        "profile": "laboratory"
+      }
+    },
+    {
+      "name": "unseen-load-abstains-instead-of-healthy-or-fault",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "recorded_at": 1794455081.6953416
+}

@@ -1,0 +1,68 @@
+schema_version: 0.2.0
+release_scope:
+  target_models:
+  - H100
+  deferred_models:
+  - H200
+  entity: physical_gpu
+  target_configuration: unknown_pending_actual_inventory
+  mig_instance_rules: not_admitted
+  model_admission: requires_verified_inventory_not_modelName_string_alone
+  workload: training
+  virtualization: disabled_user_confirmed
+  reference_stack_id: h100-training-r595-20261106
+  reference_stack_document: driver-baseline.yaml
+  mig_mode: unknown_not_inferred_from_virtualization
+profiles:
+- profile_id: nvidia.h100.pcie
+  model: H100
+  variant: PCIe
+  architecture: Hopper
+  model_evidence_source_ids:
+  - nvidia.h100.driver550
+  model_existence: official_documented
+  metric_support: unknown
+  collection_validation: not_run
+  real_cluster_validation: not_run
+  driver_versions: []
+  dcgm_versions: []
+  exporter_versions: []
+  reference_stack_id: h100-training-r595-20261106
+  reference_driver_version: 595.112.07
+  workload: training
+  virtualization: disabled_user_confirmed
+- profile_id: nvidia.h100.sxm
+  model: H100
+  variant: SXM
+  architecture: Hopper
+  model_evidence_source_ids:
+  - nvidia.h100.product
+  model_existence: official_documented
+  metric_support: unknown
+  collection_validation: not_run
+  real_cluster_validation: not_run
+  driver_versions: []
+  dcgm_versions: []
+  exporter_versions: []
+  reference_stack_id: h100-training-r595-20261106
+  reference_driver_version: 595.112.07
+  workload: training
+  virtualization: disabled_user_confirmed
+- profile_id: nvidia.h100.nvl
+  model: H100
+  variant: NVL
+  architecture: Hopper
+  model_evidence_source_ids:
+  - nvidia.h100.product
+  - nvidia.h100.driver550
+  model_existence: official_documented
+  metric_support: unknown
+  collection_validation: not_run
+  real_cluster_validation: not_run
+  driver_versions: []
+  dcgm_versions: []
+  exporter_versions: []
+  reference_stack_id: h100-training-r595-20261106
+  reference_driver_version: 595.112.07
+  workload: training
+  virtualization: disabled_user_confirmed

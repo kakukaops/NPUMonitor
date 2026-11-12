@@ -1,0 +1,567 @@
+schema_version: 0.2.0
+metrics:
+- metric_id: nvidia.ecc_dbe_volatile_total
+  version: 0.3.0
+  name_zh: 不可纠正双比特ECC错误易失累计数
+  category: hardware.memory.ecc
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-06'
+  documentation: ../metrics/nvidia.ecc_dbe_volatile_total.md
+  upstream:
+    dcgm_field: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL
+    dcgm_field_id: 311
+    prometheus_name: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL
+    aliases: []
+    aliases_status: unknown
+    prometheus_type: counter
+    raw_unit: errors
+    normalized_unit: errors
+    conversion: identity
+    reset_scope: driver_load_and_other_supported_explicit_resets
+    raw_storage_type: int64_assumed_pending_target_exporter_verification
+  labels:
+    required:
+    - cluster_id
+    - UUID
+    optional:
+    - Hostname
+    - gpu
+    - modelName
+    - job
+    - instance
+    identity:
+    - cluster_id
+    - UUID
+    provided_by:
+      cluster_id: deployment_or_scrape_label
+      UUID: exporter_actual_presence_must_be_verified
+    duplicate_series_policy: reject_ambiguous_device_mapping_before_deployment
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - ecc_supported_and_enabled
+    - field_collected
+    - valid_input
+    - stable_identity
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  value_semantics:
+    normal_domain: nonnegative_integer_counter
+    int64_blank_lower_bound: '9223372036854775792'
+    nan: invalid
+    positive_infinity: invalid
+    negative_infinity: invalid
+    negative_values: invalid
+    precision_note: int64_sentinels_may_collapse_to_same_float64_value
+  collection:
+    enabled_by_default_in_referenced_csv: false
+    exporter_interval_seconds: null
+    device_update_interval_seconds: null
+    required_privileges: unknown
+    absence_does_not_prove:
+    - healthy_gpu
+    - unsupported_hardware
+  related_rule_ids:
+  - nvidia.ecc_dbe_new_errors
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.duplicate_input_series
+  source_ids:
+  - nvidia.exporter.counters
+  - nvidia.dcgm.fields
+  - nvidia.nvml.ecc
+  - nvidia.dcgm.blank
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - target_model_driver_dcgm_exporter_compatibility
+  - target_exporter_invalid_field_representation
+  - physical_vs_mig_scope_and_duplicate_collection
+  - actual_update_intervals_and_permissions
+  - h100_variant_specific_field_semantics
+- metric_id: nvidia.gpu_temp
+  version: 0.1.0
+  name_zh: H100 GPU温度观测输入
+  category: monitoring.quality
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-09'
+  documentation: ../metrics/nvidia.gpu_temp.md
+  upstream:
+    prometheus_name: DCGM_FI_DEV_GPU_TEMP
+    dcgm_field_id: 150
+    prometheus_type: gauge
+    raw_unit: celsius
+    normalized_unit: celsius
+    conversion: identity
+    mapping_note: 固定header名称为DCGM_FI_DEV_GPU_TEMP_CELSIUS，CSV使用GPU_TEMP；本批用于代表观测和输入质量，不新增温度故障阈值。
+  labels:
+    required:
+    - cluster_id
+    - job
+    - instance
+    - UUID
+    identity:
+    - cluster_id
+    - UUID
+    requirements_note: 配置项的标签是期望值，非已验证现场Exporter提供
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - field_supported_and_collected
+    - stable_physical_gpu_identity
+    - target_type_and_unit_verified
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  related_rule_ids:
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.duplicate_input_series
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  - nvidia.exporter.counters
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - real_h100_support_and_value_mapping
+  - actual_scope_binding
+  - actual_labels_intervals_and_duplicates
+- metric_id: nvidia.sram_exceeded
+  version: 0.1.0
+  name_zh: H100 SRAM超阈值标志
+  category: hardware.memory
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-09'
+  documentation: ../metrics/nvidia.sram_exceeded.md
+  upstream:
+    prometheus_name: DCGM_FI_DEV_SRAM_EXCEEDED
+    dcgm_field_id: 346
+    prometheus_type: gauge
+    raw_unit: boolean
+    normalized_unit: boolean
+    conversion: identity
+    mapping_note: 固定header明确1=true；不是错误次数。未在参考CSV找到本字段，不代表目标H100不支持。
+  labels:
+    required:
+    - cluster_id
+    - job
+    - instance
+    - UUID
+    identity:
+    - cluster_id
+    - UUID
+    requirements_note: 配置项的标签是期望值，非已验证现场Exporter提供
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - field_supported_and_collected
+    - stable_physical_gpu_identity
+    - target_type_and_unit_verified
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  related_rule_ids:
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.duplicate_input_series
+  - nvidia.sram_threshold_exceeded
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  - nvidia.memory.sram
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - real_h100_support_and_value_mapping
+  - actual_scope_binding
+  - actual_labels_intervals_and_duplicates
+- metric_id: nvidia.remap_failed
+  version: 0.1.0
+  name_zh: H100行重映射失败标志
+  category: hardware.memory
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-09'
+  documentation: ../metrics/nvidia.remap_failed.md
+  upstream:
+    prometheus_name: DCGM_FI_DEV_ROW_REMAP_FAILURE
+    dcgm_field_id: 395
+    prometheus_type: gauge
+    raw_unit: boolean
+    normalized_unit: boolean
+    conversion: identity
+    mapping_note: 固定header名称ROW_REMAP_FAILED，参考CSV名称ROW_REMAP_FAILURE；目标版本别名/实际暴露名必须核对，不同时采两名计两份。
+  labels:
+    required:
+    - cluster_id
+    - job
+    - instance
+    - UUID
+    identity:
+    - cluster_id
+    - UUID
+    requirements_note: 配置项的标签是期望值，非已验证现场Exporter提供
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - field_supported_and_collected
+    - stable_physical_gpu_identity
+    - target_type_and_unit_verified
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  related_rule_ids:
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.duplicate_input_series
+  - nvidia.row_remap_failed
+  source_ids:
+  - nvidia.dcgm.fixed_fields
+  - nvidia.exporter.counters
+  - nvidia.memory.statistics
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - real_h100_support_and_value_mapping
+  - actual_scope_binding
+  - actual_labels_intervals_and_duplicates
+- metric_id: prometheus.target_up
+  version: 0.1.0
+  name_zh: H100采集目标up
+  category: monitoring.quality
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-09'
+  documentation: ../metrics/prometheus.target_up.md
+  upstream:
+    prometheus_name: up
+    dcgm_field_id: null
+    prometheus_type: gauge
+    raw_unit: boolean
+    normalized_unit: boolean
+    conversion: identity
+    mapping_note: Prometheus生成的目标抓取结果；up=1不能证明每张卡和每项字段完整。
+  labels:
+    required:
+    - cluster_id
+    - job
+    - instance
+    identity:
+    - cluster_id
+    - job
+    - instance
+    requirements_note: 配置项的标签是期望值，非已验证现场Exporter提供
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_expected_targets
+    - source_labels_present
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  related_rule_ids:
+  - nvidia.collector_unavailable
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.sram_threshold_exceeded
+  - nvidia.row_remap_failed
+  source_ids:
+  - prometheus.up
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - real_h100_support_and_value_mapping
+  - actual_scope_binding
+  - actual_labels_intervals_and_duplicates
+- metric_id: inventory.expected_devices
+  version: 0.1.0
+  name_zh: H100预期设备与字段配置
+  category: monitoring.quality
+  lifecycle: draft
+  owner: gpu-monitoring-maintainers
+  reviewed_at: '2026-11-09'
+  documentation: ../metrics/inventory.expected_devices.md
+  upstream:
+    prometheus_name: null
+    dcgm_field_id: null
+    prometheus_type: configuration
+    raw_unit: inventory
+    normalized_unit: inventory
+    conversion: identity
+    mapping_note: 不是新Prometheus时序或Exporter字段；本批用只供评审的静态配置生成常量向量，不修改Prometheus采集。
+  labels:
+    required:
+    - cluster_id
+    - job
+    - instance
+    - UUID
+    identity:
+    - cluster_id
+    - UUID
+    requirements_note: 配置项的标签是期望值，非已验证现场Exporter提供
+  applicability:
+    entity: physical_gpu
+    supported_versions: []
+    compatibility_status: unknown
+    prerequisites:
+    - verified_expected_inventory
+    - maintenance_and_change_contract
+    mig_status: unverified_not_admitted
+    target_models:
+    - H100
+    hardware_profile_ids:
+    - nvidia.h100.pcie
+    - nvidia.h100.sxm
+    - nvidia.h100.nvl
+    hardware_compatibility:
+    - profile_id: nvidia.h100.pcie
+      model: H100
+      variant: PCIe
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.sxm
+      model: H100
+      variant: SXM
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    - profile_id: nvidia.h100.nvl
+      model: H100
+      variant: NVL
+      official_metric_support: unknown
+      collection_validation: not_run
+      real_cluster_validation: not_run
+      evidence_source_ids: []
+      open_evidence: field_and_semantics_on_this_h100_configuration
+    model_admission: not_implemented_release_blocked
+    reference_stack_id: h100-training-r595-20261106
+    workload: training
+    virtualization: disabled_user_confirmed
+  related_rule_ids:
+  - nvidia.collector_unavailable
+  - nvidia.expected_gpu_observation_missing
+  - nvidia.required_field_missing
+  - nvidia.required_field_stale
+  - nvidia.required_input_invalid
+  - nvidia.duplicate_input_series
+  - nvidia.sram_threshold_exceeded
+  - nvidia.row_remap_failed
+  source_ids:
+  - project.scope
+  verification:
+    source_review: partial
+    expression_tests: not_applicable
+    nightingale_tests: not_run
+    real_cluster_tests: not_run
+  open_items:
+  - real_h100_support_and_value_mapping
+  - actual_scope_binding
+  - actual_labels_intervals_and_duplicates

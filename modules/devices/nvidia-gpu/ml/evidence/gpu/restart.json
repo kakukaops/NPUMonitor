@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "scope": "real container restart / simulated GPU / existing Nightingale",
+  "active_event_id": 233,
+  "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+  "episode_preserved": true,
+  "models_preserved": true,
+  "unknown_preserved_across_restart": true,
+  "recovered_after_fresh_normal": true,
+  "production_admitted": false,
+  "recorded_at": 1794396098.2698948
+}

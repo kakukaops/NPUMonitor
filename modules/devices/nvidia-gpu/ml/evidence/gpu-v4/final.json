@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "version": "0.4.0",
+  "scenario_tasks_preserved": 8,
+  "lab_models_restored_and_scored": 4,
+  "advanced_route_guard": "passed",
+  "dcgm_only_online_values": "passed",
+  "additional_power_clock_injection": {
+    "passed": true,
+    "detection_seconds": 8.1,
+    "task": "s4-3a4f746fa7750b1ef194e458"
+  },
+  "notifications": [
+    {
+      "id": 420,
+      "rule_id": 80,
+      "hash": "9002b6893591f801647c09a8b80bae8e",
+      "trigger_time": 1794454760,
+      "is_recovered": false
+    },
+    {
+      "id": 424,
+      "rule_id": 80,
+      "hash": "9002b6893591f801647c09a8b80bae8e",
+      "trigger_time": 1794454760,
+      "is_recovered": true
+    }
+  ],
+  "new_scenarios_final_mode": "evidence",
+  "new_scenarios_final_active": 0,
+  "ready": 200,
+  "real_hardware_degradation": "not_run",
+  "production_admitted": false,
+  "recorded_at": 1794455537.241905
+}

@@ -1,0 +1,8 @@
+scope: synthetic_clear_evidence_expressions_only
+date: '2026-11-09'
+tool_image: prom/prometheus:v3.2.1
+cases: 12
+assertions: 24
+result: passed
+fixture_sha256: 7c3e70d2488e6207ef063d23858ec9afc88e25c3cdc030815a62a32839b4c493
+real_h100_tests: not_run

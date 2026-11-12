@@ -1,0 +1,37 @@
+{
+  "scope": "simulated-GPU / real existing Prometheus and Nightingale",
+  "production_admitted": false,
+  "cases": [
+    {
+      "scenario": "temperature_spike",
+      "task": "sim-0-thermal",
+      "detection_seconds": 8.03,
+      "passed": true,
+      "nightingale_event_id": 221,
+      "hash": "8a5ccb0a938c9bc74dc69f0fea4dd957",
+      "missing_preserves_same_nightingale_event": true
+    },
+    {
+      "scenario": "thermal_drift",
+      "task": "sim-0-thermal",
+      "detection_seconds": 8.03,
+      "passed": true
+    },
+    {
+      "scenario": "power_clock",
+      "task": "sim-0-relation",
+      "detection_seconds": 8.03,
+      "passed": true
+    },
+    {
+      "scenario": "activity_drop",
+      "task": "sim-0-activity",
+      "detection_seconds": 6.03,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "elapsed_seconds": 92.45,
+  "role_check": true,
+  "bindings": 10
+}

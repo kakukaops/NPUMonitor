@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "sha256": {
+    ".dockerignore": "53f3d90ffbf20b891c7c53e94bbf4af45a044fb11025ed8fb81009bb6b27fa11",
+    "Dockerfile": "f48a4187155624edb96fecb80b07fd21195fc210100baa5ff93f70bbe14becc1",
+    "backend/gpu_ml/__init__.py": "b9a9e1c72547e2b88ab5b151e1a92c4353bf33660bc0c1d29e6392bbd4c21d92",
+    "backend/gpu_ml/cli.py": "1ecd596afcc5c767ef29684648dc24c814e87089b3895d61b025438d9c31888e",
+    "backend/gpu_ml/engine.py": "4d1b7f01d74cc19382ccee6c84043666a0aeb016f84a7155a85b4dfc03e1b7fe",
+    "backend/gpu_ml/main.py": "20bf51c6f6050bba0211aaf04c36b6d7eacfa0712d6349ad24f54204b571fbd2",
+    "backend/gpu_ml/models.py": "f35f515890169b0abdb567cd67cc17e0b6be745682c3b5bbf4ff496130292f67",
+    "backend/gpu_ml/nightingale.py": "3905fb1dbd8d9d745b0855c0740c980d9f646f1c147d8e95b3ea06c14aef47b4",
+    "backend/gpu_ml/settings.py": "78f17e28356403fa03fcd78336b9498f743a332ec24a454753c8f09672bd16cf",
+    "backend/gpu_ml/simulation.py": "14de6c5b872a1f3c901f4feb6f69ef3b585c990652af4eb0a53537200c6a21ef",
+    "backend/gpu_ml/source.py": "93030e98a031cdb23e6dd1a62127a1192c23d40cb61dfb28af99156bc181f396",
+    "backend/gpu_ml/store.py": "e4ba2807cc1c8e6ee81c4806752c6ef13ce31b34cb6314690f99319a7a9aec16",
+    "backend/requirements-api.txt": "639587625b24b40a94e38b7c24917382d85ccc11a32edf895afad2e264a949f1",
+    "config/bindings.json": "8b129f830d0c605618d01878ec999142401d36f54b9e873932ca50b27724d2d1",
+    "deploy/compose.yaml": "f2439f1e301761444156de355766452aeb147a88d7f90b10df7c2ded83bd2eb9",
+    "frontend/app.js": "d6b6c51a95a93d726af806b17aba2c37172dccca0c197e967ea66e18edb0add4",
+    "frontend/index.html": "804f8491528920b1849fa05d3322afff2d8e4bf3d8aaa5a130bac630dfb848de",
+    "frontend/style.css": "29ac7076a35bffb4dd728e3bb7c128fa830690e175b754d94e1585432d3fa419",
+    "scripts/anomaly-demo.sh": "b09a1681229431341c2cd66b4592e5516922ad808bce4918ea39a8888f1f8928",
+    "scripts/gpu-ml.sh": "6ed1900211e8db70243bda0bf588d4f5d321b99846fe3f5998f6ad23c077256d",
+    "scripts/verify_management.py": "245d38c8cc802f0a60bfd9142e09b88370c4540d6087d9bd8e5a8d74f3b98b3d",
+    "scripts/verify_platform.py": "1d194e1f4115fff25c7e23c5b7ea03e6f11743249464a9fa7ca20b065d5d1047",
+    "scripts/verify_restart.py": "e705f0def946d7cfad523958772ceeaa76f1277b42a1de94c2de86e9de67e1ff",
+    "tests/test_core.py": "d2a96ed14a8ea79043e77bb999fe322c87932ce9f304db259897d8ea275e7e7b",
+    "tests/test_frontend.mjs": "d368401a9e26e7d4b70bba03ea9f216636a73d408d62ddf521b37132c753a78c"
+  }
+}

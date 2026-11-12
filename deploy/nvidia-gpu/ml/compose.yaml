@@ -1,0 +1,58 @@
+name: gpu-monitoring-ml
+services:
+  gpu-ml:
+    image: gpu-monitoring-ml:0.5.1
+    build:
+      context: ../../..
+      dockerfile: modules/devices/nvidia-gpu/ml/Dockerfile
+    environment:
+      GPU_ML_MODEL_PLATFORM_URL: ${GPU_ML_MODEL_PLATFORM_URL:-http://model-platform:9470}
+      GPU_ML_MODEL_BACKEND_ID: ${GPU_ML_MODEL_BACKEND_ID:-reference-http-v1}
+      GPU_ML_MODEL_PLATFORM_TOKEN_FILE: /run/secrets/model-platform-token
+      PROMETHEUS_URL: ${GPU_ML_PROMETHEUS_URL:-http://prometheus:9090}
+      NIGHTINGALE_URL: ${GPU_ML_NIGHTINGALE_URL:-http://nightingale:17000}
+      GPU_ML_DEMO_LOGIN: ${GPU_ML_DEMO_LOGIN:-true}
+      GPU_ML_SIMULATION: ${GPU_ML_SIMULATION:-false}
+      GPU_ML_N9E_TOKEN_FILE: /run/secrets/n9e-token
+      GPU_ML_PROMETHEUS_AUTH_FILE: /run/secrets/prometheus-auth
+      GPU_ML_INIT_GUARD_FILE: /run/secrets/init-guard
+      GPU_ML_ADMIN_TOKEN_FILE: /run/secrets/admin-token
+      GPU_ML_OPERATOR_TOKEN_FILE: /run/secrets/operator-token
+      GPU_ML_VIEWER_TOKEN_FILE: /run/secrets/viewer-token
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    ports:
+    - 127.0.0.1:19460:9460
+    volumes:
+    - ${GPU_ML_MODEL_PLATFORM_TOKEN_HOST_FILE:-../../../.local/gpu-ml-model-platform-token}:/run/secrets/model-platform-token:ro
+    - gpu-ml-data:/data
+    - ../../../.local/gpu-ml-n9e-token:/run/secrets/n9e-token:ro
+    - ../../../.local/gpu-ml-prometheus-auth.json:/run/secrets/prometheus-auth:ro
+    - ../../../.local/gpu-ml-initialized:/run/secrets/init-guard:ro
+    - ../../../.local/gpu-ml-admin-token:/run/secrets/admin-token:ro
+    - ../../../.local/gpu-ml-operator-token:/run/secrets/operator-token:ro
+    - ../../../.local/gpu-ml-viewer-token:/run/secrets/viewer-token:ro
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:9460/health',timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+    - existing
+  model-platform:
+    extends:
+      file: ../../model-platform/compose.yaml
+      service: model-platform
+volumes:
+  gpu-ml-data: null
+  model-platform-data: null
+networks:
+  existing:
+    external: true
+    name: gpu-alert-lab_default

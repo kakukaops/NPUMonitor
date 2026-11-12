@@ -1,0 +1,259 @@
+{
+  "task_ids": [
+    "7d7479a45fa940b8ab189ff40968c676",
+    "s4-3a4f746fa7750b1ef194e458",
+    "s4-3c23fa0339649e4a29aa45a8",
+    "s4-7395f48fbf50b722397bbc05",
+    "s4-8e8a91eaad49402fda4a7dd9",
+    "s4-a351663890a49face3b02a18",
+    "s4-c9882caae48f7fbf378c2599",
+    "s4-e426f4478e27e0e22b81e217",
+    "s4-eb439c32ee231ecfe0ee8d60",
+    "sim-0-activity",
+    "sim-0-relation",
+    "sim-0-thermal",
+    "sim-1-activity",
+    "sim-1-relation",
+    "sim-1-thermal",
+    "sim-2-activity",
+    "sim-2-relation",
+    "sim-2-thermal",
+    "v2-75dd0d092a6c3ae475dd29d8",
+    "v2-eddd9ce1d2478322373ed654",
+    "v2-f3889c269fe54fc22992fe29"
+  ],
+  "active_models": {
+    "7d7479a45fa940b8ab189ff40968c676": "3116790c87d849cc872fec5c3e199df2",
+    "s4-3a4f746fa7750b1ef194e458": "29cea22ed596446fbe6440634d9846ed",
+    "s4-3c23fa0339649e4a29aa45a8": "7fab9d7bbd9749cc8b1313a803376043",
+    "s4-7395f48fbf50b722397bbc05": "ba255910150a4553a02168846b3c87ee",
+    "s4-8e8a91eaad49402fda4a7dd9": null,
+    "s4-a351663890a49face3b02a18": null,
+    "s4-c9882caae48f7fbf378c2599": "3c8c1f5ac4bb43e3924854e027d0b81d",
+    "s4-e426f4478e27e0e22b81e217": null,
+    "s4-eb439c32ee231ecfe0ee8d60": null,
+    "sim-0-activity": "318b877498d54424a654be48762001dd",
+    "sim-0-relation": "55afdc7755ab48c995208edb4fd5a700",
+    "sim-0-thermal": "3116790c87d849cc872fec5c3e199df2",
+    "sim-1-activity": "cc06eaa7efd449209508cda325e62c1b",
+    "sim-1-relation": "403d350f7d0843b7ba4faac91de2c02d",
+    "sim-1-thermal": "65d4b6690a9b4b97a6182a6a791be667",
+    "sim-2-activity": "e227f0e49f0249fc813cd4ee21557914",
+    "sim-2-relation": "04983b72f9e9489795cf5ebaf488db62",
+    "sim-2-thermal": "65f25d71feb848c4b0af25e55c3c4a44",
+    "v2-75dd0d092a6c3ae475dd29d8": "ee570c6030924de19cde9deadfcd31ab",
+    "v2-eddd9ce1d2478322373ed654": "f233d48ec201463a8fc76af4e32e95cd",
+    "v2-f3889c269fe54fc22992fe29": "6e06b26172b842afb3fe1ec31f69c712"
+  },
+  "model_refs": {
+    "0011b44b2b9547d6b6a09b6ef68ff7e0": {
+      "backend_id": "reference-http-v1",
+      "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+      "model_ref": "c4a523c802b04270b63c2486ea9add27",
+      "contract_version": 1,
+      "deployment_ref": "21bfc6c423a952749d7442e4b8c99d9e"
+    },
+    "0278b47ada6e467999af8dda733262ef": {
+      "backend_id": "reference-http-v1",
+      "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+      "model_ref": "f81a7a13cbd347b09697776f5196d850",
+      "contract_version": 1,
+      "deployment_ref": "4504ecc714ed5261a376b08ef9e1f0d9"
+    },
+    "04983b72f9e9489795cf5ebaf488db62": null,
+    "18d388344964460a9dbf86263e6ceaae": null,
+    "1aaf4f95b02048978a5c5dd9f1aca8b7": null,
+    "29cea22ed596446fbe6440634d9846ed": null,
+    "2eafdf49a643440dbb4da4c903664159": null,
+    "3116790c87d849cc872fec5c3e199df2": null,
+    "318b877498d54424a654be48762001dd": null,
+    "37edeb754fbf4988850daa2acd7c79a6": null,
+    "3c8c1f5ac4bb43e3924854e027d0b81d": null,
+    "403d350f7d0843b7ba4faac91de2c02d": null,
+    "43438d128c4a4b848db67e9450cb258f": null,
+    "558578e240d74e7a93789eb40bc0d457": null,
+    "55afdc7755ab48c995208edb4fd5a700": null,
+    "65d4b6690a9b4b97a6182a6a791be667": null,
+    "65f25d71feb848c4b0af25e55c3c4a44": null,
+    "6a2d4da3b521407abf60a1c993ac2289": null,
+    "6e06b26172b842afb3fe1ec31f69c712": null,
+    "724ad8b003e742118ce382ce253e82e0": null,
+    "7fab9d7bbd9749cc8b1313a803376043": {
+      "backend_id": "reference-http-v1",
+      "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+      "model_ref": "fd4477c8d609438083e93113cef0031b",
+      "contract_version": 1,
+      "deployment_ref": "099c4854ef585da69e1ed5b07256e530"
+    },
+    "8a2fd7aa57044c3f98b9d15ed6b5e07a": {
+      "backend_id": "reference-http-v1",
+      "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+      "model_ref": "62b47c0f62924dd09b8524462a3574e7",
+      "contract_version": 1,
+      "deployment_ref": "f5fe21eaa6c957539b1b9fd7d4e7246a"
+    },
+    "9e1b279b2443495faa4dffa1ebb66a5a": null,
+    "a29f741052284b738ad51cd414f2ea5b": null,
+    "aed14fb5a8a44ed387a9f57b70815b40": null,
+    "b5afcd49ed954c8b9c9f304e68b819d5": null,
+    "ba255910150a4553a02168846b3c87ee": null,
+    "c4a6acc0da064a4c93828ad3ad7e9fbc": null,
+    "cc06eaa7efd449209508cda325e62c1b": null,
+    "daf226e1da7f4aa7ab8a0b89cbc1e973": null,
+    "e227f0e49f0249fc813cd4ee21557914": null,
+    "ee570c6030924de19cde9deadfcd31ab": null,
+    "f00f3337e16145b7ac2e32cb596c0e0d": null,
+    "f233d48ec201463a8fc76af4e32e95cd": null
+  },
+  "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+  "nightingale_rules": {
+    "66": "0018c9af70623528211cd1ed5887052ded1d4cee3f2f9ee76e23a637c4488391",
+    "65": "3497e2ee8010875c939fb5ca2ad09ef7cbd04f84ae87d40325c6d4be358948b4",
+    "64": "3229119f23449202ed17334bbd85b32a2889878d288ade6345c25cc03f248426",
+    "69": "ea8de0aa81c5b50db96f51c775a4fb4822a115c08698628e275c4359e11a1706",
+    "68": "e4857c3572ed60e1e0231dc87ddd3f674d3ec15202052fc8bbfbf82eaf751691",
+    "67": "1cf3f8e94176caabf0dc1456da1d5c6516b4eb8f794f8b6efac69d22936be974",
+    "72": "7f46697d8f4583b619890080c4fc5df74ff874e702945b90243743821c47553c",
+    "71": "37b1da3cec01f5e4ce73b780cbdf998a1711b7efa92ee289607013f4f9eb9698",
+    "70": "57246586b5bbceeafe6bb6848eb761abbe3c2ad0378c449a38ae5de15d8759a2",
+    "73": "b31e613c6105a391258006b850cc38e6e782c506409921ed7529416a9dcbdb25",
+    "75": "ae929a2c3e50f57b20aa8e5dc21b74650adc8895d128ce4e80dbe2334b28ab16",
+    "76": "f57c15b6e096c56740f22ca764efffb3153dadda5651203cab54aabe983078ac",
+    "78": "073e82ab76185b7cf9a4ee9e75b2fdf7406e14c62903e3167aef5d29b0f315f0",
+    "77": "39d41beeeebf3dba75b63b35c7372db541a57f2bfd115f2bbc59f19899eff1ff",
+    "81": "8c523e251533f4b9fe8e82d4f03c4ee932954bcaab19fedf40a6f4787acddaa6",
+    "82": "bd1898fec1dc122cbbe6e5164339851b0cdd9fb9e3398826bdd58785fa082ac5",
+    "84": "5f2582206e3f4ae00467a105ddf0b9e8eebad9d5ef47cd28137c9d1525234e42",
+    "85": "1123649994def79515fbbf72391f89546c34acd98b5b5e0acbdde0e1b9eca8d0",
+    "79": "9d2cb989ab53f217dc40449d16862b71a454f6d9ceccb66e6350fd36b2c633a6",
+    "83": "a6f79286a1c3f2c37d24dc028945589bb2e6e6f6a775417aa8d71d56dc365032",
+    "80": "ea668d5efcafa4506e36e247ede8ba2edfb4a70c02bf19e99e2859a4dce4eb87",
+    "86": "ee1e5fcc12cffd8090dad1635ea58201d2a591593dbb9eee65fdd84a3c84440e",
+    "74": "2152a757f4f23713c5ce7beed3832b8440dbf89d6b8e9ea7909d8c58b5091cde",
+    "3": "518996fa74eddb2dc3e087d45db26e4615f6605161f8768dde6869b385e83bbe",
+    "2": "65ad2f4ce9458cbb653eb0b12638cf5792acab7a5cb62829ea08b99928a8ec87",
+    "5": "a058a8b65085c6a0327920711655a945ee194b5e8fd8d7789625db47b492cbbc",
+    "1": "3dc89b8a6d91612eb10d772ac5072b707c3fe98d15797323cb9091afbfa40c95",
+    "6": "c568222a91dac6b0d53fdeb84ef00a35e7036acad9d9f5f9d70b855fd32498d6",
+    "4": "e005896e83627713705c4dca218266d66a258a56ed8c128e9295ddd64947f20a",
+    "15": "a29153712197b376e99fd9b0ba5c201f3fc6e72aed8a12f66c3f3d087f04a537",
+    "17": "bca2aae7a422fd9e8cd466cc73b087d4a21ea391ce3378e1c5651e6b7f0ad05f",
+    "16": "476a170602392ebbd63b3b235e70db0f6c4a97e38b2e4b94f3d7c3e73de8b0ec",
+    "7": "50f866f1ef41f1e1fee941f26aba26eddf3fc84092be75b68f29ffe17e1e6898",
+    "12": "eaab2c9e12568cce84f846226c43acf3026c08f5810dc6c388748a43eeb14e34",
+    "8": "3013b067ad752ac251bd614ea09dfe155732197e1e030b2b4077f95fcd148e42",
+    "9": "f1f83a0225d323ad92f3acd2e5c9e3868be56f5034e5e2c75ac12e211df170b8",
+    "10": "2a9ee13d4cba1363036b3dd3b664e0234980c14902dadf50059ad62e4e32a899",
+    "11": "c26ec67b791ab302e0aaf809cf31757f8f75e11339299784ca887f119a3ae533",
+    "14": "6471148f379d35bbe06658308ea05f227098e4aac443ac44274d025f55471df2",
+    "13": "1ab11617e7511a809335cf176b4dea617bc3d9bfada0da097bdbbda598fc7d4f",
+    "61": "f059554cc6a8cd11f0b4a071e0cc9621d4b37e6400ab8489cba21fea38d6c3bf",
+    "63": "97f9d88d9ac836e0fb8446a5d8a8e7f14b01052fc96a6fcbf487874c48d8adb3",
+    "18": "4542feb895729aaf3484981b2e1bfe4b962cc77cc394256e5bfc9581ad4f3555",
+    "59": "65db0cf31cfc11925ea396802e3da527a1072a7ceeef390a14653456342963ba",
+    "62": "91dd3d3d61c616b764f45ceadf000f91b3ddda6e16db4c78f988b1e7c2201f74",
+    "60": "dfadaccbd730f035773801f16bef3af9448528da97f0fb3c9637d53549d89893",
+    "22": "7314ea1116396756d366edc43bd88f3ab76976da94df761374cd313e5384f96e",
+    "23": "27c5c2cfd02010269299e1d258570a211134ba021047c9eb6602ab2aef235b1f",
+    "35": "4772d526cbbb64d898e877098868e05ef833ec49611b80b4898ff1cd0ea84d33",
+    "36": "aa9e95d94b27204ce4b2707d6b69cb4dfad898305626da13702f75c9c654f043",
+    "37": "7182216e8ff483b3fdff7a8a00d2711d08204d9c85bd8952d346cb0b7114a219",
+    "45": "fa1ad883d7f467e8d8b377380523490d7aa8fb21810c8b13bc29d183ee3ad0d1",
+    "46": "a5c8de3fdf698a3f505e0d025acf16952e803070c6120d52c6e8bb6d54ef27ec",
+    "39": "9f0a4ad160da0b4711cadf02a23acf5dacff3f335f592b800470c825e52a8649",
+    "38": "a3c2da4822ab9f22253268648a8a58944fc690081ee67a042753f4a8b80a13c8",
+    "24": "7469fdb9856e0e0031f85741c8d86dc5889f6c5f59f9919b2aac0323728f25c2",
+    "34": "fb2c039e688fa2b92aa5d3ac436cddaf2e8923cd33af2adf3fa75a6da4438eb9",
+    "19": "ed99af95fabd50e31fe95453603c09c4b6372d5a9bd40acce835976ec3aeafba",
+    "41": "f833e6bbe2e6c7768f73f2c4ed255b1fb94dfe1dfd6374baf71374234e09ccfc",
+    "44": "9522402fe1f49f87adb5babc2574d6036641027c3489ba87f84f6f9872dfe417",
+    "43": "75c3acab39fa0f9d135aeb92587291dee738a34d7982be4c866f9e404d36caa8",
+    "40": "544429c1c4c2a4fd4f61460f8d2ad030938300e61e8690936edcc377e5b0a364",
+    "42": "01b471448dcb3dff0bfc528aec7bf6730c810ac7fa665cbe7784f07c1053272f",
+    "52": "cf48f40337a2aae4729bb71b8b802fe216c2b33dea2d73f462b0383f8f83687e",
+    "32": "efa734908878f76dbc891d2fecc8753fab3271dd235fee7d765aa8313374f796",
+    "30": "8a66724ef7c4db466d3ada0dac4ffcb81911d58b9307991a7975c199af6c85af",
+    "28": "0e910f7809a26229e54029a9734286ec4eea0b4c5d837de8ca1047e94d54ee57",
+    "54": "0917a796a591e9b0d25435da85c7104cf4873531213c1a671b23810dec21d7b2",
+    "31": "61cb5a1299e9cb7f53260730b371db69461efbfdded99c6f8f2572cf7790a76e",
+    "58": "14a6adf69cd6c7a771cea60b243fc23485be9743ca91eae006ae8088c9dd506e",
+    "56": "b849170e64dabc0c98834f2268a6f5fc272b3f40443a52904119173d83fb3af1",
+    "55": "5287cfccd8dc7faa8fd9d8477c3570c6a67ab5ed944715095c5eb1436d8e44a0",
+    "29": "3a2663d43ff88ae8b1c3e40c480b0822d610b12f2bd6e95c2fa2ed8832dd8636",
+    "26": "e33696d95488ff39a842fbfcfedcfbc6b52a436ab431d1aa1a07e516ddd74c59",
+    "20": "3772916c7cfb82c8a6ea707f3d4cfc05253d292929ff8fab3bac03835a2a7796",
+    "21": "e4a1b7c2900da53b922f764cc476b65bf48d32b21b4e7e5c5e4399db345cc5ce",
+    "27": "46b34ebd8b51d02b3fe9925ede2b314b029e215141bdf44a042d6e3760f8769b",
+    "49": "9338c0774eac398bdfc6b702d75060913e6bed3fa36475fe067e5b46cefc32f1",
+    "25": "9375c6f1eb540e82e89625b58e92d30c1a6d9a41ec867ae228d39d56abf21970",
+    "33": "4b99df580819d2e6906243f3020e18c8ad76541590411b87e5435bd4ee3154a6",
+    "57": "25991190231a8b44d73f925a6071034123e7f9fb120ea2a9f601e74b0670fd19",
+    "50": "f0a7403746b54c257fff4ade4b3b5558844be62d1c3d5f019086a131c1636968",
+    "47": "1a3090137b505db587ae25dc698e31b161a3a1474b6823b3714dd19a86ce80f4",
+    "48": "5841e8727b3bf674462f79650fb4ffe0c41f5411d6c25af40641bd4e846808b2",
+    "51": "831232da2c3b85b97559402b01fab26c9580cfb41e1aac31c596c3a1b2cf7175",
+    "53": "66dc3c0ca5dec35673552fe6badeb63248f6ff4853c9123d923cfb49a5a3f295"
+  },
+  "volumes": {
+    "/gpu-alert-lab-comprehensive-source-1": [
+      [
+        "/data",
+        "gpu-alert-lab_comprehensive-events"
+      ]
+    ],
+    "/gpu-alert-lab-recovery-adapter-1": [
+      [
+        "/data",
+        "gpu-alert-lab_lifecycle-data"
+      ]
+    ],
+    "/gpu-alert-lab-comprehensive-lifecycle-1": [
+      [
+        "/data",
+        "gpu-alert-lab_comprehensive-state"
+      ]
+    ],
+    "/gpu-alert-lab-notification-receiver-1": [
+      [
+        "/data",
+        "gpu-alert-lab_notification-data"
+      ]
+    ],
+    "/gpu-alert-lab-gpu-simulator-1": [],
+    "/gpu-alert-lab-ml-anomaly-demo-1": [],
+    "/gpu-alert-lab-nightingale-1": [
+      [
+        "/app/data",
+        "gpu-alert-lab_nightingale-data"
+      ],
+      [
+        "/app/logs",
+        "gpu-alert-lab_nightingale-logs"
+      ]
+    ],
+    "/gpu-alert-lab-redis-1": [
+      [
+        "/data",
+        "gpu-alert-lab_redis-data"
+      ]
+    ],
+    "/gpu-alert-lab-prometheus-1": [
+      [
+        "/prometheus",
+        "gpu-alert-lab_prometheus-data"
+      ]
+    ],
+    "/gpu-monitoring-ml-gpu-ml-1": [
+      [
+        "/data",
+        "gpu-monitoring-ml_gpu-ml-data"
+      ]
+    ],
+    "/gpu-monitoring-ml-model-platform-1": [
+      [
+        "/platform-data",
+        "gpu-monitoring-ml_model-platform-data"
+      ]
+    ]
+  }
+}

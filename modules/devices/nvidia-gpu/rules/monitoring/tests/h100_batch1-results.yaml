@@ -1,0 +1,26 @@
+batch_id: h100-batch1
+date: '2026-11-09'
+scope: synthetic_promql_only
+tool_image: prom/prometheus:v3.2.1
+cases: 49
+assertions: 392
+expression_tests: passed
+nightingale_tests: not_run
+real_cluster_tests: not_run
+rule_ids:
+- nvidia.collector_unavailable
+- nvidia.expected_gpu_observation_missing
+- nvidia.required_field_missing
+- nvidia.required_field_stale
+- nvidia.required_input_invalid
+- nvidia.duplicate_input_series
+- nvidia.sram_threshold_exceeded
+- nvidia.row_remap_failed
+fixture_sha256: 2fb7a8c7e1299e345b872a2c5e9be794fa5ad02a88601708f87a82279059a2d7
+binding_sha256: 6b3514f64979c483f895670ada478c01c298e5e01eef6636564983d5ad7f2f82
+fixed_during_development:
+- timestamp_before_label_transform
+- suppress_field_missing_when_device_observations_empty
+- per_field_timestamp_constant_metric_name_before_union
+runtime_rules_changed: false
+production_admitted: false

@@ -1,0 +1,48 @@
+{
+  "scope": "v2 simulated GPU / actual Prometheus and Nightingale",
+  "production_admitted": false,
+  "cases": [
+    {
+      "name": "batch-expand-and-idempotence",
+      "passed": true,
+      "detectors": 3
+    },
+    {
+      "name": "train-publish",
+      "task": "v2-75dd0d092a6c3ae475dd29d8",
+      "algorithm": "temporal_mad",
+      "samples": 901,
+      "model": "9e1b279b2443495faa4dffa1ebb66a5a",
+      "passed": true
+    },
+    {
+      "name": "train-publish",
+      "task": "v2-eddd9ce1d2478322373ed654",
+      "algorithm": "joint_pca",
+      "samples": 901,
+      "model": "b5afcd49ed954c8b9c9f304e68b819d5",
+      "passed": true
+    },
+    {
+      "name": "train-publish",
+      "task": "v2-f3889c269fe54fc22992fe29",
+      "algorithm": "temporal_mad",
+      "samples": 901,
+      "model": "6e06b26172b842afb3fe1ec31f69c712",
+      "passed": true
+    },
+    {
+      "name": "online-and-replay-result-contract",
+      "passed": true
+    },
+    {
+      "name": "v2-native-nightingale-event",
+      "passed": true,
+      "event_id": 383,
+      "rule_id": 76,
+      "hash": "2e4529b1e1452220dca3d327719b56ef"
+    }
+  ],
+  "passed": true,
+  "recorded_at": 1794449558.257625
+}

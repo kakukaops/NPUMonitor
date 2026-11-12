@@ -1,0 +1,33 @@
+{
+  "scope": "independent reference model service; actual Prometheus; simulated GPU",
+  "company_platform_integrated": false,
+  "cases": [
+    {
+      "name": "independent-training-and-platform-artifacts",
+      "passed": true,
+      "model_id": "0011b44b2b9547d6b6a09b6ef68ff7e0",
+      "backend_request_id": "69bf4e9265a440f19990ed1efd2f27c2",
+      "samples": 1801
+    },
+    {
+      "name": "deploy-before-pointer-switch-and-http-inference",
+      "passed": true,
+      "deployment": "21bfc6c423a952749d7442e4b8c99d9e"
+    },
+    {
+      "name": "platform-postprocess-ensemble-and-replay",
+      "passed": true,
+      "postprocess": "8a2fd7aa57044c3f98b9d15ed6b5e07a",
+      "ensemble": "0278b47ada6e467999af8dda733262ef"
+    },
+    {
+      "name": "legacy-online-model-rollback-preserved",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "task": "s4-3c23fa0339649e4a29aa45a8",
+  "model": "0011b44b2b9547d6b6a09b6ef68ff7e0",
+  "platform_id": "c85405e937c248a3b1ddc5d926c327e5",
+  "recorded_at": 1794468115.7721975
+}

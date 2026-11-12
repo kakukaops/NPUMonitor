@@ -1,0 +1,347 @@
+schema_version: 0.1.0
+scope: synthetic_review_only
+production_admitted: false
+queries:
+- query_id: memory.remap_pending
+  inputs:
+  - DCGM_FI_DEV_ROW_REMAP_PENDING
+  expression: (((DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_ROW_REMAP_PENDING{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    == 1)
+  unit: boolean
+  purpose: maintenance_review
+  default_policy: disabled
+- query_id: thermal.gpu_operating_margin
+  inputs:
+  - DCGM_FI_DEV_GPU_TEMP
+  - DCGM_FI_DEV_GPU_MAX_OP_TEMP
+  expression: ((((DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 140737488355328) and (DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    > -140737488355328) and ((DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    - DCGM_FI_DEV_GPU_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})
+    == 0)) > 0) - on (cluster_id,UUID) ((DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 140737488355328) and (DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    > -140737488355328) and ((DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    - DCGM_FI_DEV_GPU_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})
+    == 0)))
+  unit: celsius
+  purpose: temperature_margin_dashboard
+  default_policy: disabled
+- query_id: thermal.memory_operating_margin
+  inputs:
+  - DCGM_FI_DEV_MEMORY_TEMP
+  - DCGM_FI_DEV_MEM_MAX_OP_TEMP
+  expression: ((((DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 140737488355328) and (DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    > -140737488355328) and ((DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    - DCGM_FI_DEV_MEM_MAX_OP_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})
+    == 0)) > 0) - on (cluster_id,UUID) ((DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 140737488355328) and (DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    > -140737488355328) and ((DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    - DCGM_FI_DEV_MEMORY_TEMP{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})
+    == 0)))
+  unit: celsius
+  purpose: temperature_margin_dashboard
+  default_policy: disabled
+- query_id: clock.sw_thermal
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 32) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.hw_thermal
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 64) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.sw_power_cap
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 4) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.hw_power_brake
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 128) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.hw_slowdown
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 8) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.sync_boost
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((floor((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992)) / 16) % 2) == 1)
+  unit: boolean
+  purpose: clock_reason_dashboard
+  default_policy: disabled
+- query_id: clock.unknown_bits
+  inputs:
+  - DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  expression: ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    >= 512) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9007199254740992))
+  unit: bitmask
+  purpose: mapping_review
+  default_policy: disabled
+- query_id: thermal.slowdown_seconds
+  inputs:
+  - DCGM_FI_DEV_THERMAL_VIOLATION
+  expression: ((increase(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    and ((DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (count_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 2) and (min_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0) and (max_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0)) / 1000000000)
+  unit: seconds
+  purpose: recent_activity_dashboard
+  default_policy: disabled
+- query_id: pcie.replay_increase
+  inputs:
+  - DCGM_FI_DEV_PCIE_REPLAY_COUNTER
+  expression: ((increase(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    and ((DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (count_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 2) and (min_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0) and (max_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0)) / 1)
+  unit: events
+  purpose: recent_activity_dashboard
+  default_policy: disabled
+- query_id: nvlink.crc_increase
+  inputs:
+  - DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL
+  expression: ((increase(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    and ((DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (count_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 2) and (min_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0)) / 1)
+  unit: errors
+  purpose: recent_activity_dashboard
+  default_policy: disabled
+- query_id: nvlink.recovery_increase
+  inputs:
+  - DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL
+  expression: ((increase(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    and ((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (count_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 2) and (min_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0)) / 1)
+  unit: events
+  purpose: recent_activity_dashboard
+  default_policy: disabled
+- query_id: nvlink.replay_increase
+  inputs:
+  - DCGM_FI_DEV_NVLINK_REPLAY_TOTAL
+  expression: ((increase(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    and ((DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90)) and on (cluster_id,UUID) (count by (cluster_id,UUID) ((DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    and ((time() - timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    >= 0) and ((time() - timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}))
+    <= 90))) == 1) and on (cluster_id,job,instance) ((up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"}
+    and ((time() - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) >= 0) and ((time()
+    - timestamp(up{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400"})) <= 90)) == 1) and (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    >= 0) and (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    < 9223372036854775792) and (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}
+    == floor(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"})))
+    and (count_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 2) and (min_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{cluster_id="fixture-cluster",job="dcgm",instance="fixture-node:9400",UUID=~"GPU-FIXTURE-000[01]"}[5m])
+    >= 0)) / 1)
+  unit: events
+  purpose: recent_activity_dashboard
+  default_policy: disabled

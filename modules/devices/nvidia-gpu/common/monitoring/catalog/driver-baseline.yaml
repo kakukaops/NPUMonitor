@@ -1,0 +1,51 @@
+schema_version: 0.2.0
+baseline_id: h100-training-r595-20261106
+purpose: design_reference_not_installed_or_hardware_validated
+checked_at: '2026-11-06'
+selection_policy: latest_patch_in_official_production_branch_then_pin_and_review_upgrades
+workload: training
+virtualization: disabled_user_confirmed
+gpu_entity: physical_gpu
+operating_system:
+  reference_family: Linux
+  distribution: unknown
+  kernel: unknown
+  architecture: unknown
+driver:
+  branch: R595
+  designation: production branch
+  version: 595.112.07
+  released_at: '2026-10-22'
+  selection_status: official_release_verified
+  actual_installed_version: unknown
+dcgm:
+  minimum_compatible_line: 4.3.x
+  exact_reference_version: not_yet_selected
+  actual_version: unknown
+exporter:
+  reference_version: not_yet_selected
+  actual_version: unknown
+conditional_dependencies:
+  fabric_manager:
+    applies_when: nvswitch_system_and_vendor_stack_requires_it
+    reference_version: 595.112.07
+    actual_requirement_and_version: unknown
+known_release_gate:
+  component: Hopper GPU subrevision 3
+  condition: VBIOS older than 96.00.68.00.xx
+  effect: driver_initialization_failure_per_release_notes
+  required_action: check_subrevision_and_vbios_before_driver_upgrade
+mig:
+  instance_rule_scope: not_admitted_in_v1
+  actual_mode: unknown_not_inferred_from_virtualization
+source_ids:
+- nvidia.driver.support_matrix
+- nvidia.driver.releases
+- nvidia.driver.r595.notes
+open_items:
+- h100_pcie_sxm_nvl_inventory
+- linux_distribution_kernel_architecture
+- actual_driver_dcgm_exporter_versions
+- actual_mig_mode
+- training_topology_and_expected_links
+- actual_metric_configuration_and_intervals

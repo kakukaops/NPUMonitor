@@ -1,0 +1,78 @@
+name: gpu-alert-lab
+services:
+  redis:
+    image: redis:7.4.2-alpine
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
+    volumes:
+    - redis-data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  nightingale:
+    image: flashcatcloud/nightingale:9.3.0
+    command:
+    - /app/n9e
+    working_dir: /app
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+    - 127.0.0.1:17000:17000
+    volumes:
+    - ../../deploy/nvidia-gpu/lab/nightingale/config.toml:/app/etc/config.toml:ro
+    - nightingale-data:/app/data
+    - nightingale-logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:17000/', timeout=3).read(1)
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=3d
+    ports:
+    - 127.0.0.1:19090:9090
+    volumes:
+    - ../../deploy/nvidia-gpu/lab/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - prometheus-data:/prometheus
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - -q
+      - -O
+      - /dev/null
+      - http://127.0.0.1:9090/-/ready
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+volumes:
+  redis-data:
+    name: gpu-alert-lab_redis-data
+  nightingale-data:
+    name: gpu-alert-lab_nightingale-data
+  nightingale-logs:
+    name: gpu-alert-lab_nightingale-logs
+  prometheus-data:
+    name: gpu-alert-lab_prometheus-data

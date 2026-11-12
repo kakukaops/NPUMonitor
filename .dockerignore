@@ -1,0 +1,7 @@
+.git
+.local
+.aws
+.agents
+.codex
+**/__pycache__
+**/*.pyc
