@@ -1,0 +1,2739 @@
+{
+  "summary": {
+    "candidate_count": 92,
+    "dcgm_candidate_count": 82,
+    "current_contract_candidate_count": 37,
+    "disposition_counts": {
+      "documented_metadata_planned": 3,
+      "metadata_partial": 1,
+      "missing_raw_field": 26,
+      "documented_planned": 16,
+      "current_contract": 37,
+      "current_feature": 5,
+      "current_blocked_feature": 1,
+      "explicit_exclusion": 1,
+      "external_gap": 2
+    },
+    "requirement_counts": {
+      "必选": 29,
+      "可选": 17,
+      "条件必选": 43,
+      "排除": 1,
+      "外部": 2
+    },
+    "current_contract_unique_dcgm": 37,
+    "crosswalk_scope": "common92candidates; proposed requirement is normative design, independent of runtime implementation status; no hardware validation implied"
+  },
+  "items": [
+    {
+      "metric_id": "nvidia.driver_version",
+      "name_zh": "驱动版本",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1,
+      "canonical_field": "DCGM_FI_SYSTEM_DRIVER_VERSION",
+      "configured_or_current_aliases": [
+        "DCGM_FI_SYSTEM_DRIVER_VERSION",
+        "DCGM_FI_DRIVER_VERSION"
+      ],
+      "doc14_current_disposition": "documented_metadata_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "资产概览第1节的配置/版本元数据，未列精确collector字段；需显式固定driver版本标签语义。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "label",
+      "candidate_unit": "version",
+      "candidate_warning": "用于匹配固定驱动基线，不作为独立数值告警",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_name",
+      "name_zh": "GPU产品名称",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 50,
+      "canonical_field": "DCGM_FI_DEV_GPU_NAME",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_NAME"
+      ],
+      "doc14_current_disposition": "documented_metadata_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "资产概览第1节设备身份元数据，未列精确GPU_NAME字段；不得把GPU名字当型号支持验证。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "string",
+      "candidate_unit": "text",
+      "candidate_warning": "用于核实H100形态，名称字符串不能单独完成准入",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_uuid",
+      "name_zh": "GPU UUID",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 54,
+      "canonical_field": "DCGM_FI_DEV_GPU_UUID",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_UUID"
+      ],
+      "doc14_current_disposition": "metadata_partial",
+      "production_requirement_proposal": "必选",
+      "reason": "UUID已用于现有规则身份；独立资产概览和NVML/Exporter元数据接入覆盖尚未完备。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "string",
+      "candidate_unit": "text",
+      "candidate_warning": "设备稳定身份；不能用GPU序号替代",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.inforom_valid",
+      "name_zh": "InfoROM有效性",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 84,
+      "canonical_field": "DCGM_FI_DEV_INFOROM_VALID",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_INFOROM_VALID"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "管理固件有效性诊断缺口；失败、读不出、不支持必须区分，不能先设无效值=故障。 管理固件有效性诊断缺口；失败、读不出、不支持必须区分，不能先设无效值=故障。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "需核实值域、读失败及不支持的表示",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sm_clock",
+      "name_zh": "SM时钟",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 100,
+      "canonical_field": "DCGM_FI_DEV_SM_CLOCK",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_SM_CLOCK"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_SM_CLOCK"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "MHz",
+      "candidate_warning": "低频需负载和限制原因上下文",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.mem_clock",
+      "name_zh": "显存时钟",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 101,
+      "canonical_field": "DCGM_FI_DEV_MEM_CLOCK",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_MEM_CLOCK"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_MEM_CLOCK"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "MHz",
+      "candidate_warning": "配置/负载相关，不能直接设统一低频故障阈值",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.clock_reasons",
+      "name_zh": "时钟限制原因",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 112,
+      "canonical_field": "DCGM_FI_DEV_CLOCKS_EVENT_REASONS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.sw_thermal",
+        "os_sre.hw_thermal",
+        "os_sre.power_cap",
+        "os_sre.power_brake",
+        "os_sre.hw_slowdown",
+        "os_sre.sync_boost",
+        "os_sre.clock_unknown"
+      ],
+      "candidate_semantic_kind": "bitmask",
+      "candidate_unit": "bitmask",
+      "candidate_warning": "按位解释，不能对位掩码使用increase",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.memory_temp",
+      "name_zh": "HBM/显存温度",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 140,
+      "canonical_field": "DCGM_FI_DEV_MEMORY_TEMP_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_MEMORY_TEMP_CELSIUS",
+        "DCGM_FI_DEV_MEMORY_TEMP"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_MEMORY_TEMP"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_MEMORY_TEMP"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.memory_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "存储域与H100可用性待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_temp",
+      "name_zh": "GPU温度",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 150,
+      "canonical_field": "DCGM_FI_DEV_GPU_TEMP_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_CELSIUS",
+        "DCGM_FI_DEV_GPU_TEMP"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_GPU_TEMP"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_GPU_TEMP"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.gpu_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "与设备门槛/余量配合，不使用实验85度",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.memory_max_temp",
+      "name_zh": "显存最大运行温度门槛",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 151,
+      "canonical_field": "DCGM_FI_DEV_MEMORY_MAX_OP_TEMP_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_MEMORY_MAX_OP_TEMP_CELSIUS",
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.memory_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "设备提供的门槛是否可见待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_max_temp",
+      "name_zh": "GPU最大运行温度门槛",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 152,
+      "canonical_field": "DCGM_FI_DEV_GPU_MAX_OP_TEMP_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP_CELSIUS",
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.gpu_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "运行门槛与shutdown门槛不可互换",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_temp_margin",
+      "name_zh": "GPU热余量",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 153,
+      "canonical_field": "DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "温度余量用于在硬件降速门槛附近监控，当前最大运行温度规则不能覆盖全部slowdown边界。 温度余量用于在硬件降速门槛附近监控，当前最大运行温度规则不能覆盖全部slowdown边界。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "方向/有效范围需按目标版本核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.board_power",
+      "name_zh": "板卡功耗",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 155,
+      "canonical_field": "DCGM_FI_DEV_BOARD_POWER_WATTS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_WATTS",
+        "DCGM_FI_DEV_POWER_USAGE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_POWER_USAGE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "watts",
+      "candidate_warning": "高功耗可能为正常训练负载",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.board_power_raw",
+      "name_zh": "板卡瞬时功耗",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 157,
+      "canonical_field": "DCGM_FI_DEV_BOARD_POWER_RAW_WATTS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_RAW_WATTS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "与平均/采样功率口径区别大、并非必需重复采集；作为具体版本支持下的诊断增强。 与平均/采样功率口径区别大、并非必需重复采集；作为具体版本支持下的诊断增强。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "watts",
+      "candidate_warning": "与平均功耗口径不同，不重复解释",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.slowdown_temp",
+      "name_zh": "GPU降频温度门槛",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 158,
+      "canonical_field": "DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "热降速边界与最大运行温度/关机门槛不同，需文档明确语义和适用硬件。 热降速边界与最大运行温度/关机门槛不同，需文档明确语义和适用硬件。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "门槛本身不是当前降频状态",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.shutdown_temp",
+      "name_zh": "GPU关断温度门槛",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 159,
+      "canonical_field": "DCGM_FI_DEV_GPU_TEMP_SHUTDOWN_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_SHUTDOWN_CELSIUS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "用于风险展示的设备门槛，不把达到停机门槛当作唯一热告警时机。 用于风险展示的设备门槛，不把达到停机门槛当作唯一热告警时机。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "不把关断门槛用作早期预警阈值",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.requested_power_limit",
+      "name_zh": "请求的功率限制",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 160,
+      "canonical_field": "DCGM_FI_DEV_BOARD_POWER_LIMIT_REQUESTED_WATTS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_LIMIT_REQUESTED_WATTS",
+        "DCGM_FI_DEV_POWER_MGMT_LIMIT"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_POWER_MGMT_LIMIT"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "watts",
+      "candidate_warning": "需比对配置基线；TDP不能代替",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.enforced_power_limit",
+      "name_zh": "实际执行的功率限制",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 164,
+      "canonical_field": "DCGM_FI_DEV_BOARD_POWER_LIMIT_ENFORCED_WATTS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_LIMIT_ENFORCED_WATTS",
+        "DCGM_FI_DEV_ENFORCED_POWER_LIMIT"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ENFORCED_POWER_LIMIT"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "watts",
+      "candidate_warning": "按当前平台限制条件解释",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fm_status",
+      "name_zh": "Fabric Manager状态",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 170,
+      "canonical_field": "DCGM_FI_DEV_FABRIC_MANAGER_STATUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.fabric_manager",
+        "os_sre.fabric_capability"
+      ],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "仅适用于需要FM的系统，值域字典待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fm_error",
+      "name_zh": "Fabric Manager错误",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 171,
+      "canonical_field": "DCGM_FI_DEV_FABRIC_MANAGER_ERROR",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_ERROR"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "Fabric Manager具体错误码是状态异常后的补充解释；不是累计次数。 Fabric Manager具体错误码是状态异常后的补充解释；不是累计次数。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "error_code",
+      "candidate_warning": "不是错误发生次数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fabric_health_mask",
+      "name_zh": "Fabric健康位掩码",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 174,
+      "canonical_field": "DCGM_FI_DEV_FABRIC_HEALTH_MASK",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_MASK"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "Fabric健康位掩码提供明细；不能把数值大小当严重度，也不能与summary枚举混用。 Fabric健康位掩码提供明细；不能把数值大小当严重度，也不能与summary枚举混用。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "bitmask",
+      "candidate_unit": "bitmask",
+      "candidate_warning": "不支持位与异常位需区分",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fabric_health_summary",
+      "name_zh": "Fabric健康摘要",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 175,
+      "canonical_field": "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.fabric_health"
+      ],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "不支持状态不等于故障",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pstate",
+      "name_zh": "GPU性能状态",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 190,
+      "canonical_field": "DCGM_FI_DEV_GPU_PSTATE",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_PSTATE"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "性能状态枚举是时钟/节能背景，P0并非必定最佳且高P值并不自动等于故障。 性能状态枚举是时钟/节能背景，P0并非必定最佳且高P值并不自动等于故障。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "只作解释上下文，不把非最高性能态一概告警",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_replay",
+      "name_zh": "PCIe replay累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 202,
+      "canonical_field": "DCGM_FI_DEV_PCIE_REPLAY_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_PCIE_REPLAY_TOTAL",
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.pcie_replay"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "events",
+      "candidate_warning": "候选新增检测，阈值/重置按H100栈核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gpu_util",
+      "name_zh": "GPU利用率",
+      "primary_domain": "4.计算活动性能信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 203,
+      "canonical_field": "DCGM_FI_DEV_GPU_UTIL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_UTIL"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_GPU_UTIL"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "percent",
+      "candidate_warning": "高利用率常为正常训练；低利用率需作业上下文",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.mem_copy_util",
+      "name_zh": "显存控制器利用率",
+      "primary_domain": "5.显存访问带宽信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 204,
+      "canonical_field": "DCGM_FI_DEV_MEM_COPY_UTIL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_MEM_COPY_UTIL"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_MEM_COPY_UTIL"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "percent",
+      "candidate_warning": "不是显存容量占用率",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.xid_last",
+      "name_zh": "最近XID代码",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 230,
+      "canonical_field": "DCGM_FI_DEV_XID_ERROR",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_XID_ERROR",
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.xid_node",
+        "os_sre.xid_reset",
+        "os_sre.xid_app",
+        "os_sre.xid_scope",
+        "os_sre.xid_unknown"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "error_code",
+      "candidate_warning": "轮询最近值不保证事件完整，不得使用increase统计码值",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_max_gen",
+      "name_zh": "PCIe最大链路代际",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 235,
+      "canonical_field": "DCGM_FI_DEV_PCIE_MAX_LINK_GEN",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_PCIE_MAX_LINK_GEN"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "设备可支持的最大PCIe代际用于能力展示，但不等价于OS插槽/拓扑的预期协商代际。 设备可支持的最大PCIe代际用于能力展示，但不等价于OS插槽/拓扑的预期协商代际。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "generation",
+      "candidate_warning": "仅能力上下文，不能假设实际总达到最大值",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_max_width",
+      "name_zh": "PCIe最大链路宽度",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 236,
+      "canonical_field": "DCGM_FI_DEV_PCIE_MAX_LINK_WIDTH",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_PCIE_MAX_LINK_WIDTH"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "设备可支持的最大lane数用于能力展示，静态资产目标仍要考虑主板/拓扑限制。 设备可支持的最大lane数用于能力展示，静态资产目标仍要考虑主板/拓扑限制。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "lanes",
+      "candidate_warning": "与预期平台配置匹配",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_gen",
+      "name_zh": "PCIe当前链路代际",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 237,
+      "canonical_field": "DCGM_FI_DEV_PCIE_LINK_GEN",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_PCIE_LINK_GEN"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_PCIE_LINK_GEN"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_PCIE_LINK_GEN"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.pcie_degraded"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "generation",
+      "candidate_warning": "需负载与预期配置，低负载可降速",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_width",
+      "name_zh": "PCIe当前链路宽度",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 238,
+      "canonical_field": "DCGM_FI_DEV_PCIE_LINK_WIDTH",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_PCIE_LINK_WIDTH"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_PCIE_LINK_WIDTH"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_PCIE_LINK_WIDTH"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.pcie_degraded"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "lanes",
+      "candidate_warning": "需预期拓扑与配置，不跨形态套用",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.power_violation_ns",
+      "name_zh": "功率限制累计时长旧字段",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 240,
+      "canonical_field": "DCGM_FI_DEV_POWER_VIOLATION",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_POWER_VIOLATION"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "功率限制累计时长提供状态持续性证据，Power Cap位并不等于供电故障。 功率限制累计时长提供状态持续性证据，Power Cap位并不等于供电故障。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "nanoseconds",
+      "candidate_warning": "已弃用候选；新秒字段为替代映射，不能相加或重复告警",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.thermal_violation_ns",
+      "name_zh": "热限制累计时长旧字段",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 241,
+      "canonical_field": "DCGM_FI_DEV_THERMAL_VIOLATION",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.thermal_time"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "nanoseconds",
+      "candidate_warning": "先换算ns到s，不当事件次数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fb_free",
+      "name_zh": "显存剩余容量",
+      "primary_domain": "3.资源容量占用",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 251,
+      "canonical_field": "DCGM_FI_DEV_FB_FREE",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FB_FREE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_FB_FREE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "MiB",
+      "candidate_warning": "分母/保留内存口径待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.fb_used",
+      "name_zh": "显存已用容量",
+      "primary_domain": "3.资源容量占用",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 252,
+      "canonical_field": "DCGM_FI_DEV_FB_USED",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_FB_USED"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_FB_USED"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "MiB",
+      "candidate_warning": "高占用不直接等于硬件故障",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_mode",
+      "name_zh": "当前ECC模式",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 300,
+      "canonical_field": "DCGM_FI_DEV_ECC_MODE",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_MODE"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "ECC配置背景缺口；不支持或缺失不能解释成ECC关闭。 ECC配置背景缺口；不支持或缺失不能解释成ECC关闭。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "字段不支持/缺失不能当作ECC关闭",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_pending",
+      "name_zh": "待生效ECC模式",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 301,
+      "canonical_field": "DCGM_FI_DEV_ECC_PENDING",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_PENDING"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "待生效ECC配置，须与当前模式分开；配置不生效可能需要维护，不直接判卡坏。 待生效ECC配置，须与当前模式分开；配置不生效可能需要维护，不直接判卡坏。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "与当前模式区分，属于配置上下文",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_sbe_volatile",
+      "name_zh": "纠正ECC易失总计数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 310,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "无H100统一呼叫阈值，先趋势/诊断分类",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_dbe_volatile_total",
+      "name_zh": "不可纠正ECC易失总计数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 311,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.ecc_new"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "已有指标卡；不等于完整DRAM/SRAM或真实H100验收",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_sbe_aggregate",
+      "name_zh": "纠正ECC持久总计数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 312,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_AGG_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_TOTAL"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "完整内存可靠性视图应交代历史可纠正错误；默认只诊断，不以历史累计非零呼叫。 完整内存可靠性视图应交代历史可纠正错误；默认只诊断，不以历史累计非零呼叫。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "累计范围/清零限制按目标版本核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.ecc_dbe_aggregate",
+      "name_zh": "不可纠正ECC持久总计数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 313,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "首次非零与近期新增分开解释",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.dram_sbe_volatile",
+      "name_zh": "设备内存纠正ECC易失明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 318,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_VOL_DEV",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_DEV"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_DEV"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_DEV"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "DEV域到H100 DRAM的对应关系待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.dram_dbe_volatile",
+      "name_zh": "设备内存不可纠正ECC易失明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 319,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_VOL_DEV",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_DEV"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_DEV"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_DEV"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "不能与总计数叠加造成重复",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.dram_sbe_aggregate",
+      "name_zh": "设备内存纠正ECC持久明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 328,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_AGG_DEV",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_DEV"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "DRAM历史可纠正错误分布为诊断补充；不能当近期错误速率。 DRAM历史可纠正错误分布为诊断补充；不能当近期错误速率。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "与总计数及存储位置口径分别核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.dram_dbe_aggregate",
+      "name_zh": "设备内存不可纠正ECC持久明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 329,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_AGG_DEV",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_DEV"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_DEV"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_DEV"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "首次发现历史非零不冒充近期新增",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sram_sbe_volatile",
+      "name_zh": "SRAM纠正ECC易失明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 342,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_VOL_SRM",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_SRM"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_SRM"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_SRM"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "SRM为源码字段命名，具体计数口径待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sram_dbe_volatile",
+      "name_zh": "SRAM不可纠正ECC易失明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 343,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_VOL_SRM",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_SRM"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_SRM"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_SRM"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "不可据总计数重建bank级RMA判据",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sram_sbe_aggregate",
+      "name_zh": "SRAM纠正ECC持久明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 344,
+      "canonical_field": "DCGM_FI_DEV_ECC_SBE_AGG_SRM",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_SRM"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "SRAM历史可纠正错误分布为诊断补充；与uncorrectable错误及SRAM超阈值标志区分。 SRAM历史可纠正错误分布为诊断补充；与uncorrectable错误及SRAM超阈值标志区分。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "不与汇总和其他细分重复相加",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sram_dbe_aggregate",
+      "name_zh": "SRAM不可纠正ECC持久明细",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 345,
+      "canonical_field": "DCGM_FI_DEV_ECC_DBE_AGG_SRM",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_SRM"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "可选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_SRM"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_SRM"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "与SRAM超阈值标志分开",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sram_exceeded",
+      "name_zh": "SRAM超阈值标志",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 346,
+      "canonical_field": "DCGM_FI_DEV_SRAM_EXCEEDED",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_SRAM_EXCEEDED"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_SRAM_EXCEEDED"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_SRAM_EXCEEDED"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.sram"
+      ],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "官方标志候选，不能从ECC总数代算",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_bank_max",
+      "name_zh": "重映射资源Max桶",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 385,
+      "canonical_field": "DCGM_FI_DEV_BANK_REMAP_AVAIL_MAX",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_MAX"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。 完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "banks",
+      "candidate_warning": "表示资源分桶，不是错误计数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_bank_high",
+      "name_zh": "重映射资源High桶",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 386,
+      "canonical_field": "DCGM_FI_DEV_BANK_REMAP_AVAIL_HIGH",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_HIGH"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。 完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "banks",
+      "candidate_warning": "不能自行映射为RMA标准",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_bank_partial",
+      "name_zh": "重映射资源Partial桶",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 387,
+      "canonical_field": "DCGM_FI_DEV_BANK_REMAP_AVAIL_PARTIAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_PARTIAL"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。 完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "banks",
+      "candidate_warning": "结合其他桶及官方语义",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_bank_low",
+      "name_zh": "重映射资源Low桶",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 388,
+      "canonical_field": "DCGM_FI_DEV_BANK_REMAP_AVAIL_LOW",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_LOW"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。 完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "banks",
+      "candidate_warning": "少量资源不等于已失败",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_bank_none",
+      "name_zh": "重映射资源None桶",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 389,
+      "canonical_field": "DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。 完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "banks",
+      "candidate_warning": "资源告警阈值/处置需核实，不任意设数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remapped_uncorrectable",
+      "name_zh": "不可纠正重映射记录数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 393,
+      "canonical_field": "DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL",
+        "DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "rows",
+      "candidate_warning": "InfoROM记录数，不等于硬件已生效行数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remapped_correctable",
+      "name_zh": "纠正重映射记录数",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 394,
+      "canonical_field": "DCGM_FI_DEV_ROW_REMAP_CORRECTABLE_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_CORRECTABLE_TOTAL",
+        "DCGM_FI_DEV_CORRECTABLE_REMAPPED_ROWS"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_CORRECTABLE_REMAPPED_ROWS"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "rows",
+      "candidate_warning": "不直接用累计非零判断新故障",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_failed",
+      "name_zh": "行重映射失败",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 395,
+      "canonical_field": "DCGM_FI_DEV_ROW_REMAP_FAILED",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILED",
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.remap_failed"
+      ],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "需固定版本名称映射、失败保持与维护清除语义",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.remap_pending",
+      "name_zh": "行重映射待生效",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 396,
+      "canonical_field": "DCGM_FI_DEV_ROW_REMAP_PENDING",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.remap_pending"
+      ],
+      "candidate_semantic_kind": "state",
+      "candidate_unit": "boolean",
+      "candidate_warning": "维护状态不等于立即硬件失效",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.nvlink_crc",
+      "name_zh": "Hopper NVLink CRC累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 497,
+      "canonical_field": "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.nvlink_crc"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "errors",
+      "candidate_warning": "Hopper字段；不套用pre-Hopper或NVLink5+字段",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.nvlink_recovery",
+      "name_zh": "Hopper NVLink recovery累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 498,
+      "canonical_field": "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.nvlink_recovery"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "events",
+      "candidate_warning": "与正常负载/链路上下文区分",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.nvlink_replay",
+      "name_zh": "Hopper NVLink replay累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 499,
+      "canonical_field": "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.nvlink_replay"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "events",
+      "candidate_warning": "候选新增检测，阈值需证据",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_link_fatal",
+      "name_zh": "交换机端口fatal信息",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 782,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_LINK_FATAL_ERRORS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_FATAL_ERRORS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "已有候选记录明确字段类型未知；需确认是状态/错误码/掩码/计数，未核实前禁止rate/increase和统一数值阈值。 已有候选记录明确字段类型未知；需确认是状态/错误码/掩码/计数，未核实前禁止rate/increase和统一数值阈值。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "unknown",
+      "candidate_unit": "unknown",
+      "candidate_warning": "数值类型/口径未核实，禁止先当counter",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_link_nonfatal",
+      "name_zh": "交换机端口nonfatal信息",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 783,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_LINK_NON_FATAL_ERRORS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_NON_FATAL_ERRORS"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "已有候选记录明确字段类型未知；不能仅凭ERRORS名称当counter。 已有候选记录明确字段类型未知；不能仅凭ERRORS名称当counter。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "unknown",
+      "candidate_unit": "unknown",
+      "candidate_warning": "名称不足以证明是累计次数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_link_replay",
+      "name_zh": "交换机端口replay累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 784,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.switch_replay"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "events",
+      "candidate_warning": "需switch+port身份与预期拓扑",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_link_recovery",
+      "name_zh": "交换机端口recovery累计",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 785,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.switch_recovery"
+      ],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "events",
+      "candidate_warning": "需核对硬件代际和采集实体",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sxid_fatal",
+      "name_zh": "交换机最近fatal SXid",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 856,
+      "canonical_field": "DCGM_FI_DEV_SXID_FATAL_ERROR",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_SXID_FATAL_ERROR",
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.sxid_fatal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "error_code",
+      "candidate_warning": "值是SXid码，不是错误次数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sxid_nonfatal",
+      "name_zh": "交换机最近nonfatal SXid",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 857,
+      "canonical_field": "DCGM_FI_DEV_SXID_NON_FATAL_ERROR",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_SXID_NON_FATAL_ERROR",
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.sxid_nonfatal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "error_code",
+      "candidate_warning": "必须按码和上下文分类",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_temp",
+      "name_zh": "NVSwitch温度",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 858,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_TEMP_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMP_CELSIUS",
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.switch_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "不把GPU门槛直接用于交换机",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_slowdown_temp",
+      "name_zh": "NVSwitch降频门槛",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 859,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_TEMP_SLOWDOWN_CELSIUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMP_SLOWDOWN_CELSIUS",
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.switch_thermal"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "celsius",
+      "candidate_warning": "门槛是否采到、是否适用待核实",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.switch_link_state",
+      "name_zh": "NVSwitch端口状态",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 870,
+      "canonical_field": "DCGM_FI_DEV_NVSWITCH_LINK_STATUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_STATUS"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_STATUS"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_STATUS"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.switch_link_down"
+      ],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "只对预期启用端口判断，不支持/未使用不是故障",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.gr_engine_ratio",
+      "name_zh": "图形/计算引擎活动比率",
+      "primary_domain": "4.计算活动性能信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1001,
+      "canonical_field": "DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO",
+        "DCGM_FI_PROF_GR_ENGINE_ACTIVE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_GR_ENGINE_ACTIVE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "ratio",
+      "candidate_warning": "区间平均，不等价有效训练吞吐",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sm_active_ratio",
+      "name_zh": "SM活动比率",
+      "primary_domain": "4.计算活动性能信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1002,
+      "canonical_field": "DCGM_FI_PROF_SM_UTIL_RATIO",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_SM_UTIL_RATIO",
+        "DCGM_FI_PROF_SM_ACTIVE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_SM_ACTIVE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "ratio",
+      "candidate_warning": "不是百分数，需核实profiling支持/暂停状态",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.sm_occupancy_ratio",
+      "name_zh": "SM occupancy比率",
+      "primary_domain": "4.计算活动性能信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1003,
+      "canonical_field": "DCGM_FI_PROF_SM_OCCUPANCY_RATIO",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_SM_OCCUPANCY_RATIO",
+        "DCGM_FI_PROF_SM_OCCUPANCY"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_SM_OCCUPANCY"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "ratio",
+      "candidate_warning": "高occupancy不自动代表高效率",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.tensor_active_ratio",
+      "name_zh": "Tensor管线活动比率",
+      "primary_domain": "4.计算活动性能信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1004,
+      "canonical_field": "DCGM_FI_PROF_TENSOR_UTIL_RATIO",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_TENSOR_UTIL_RATIO",
+        "DCGM_FI_PROF_PIPE_TENSOR_ACTIVE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_PIPE_TENSOR_ACTIVE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "ratio",
+      "candidate_warning": "按训练精度/阶段解释，不作统一低值故障",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.dram_active_ratio",
+      "name_zh": "DRAM活动比率",
+      "primary_domain": "5.显存访问带宽信号",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1005,
+      "canonical_field": "DCGM_FI_PROF_DRAM_UTIL_RATIO",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_DRAM_UTIL_RATIO",
+        "DCGM_FI_PROF_DRAM_ACTIVE"
+      ],
+      "doc14_current_disposition": "documented_planned",
+      "production_requirement_proposal": "条件必选",
+      "reason": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_DRAM_ACTIVE"
+      ],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "ratio",
+      "candidate_warning": "带宽活动不是容量占用",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_tx_rate",
+      "name_zh": "Profiling PCIe发送速率",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1009,
+      "canonical_field": "DCGM_FI_PROF_PCIE_TX_BYTES",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_PCIE_TX_BYTES"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [
+        "DCGM_FI_PROF_PCIE_TX_BYTES"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_PCIE_TX_BYTES"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.pcie_degraded"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "bytes_per_second",
+      "candidate_warning": "已是速率，不能再次rate",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.pcie_rx_rate",
+      "name_zh": "Profiling PCIe接收速率",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1010,
+      "canonical_field": "DCGM_FI_PROF_PCIE_RX_BYTES",
+      "configured_or_current_aliases": [
+        "DCGM_FI_PROF_PCIE_RX_BYTES"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "current_contract_names": [
+        "DCGM_FI_PROF_PCIE_RX_BYTES"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_PROF_PCIE_RX_BYTES"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.pcie_degraded"
+      ],
+      "candidate_semantic_kind": "gauge",
+      "candidate_unit": "bytes_per_second",
+      "candidate_warning": "不要与新增TOTAL累计字段混用",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields",
+        "nvidia.exporter.counters"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.nvlink_link_state",
+      "name_zh": "GPU NVLink链路状态",
+      "primary_domain": "7.互联Fabric",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1508,
+      "canonical_field": "DCGM_FI_DEV_NVLINK_LINK_STATUS",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_NVLINK_LINK_STATUS",
+        "DCGM_FI_DEV_NVLINK_GET_STATE"
+      ],
+      "doc14_current_disposition": "current_contract",
+      "production_requirement_proposal": "条件必选",
+      "reason": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "current_contract_names": [
+        "DCGM_FI_DEV_NVLINK_GET_STATE"
+      ],
+      "doc14_first_column_names": [
+        "DCGM_FI_DEV_NVLINK_GET_STATE"
+      ],
+      "related_current_rule_ids": [
+        "os_sre.gpu_link_down"
+      ],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "link实体、Exporter是否提供均未知",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": "NVML620多态0/1/2/3不能未经目标版本核实套到R595；SLEEP=2可能是正常状态。现有>0解除与上限排除3须依据目标驱动/DCGM和已声明健康策略复核，属于生产契约审核缺口，不一概断言现有R595实现错误。"
+    },
+    {
+      "metric_id": "nvidia.recovery_action",
+      "name_zh": "GPU恢复动作",
+      "primary_domain": "2.GPU健康错误维护",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1523,
+      "canonical_field": "DCGM_FI_DEV_GPU_RECOVERY_ACTION",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_RECOVERY_ACTION"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "条件必选",
+      "reason": "驱动报告的建议恢复动作可补XID处理，但新字段1523的存在不保证目标旧栈支持，不自动执行动作。 驱动报告的建议恢复动作可补XID处理，但新字段1523的存在不保证目标旧栈支持，不自动执行动作。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "enum",
+      "candidate_unit": "enum",
+      "candidate_warning": "新字段存在不代表当前DCGM4.3栈或Exporter具有",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.power_throttle_seconds",
+      "name_zh": "功率限制累计秒新字段",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1617,
+      "canonical_field": "DCGM_FI_DEV_GPU_POWER_THROTTLE_SECONDS_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_POWER_THROTTLE_SECONDS_TOTAL"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "字段1617是旧240ns字段的版本化替代候选；只选支持的一种并显式换算，不双计。 字段1617是旧240ns字段的版本化替代候选；只选支持的一种并显式换算，不双计。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "seconds",
+      "candidate_warning": "240替代候选，需目标DCGM版本映射，不能同时计数",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "nvidia.thermal_throttle_seconds",
+      "name_zh": "热限制累计秒新字段",
+      "primary_domain": "6.温度功耗时钟",
+      "candidate_input_kind": "dcgm_field",
+      "field_id": 1618,
+      "canonical_field": "DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL",
+      "configured_or_current_aliases": [
+        "DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL"
+      ],
+      "doc14_current_disposition": "missing_raw_field",
+      "production_requirement_proposal": "可选",
+      "reason": "字段1618是旧241ns字段的版本化替代候选；不得将秒和ns仅通过别名互换。 字段1618是旧241ns字段的版本化替代候选；不得将秒和ns仅通过别名互换。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "counter",
+      "candidate_unit": "seconds",
+      "candidate_warning": "241替代候选，需核实采集与单位",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "prometheus.target_up",
+      "name_zh": "采集目标up",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "scrape_status",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_feature",
+      "production_requirement_proposal": "必选",
+      "reason": "Prometheus自动up是当前采集可用性规则输入，不属于37个DCGM字段。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "scrape_status",
+      "candidate_unit": "boolean",
+      "candidate_warning": "实际target清单和维护状态仍需核实",
+      "source_ids": [
+        "prometheus.up"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "inventory.expected_devices",
+      "name_zh": "预期物理GPU清单",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "configuration",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_feature",
+      "production_requirement_proposal": "必选",
+      "reason": "现有OS静态预期GPU/交换机清单和entity_missing规则；不能从历史观测自动推导永久资产。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "configuration",
+      "candidate_unit": "device_set",
+      "candidate_warning": "不能仅从已上报设备推断集群应该有多少卡",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "inventory.hardware_stack",
+      "name_zh": "H100形态/软件栈/VBIOS清单",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "configuration",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "documented_metadata_planned",
+      "production_requirement_proposal": "必选",
+      "reason": "已有声明契约选择与版本说明，不等于运行中的型号/驱动/DCGM/Exporter版本自动盘点。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "configuration",
+      "candidate_unit": "inventory",
+      "candidate_warning": "无虚拟化已确认；MIG模式、实际版本仍未知",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "inventory.expected_links",
+      "name_zh": "预期链路与对端清单",
+      "primary_domain": "1.资产身份配置",
+      "candidate_input_kind": "configuration",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_feature",
+      "production_requirement_proposal": "条件必选",
+      "reason": "预期启用端口及PCIe/Fabric资产清单已有；是否覆盖全资产需另外核对。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "configuration",
+      "candidate_unit": "link_set",
+      "candidate_warning": "没有预期拓扑不能把未使用端口当故障",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "prometheus.field_quality",
+      "name_zh": "逐设备字段完整性与新鲜度",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "derived_query",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_feature",
+      "production_requirement_proposal": "必选",
+      "reason": "现有缺失/陈旧/非法/重复/身份规则覆盖当前37字段；新增字段须扩展契约，不能声称自动覆盖。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "derived_query",
+      "candidate_unit": "quality_state",
+      "candidate_warning": "具体查询和序列身份需审定，不伪造已存在的质量指标",
+      "source_ids": [
+        "prometheus.functions"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "platform.evaluation_status",
+      "name_zh": "数据源查询与规则评估状态",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "platform_api_or_metrics",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_feature",
+      "production_requirement_proposal": "必选",
+      "reason": "夜莺规则评估与数据查询计数器已有规则；不代替所有评估路径的执行SLA。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "platform_api_or_metrics",
+      "candidate_unit": "status",
+      "candidate_warning": "平台原生API/指标名称尚待映射",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "platform.notification_status",
+      "name_zh": "通知发送/重试/积压状态",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "platform_api_or_metrics",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "current_blocked_feature",
+      "production_requirement_proposal": "必选",
+      "reason": "通知失败规则已有记录但因实际发送路径无可信counter覆盖而禁用；必选监控目标不等于已满足。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "platform_api_or_metrics",
+      "candidate_unit": "status",
+      "candidate_warning": "正向发送测试不等于失败/积压检测已实现",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "training.job_context",
+      "name_zh": "训练任务分配与运行阶段",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "external_context",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "explicit_exclusion",
+      "production_requirement_proposal": "排除",
+      "reason": "当前OS SRE拿不到业务作业/调度上下文，明确不纳入GPU规则基线；不以其缺失阻塞其他观测。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "external_context",
+      "candidate_unit": "job_state",
+      "candidate_warning": "现有GPU指标不能提供全部作业上下文；不擅自新增采集",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "host.power_context",
+      "name_zh": "主机PSU/外部供电上下文",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "external_context",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "external_gap",
+      "production_requirement_proposal": "外部",
+      "reason": "电源/风扇/环境温度/PSU/供电事件依赖BMC/Redfish/IPMI或主机采集，不假造DCGM字段。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "external_context",
+      "candidate_unit": "status",
+      "candidate_warning": "BMC/PSU输入若不存在，根因诊断明确缺口",
+      "source_ids": [
+        "project.scope"
+      ],
+      "implementation_gap": null
+    },
+    {
+      "metric_id": "diagnostics.results",
+      "name_zh": "主动诊断/日志有序事件",
+      "primary_domain": "8.监控链路可靠性",
+      "candidate_input_kind": "external_diagnostic",
+      "field_id": null,
+      "canonical_field": null,
+      "configured_or_current_aliases": [],
+      "doc14_current_disposition": "external_gap",
+      "production_requirement_proposal": "外部",
+      "reason": "DCGM主动诊断结果是独立运维/维护输入，不等于被动时序指标；需记录运行时间/测试/结果/影响，不能默认带载运行。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "current_contract_names": [],
+      "doc14_first_column_names": [],
+      "related_current_rule_ids": [],
+      "candidate_semantic_kind": "external_diagnostic",
+      "candidate_unit": "diagnostic_result",
+      "candidate_warning": "不在仅被动指标规则的默认执行范围",
+      "source_ids": [
+        "nvidia.triage"
+      ],
+      "implementation_gap": null
+    }
+  ],
+  "beyond_92_review": [
+    {
+      "proposed_metric_id": "nvidia.fb_total",
+      "field_id": 250,
+      "canonical_field": "DCGM_FI_DEV_FB_TOTAL",
+      "domain": "资源容量",
+      "production_requirement_proposal": "必选",
+      "disposition_reason": "已在14建议项；设备报告framebuffer总量MiB，不保证等于板卡标称或进程可分配总量。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L897"
+    },
+    {
+      "proposed_metric_id": "nvidia.fb_reserved",
+      "field_id": 253,
+      "canonical_field": "DCGM_FI_DEV_FB_RESERVED",
+      "domain": "资源容量",
+      "production_requirement_proposal": "必选",
+      "disposition_reason": "已在14建议项；系统/驱动预留MiB，定义容量比例时须交代扣除口径。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L915"
+    },
+    {
+      "proposed_metric_id": "nvidia.energy",
+      "field_id": 156,
+      "canonical_field": "DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION",
+      "domain": "功耗",
+      "production_requirement_proposal": "可选",
+      "disposition_reason": "已在14建议项；mJ累计counter；新版J字段不能仅改名，存在reset。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L656"
+    },
+    {
+      "proposed_metric_id": "nvidia.nvlink_tx_rate",
+      "field_id": 1011,
+      "canonical_field": "DCGM_FI_PROF_NVLINK_TX_BYTES",
+      "domain": "互联",
+      "production_requirement_proposal": "条件必选",
+      "disposition_reason": "已在14建议项；bytes/s gauge，Profiling支持/权限/粒度须确认，不因BYTES名称就rate。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L2682"
+    },
+    {
+      "proposed_metric_id": "nvidia.nvlink_rx_rate",
+      "field_id": 1012,
+      "canonical_field": "DCGM_FI_PROF_NVLINK_RX_BYTES",
+      "domain": "互联",
+      "production_requirement_proposal": "条件必选",
+      "disposition_reason": "已在14建议项；bytes/s gauge，同上，不与aggregate throughput重复相加。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L2690"
+    },
+    {
+      "proposed_metric_id": "nvidia.nvlink_aggregate_rate",
+      "field_id": 449,
+      "canonical_field": "DCGM_FI_DEV_NVLINK_THROUGHPUT_TOTAL",
+      "domain": "互联",
+      "production_requirement_proposal": "可选",
+      "disposition_reason": "已在14建议项的采集别名NVLINK_BANDWIDTH_TOTAL；固定CSVgauge MB/s，不能混其他版本counter。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L1491"
+    },
+    {
+      "proposed_metric_id": "nvidia.memory_unrepairable",
+      "field_id": 1507,
+      "canonical_field": "DCGM_FI_DEV_MEMORY_UNREPAIRABLE",
+      "domain": "健康",
+      "production_requirement_proposal": "条件必选",
+      "disposition_reason": "新增缺口；官方1=yes/0=no布尔，别名MEMORY_UNREPAIRABLE_FLAG；目标栈支持未证实，非不支持即健康。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L3503"
+    },
+    {
+      "proposed_metric_id": "nvidia.fb_used_ratio",
+      "field_id": 254,
+      "canonical_field": "DCGM_FI_DEV_FB_USED_RATIO",
+      "domain": "资源容量",
+      "production_requirement_proposal": "可选",
+      "disposition_reason": "新增替代/对照口径；固定头文件0..1且Used/(Total-Reserved)，别名FB_USED_PERCENT。与项目USED/TOTAL派生比例不是同一分母，名字PERCENT不能证明单位是0..100。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L920"
+    },
+    {
+      "proposed_metric_id": "nvidia.retired_sbe",
+      "field_id": 390,
+      "canonical_field": "DCGM_FI_DEV_PAGE_RETIRED_SBE_TOTAL",
+      "domain": "健康",
+      "production_requirement_proposal": "条件/旧架构",
+      "disposition_reason": "旧架构页退休兼容项；H100主路径以row-remap为准，先明确型号支持。若选用为monotoniccount，而不是现有坏页总数/错误码。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L1278"
+    },
+    {
+      "proposed_metric_id": "nvidia.retired_dbe",
+      "field_id": 391,
+      "canonical_field": "DCGM_FI_DEV_PAGE_RETIRED_DBE_TOTAL",
+      "domain": "健康",
+      "production_requirement_proposal": "条件/旧架构",
+      "disposition_reason": "同上，double-bit引起的退休页累计数；不与H100row-remap资源一一等价。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L1284"
+    },
+    {
+      "proposed_metric_id": "nvidia.retired_pending",
+      "field_id": 392,
+      "canonical_field": "DCGM_FI_DEV_PAGE_RETIRED_PENDING",
+      "domain": "健康",
+      "production_requirement_proposal": "条件/旧架构",
+      "disposition_reason": "同上，bool待退休，不是count；H100不强制套用旧架构语义。",
+      "source": "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h#L1289"
+    }
+  ],
+  "outside_dcgm_boundary": [
+    {
+      "topic": "完整XID/SXID事件记录",
+      "disposition": "必选采集目标；现有最近码不是完整流；日志/DCGM事件接口待实现，不能依赖数值变化计事件。"
+    },
+    {
+      "topic": "PCIe AER与主机电源/风扇/PSU/环境",
+      "disposition": "外部/条件；由主机日志或BMC采集，H100被动散热无GPU风扇读数不能当0转速故障。"
+    },
+    {
+      "topic": "MIG/vGPU租户资源",
+      "disposition": "当前物理H100基线外；MIG模式元数据需识别并显式不支持，不能把物理FB总量当每实例容量。"
+    },
+    {
+      "topic": "应用性能tokens/s、step time、队列与调度状态",
+      "disposition": "明确排除当前OS SRE基线，不能无业务上下文发明告警。"
+    },
+    {
+      "topic": "主动DCGM诊断",
+      "disposition": "外部维护工作流，不自动等价生产在线采集；不在本次文档复核新增执行动作。"
+    }
+  ]
+}

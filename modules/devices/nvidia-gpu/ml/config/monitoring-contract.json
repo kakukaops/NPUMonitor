@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "generated": true,
+  "authority": {
+    "document": "modules/devices/nvidia-gpu/rules/docs/14-GPU监控指标与告警规则说明表.md",
+    "revision": "1.2",
+    "sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d"
+  },
+  "features": {
+    "gpu_temp": {
+      "metric_id": "nvidia.gpu_temp",
+      "name": "DCGM_FI_DEV_GPU_TEMP",
+      "unit": "celsius",
+      "category": "温度、功耗与时钟",
+      "source_anchor": "m-nvidia-gpu-temp"
+    },
+    "mem_clock": {
+      "metric_id": "nvidia.mem_clock",
+      "name": "DCGM_FI_DEV_MEM_CLOCK",
+      "unit": "MHz",
+      "category": "温度、功耗与时钟",
+      "source_anchor": "m-nvidia-mem-clock"
+    },
+    "mem_util": {
+      "metric_id": "nvidia.mem_copy_util",
+      "name": "DCGM_FI_DEV_MEM_COPY_UTIL",
+      "unit": "percent",
+      "category": "显存访问与带宽信号",
+      "source_anchor": "m-nvidia-mem-copy-util"
+    },
+    "memory_temp": {
+      "metric_id": "nvidia.memory_temp",
+      "name": "DCGM_FI_DEV_MEMORY_TEMP",
+      "unit": "celsius",
+      "category": "温度、功耗与时钟",
+      "source_anchor": "m-nvidia-memory-temp"
+    },
+    "power": {
+      "metric_id": "nvidia.board_power",
+      "name": "DCGM_FI_DEV_POWER_USAGE",
+      "unit": "watts",
+      "category": "温度、功耗与时钟",
+      "source_anchor": "m-nvidia-board-power"
+    },
+    "sm_clock": {
+      "metric_id": "nvidia.sm_clock",
+      "name": "DCGM_FI_DEV_SM_CLOCK",
+      "unit": "MHz",
+      "category": "温度、功耗与时钟",
+      "source_anchor": "m-nvidia-sm-clock"
+    },
+    "util": {
+      "metric_id": "nvidia.gpu_util",
+      "name": "DCGM_FI_DEV_GPU_UTIL",
+      "unit": "percent",
+      "category": "计算活动与性能信号",
+      "source_anchor": "m-nvidia-gpu-util"
+    }
+  },
+  "identity": [
+    "job",
+    "instance",
+    "UUID"
+  ],
+  "legacy_binding_identity": [
+    "cluster_id",
+    "UUID"
+  ],
+  "identity_migration_required": true,
+  "scope": "Only active DCGM scenarios validated; legacy job-context templates excluded; no model retraining implied"
+}

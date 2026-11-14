@@ -1,0 +1,23 @@
+{
+  "simulation_only": true,
+  "numeric_dcgm_fields": 88,
+  "rules": 58,
+  "enabled_rules": 57,
+  "disabled_rule": "os_sre.platform_notify_failure",
+  "runtime_ready": true,
+  "active_alerts": 0,
+  "query_errors": {},
+  "bundle_sha": "0fa7b9a6d7c934a30aea17fad46eae5fd2d75c76d4f57b4d919121bff6ad1ab9",
+  "promql_test_cases_passed": 25,
+  "lifecycle_cases_passed": 22,
+  "native_firing_and_recovery_verified": true,
+  "retired_containers": 15,
+  "archived_and_removed_volumes": 15,
+  "removed_old_rules": 46,
+  "removed_unreferenced_datasources": 6,
+  "preserved_ml_rules": 23,
+  "production_hardware_validation": "pending",
+  "unknown_switch_fields": "unsupported_semantics; not emitted as zero",
+  "unit_tests_passed": 35,
+  "sync_plan_unchanged_rules": 58
+}

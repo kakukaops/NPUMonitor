@@ -1,5 +1,7 @@
 # 设备内存不可纠正ECC易失明细
 
+历史模拟输入；当前接入契约见[OS SRE指标](../../os-sre/metrics.yaml)。
+
 metric_id `training.input.dcgm_fi_dev_ecc_dbe_vol_dev`，版本0.1.0，状态candidate。
 
 ## 语义与单位

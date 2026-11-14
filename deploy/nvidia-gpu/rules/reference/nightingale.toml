@@ -1,0 +1,67 @@
+# Isolated OS SRE contract acceptance; no existing-system credentials. Based on Nightingale v9.3.0.
+[Global]
+RunMode = "release"
+
+[Log]
+Dir = "logs"
+Level = "INFO"
+Output = "stdout"
+
+[HTTP]
+Host = "0.0.0.0"
+Port = 17000
+PProf = false
+ExposeMetrics = true
+
+[HTTP.ShowCaptcha]
+Enable = false
+
+[HTTP.APIForAgent]
+Enable = false
+
+[HTTP.APIForService]
+Enable = false
+
+# Keep the upstream session lifetime settings explicit. TokenAuth below is
+# for API tokens and does not replace browser-session JWT configuration.
+[HTTP.JWTAuth]
+# Unit: minutes; upstream v9.3.0 defaults.
+AccessExpired = 1500
+RefreshExpired = 10080
+RedisKeyPrefix = "/jwt/"
+
+[HTTP.TokenAuth]
+Enable = true
+
+[HTTP.A2A]
+Disable = true
+DisableMCP = true
+
+[DB]
+DBType = "sqlite"
+DSN = "/app/data/n9e.db"
+MaxOpenConns = 1
+MaxIdleConns = 1
+
+[Redis]
+Address = "sre-redis:6379"
+RedisType = "standalone"
+
+[Alert.Heartbeat]
+IP = "sre-nightingale"
+Interval = 1000
+EngineName = "default"
+
+[Center]
+MetricsYamlFile = "./etc/metrics.yaml"
+I18NHeaderKey = "X-Language"
+
+[Center.AnonymousAccess]
+PromQuerier = false
+AlertDetail = false
+
+[EmbeddedTSDB]
+Enable = false
+
+[Ibex]
+Enable = false

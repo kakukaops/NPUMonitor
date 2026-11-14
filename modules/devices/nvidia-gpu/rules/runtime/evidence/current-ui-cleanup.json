@@ -1,0 +1,97 @@
+{
+  "target_nightingale_port": 17000,
+  "current_group": {
+    "id": 7,
+    "name": "GPU监控规则（OS SRE）"
+  },
+  "backup_directory": ".local/rules-ui-cleanup-20261113-151344",
+  "cleared_groups": [
+    {
+      "id": 2,
+      "name": "GPU模拟实验"
+    },
+    {
+      "id": 4,
+      "name": "H100恢复策略实验"
+    },
+    {
+      "id": 3,
+      "name": "H100草案模拟验收"
+    },
+    {
+      "id": 5,
+      "name": "H100训练综合演示"
+    }
+  ],
+  "removed_legacy_rules": 63,
+  "preserved_ml_rules": 23,
+  "shared_prometheus_unchanged": true,
+  "retained_shared_configuration": "Business groups, datasources and notification policies/channels retained; cleanup limited to authorized historical rules.",
+  "current_rule_count": 46,
+  "enabled": 45,
+  "disabled": [
+    "os_sre.platform_notify_failure"
+  ],
+  "finished_at": 1794554450.7718947,
+  "current_rule_ids": {
+    "os_sre.collector_down": 126,
+    "os_sre.gpu_thermal": 90,
+    "os_sre.memory_thermal": 91,
+    "os_sre.nvlink_crc": 103,
+    "os_sre.nvlink_recovery": 104,
+    "os_sre.nvlink_replay": 105,
+    "os_sre.sxid_fatal": 113,
+    "os_sre.sxid_nonfatal": 114,
+    "os_sre.switch_recovery": 107,
+    "os_sre.switch_replay": 106,
+    "os_sre.switch_thermal": 92,
+    "os_sre.pcie_replay": 102,
+    "os_sre.sram": 87,
+    "os_sre.xid_reset": 109,
+    "os_sre.xid_scope": 111,
+    "os_sre.xid_unknown": 112,
+    "os_sre.xid_node": 108,
+    "os_sre.xid_app": 110,
+    "os_sre.fabric_health": 120,
+    "os_sre.ecc_new": 100,
+    "os_sre.sync_boost": 98,
+    "os_sre.power_brake": 96,
+    "os_sre.platform_notify_failure": 130,
+    "os_sre.platform_nightingale_metrics_missing": 132,
+    "os_sre.platform_query_failure": 128,
+    "os_sre.platform_adapter_down": 131,
+    "os_sre.platform_evaluation_stall": 129,
+    "os_sre.field_missing": 122,
+    "os_sre.pcie_degraded": 117,
+    "os_sre.clock_unknown": 99,
+    "os_sre.input_invalid": 124,
+    "os_sre.input_stale": 123,
+    "os_sre.hw_slowdown": 97,
+    "os_sre.hw_thermal": 94,
+    "os_sre.identity_missing": 127,
+    "os_sre.remap_failed": 88,
+    "os_sre.remap_pending": 89,
+    "os_sre.power_cap": 95,
+    "os_sre.sw_thermal": 93,
+    "os_sre.thermal_time": 101,
+    "os_sre.input_duplicate": 125,
+    "os_sre.fabric_manager": 118,
+    "os_sre.gpu_link_down": 115,
+    "os_sre.switch_link_down": 116,
+    "os_sre.fabric_capability": 119,
+    "os_sre.entity_missing": 121
+  },
+  "runtime_ready": true,
+  "query_errors": {},
+  "all_46_gateway_queries_passed": true,
+  "datasource_id": 7,
+  "datasource_name": "NPUMonitor OS SRE gpu-os-sre",
+  "shared_prometheus_configuration_changed": false,
+  "current_data_scope": "Dedicated declared-contract synthetic source and independent local Prometheus19092; existing shared Prometheus19090 untouched",
+  "idempotent_sync_plan": {
+    "items": 46,
+    "unchanged": 46
+  },
+  "runtime_unit_tests": 32,
+  "current_gateway_health_rule_included": false
+}

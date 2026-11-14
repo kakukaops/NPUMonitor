@@ -1,5 +1,7 @@
 # XID GPU重置复核
 
+历史模拟规则；当前接入入口见[OS SRE规则](../../os-sre/README.md)。
+
 rule_id `training.xid_reset`，版本0.1.0，状态candidate，生产默认disabled。
 
 ## 检测目标

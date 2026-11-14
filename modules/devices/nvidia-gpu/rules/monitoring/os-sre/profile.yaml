@@ -1,0 +1,15 @@
+schema_version: 1
+profile: os-sre
+# Prometheus采集job，不是业务训练任务；按现场采集配置调整。
+collector_job_regex: dcgm.*
+nightingale_job_regex: nightingale.*
+lifecycle_job_regex: gpu-lifecycle.*
+freshness_seconds: 90
+counter_window_seconds: 300
+confirmation_seconds: 60
+# 以下均为OS团队维护的可选资产清单；空列表不伪造已知设备或健康结论。
+gpus: []
+switches: []
+links: []
+# 自监控预期目标，可声明 evaluation_expected: true。
+monitor_targets: []

@@ -1,0 +1,36 @@
+# XID节点事件待处置
+
+规则 `os_sre.xid_node`，版本0.2.0；默认disabled；状态 `candidate`。
+
+## 身份与输入
+
+匹配标签：`job,instance,UUID`。不依赖集群ID、业务任务、租户或作业状态。
+输入：`DCGM_FI_DEV_XID_ERRORS`、`os_sre_recovery_verified`。
+
+## 语义与边界
+
+按XID码分流，不需要作业ID、进程名或业务归属；其他码及缺数不解除已确认事件。
+持续确认：0秒（工程配置）；真实硬件与夜莺新版本接入尚未验收。
+
+- 恢复确认由OS运维流程提供；缺少时只能触发并保持，不能自动解除
+
+## PromQL
+
+```promql
+((((((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} < 9223372036854775792) and ((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} == floor(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90)))) == 54) or (((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} < 9223372036854775792) and ((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} == floor(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90)))) == 79))) * 0 + 1) or (((((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} < 9223372036854775792) and ((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} == floor(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90)))) == 0) * 0) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} >= 0) and (os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} < 2) and ((os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 0) and ((time()-timestamp(os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) >= 0) and ((time()-timestamp(os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) <= 90) and (os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} == floor(os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))) and on (job,instance,UUID) (count by (job,instance,UUID) (os_sre_recovery_verified{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90)))) == 1))
+```
+
+输出0/1为有效观测，空结果表示未知。必须由持久状态处理持续确认、缺数保持和恢复；不能把非空的0直接作为原生告警。
+
+## 来源与参数依据
+
+| 项目 | 内容 |
+|---|---|
+| 官方语义 | XID Catalog提供逐码含义、H100适用性和Immediate/Investigatory Action。 |
+| 具体来源 | [nvidia.dcgm.fixed_fields](https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h)；[nvidia.xid.catalog](https://docs.nvidia.com/deploy/xid-errors/latest/analyzing-xid-catalog.html) |
+| 项目判据 | 本地快照按节点处置线索分组触发；码0且运维恢复确认=1才给解除观测。 |
+| 参数来源 | P11=错误码0且os_sre_recovery_verified=1；P03=0；P04=30；P09=1；P01=90；P08=按metrics.yaml逐字段约束；P10=job/instance + 硬件ID；预期清单默认空 |
+| 证据边界 | 合成向量求值；不包括新版持续确认/夜莺/真实设备/生产案例；生产案例无；真实硬件未验 |
+| 待核实项 | 分组、严重度和恢复协议是本项目设计；最近码不是完整事件流，未知码不等于硬件损坏。 |
+
+[查看完整逐条来源表](../provenance.md#os-sre-xid-node)；[结构化来源定义](../provenance.yaml)。

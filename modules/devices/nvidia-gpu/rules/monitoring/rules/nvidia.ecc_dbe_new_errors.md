@@ -1,5 +1,7 @@
 # H100：GPU近期新增不可纠正ECC错误
 
+历史冻结草案；当前现场规则见[OS SRE版本](../os-sre/README.md)。
+
 rule_id：`nvidia.ecc_dbe_new_errors`  
 version：0.3.0；schema_version：0.2.0；lifecycle：draft  
 default_policy：disabled；维护者：GPU监控规则库维护者  

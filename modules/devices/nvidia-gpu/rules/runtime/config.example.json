@@ -1,0 +1,25 @@
+{
+  "deployment_id": "gpu-os-sre",
+  "contract_profile": "dcgm-os-sre-physical-v1",
+  "upstream": {"url": "http://prometheus:9090"},
+  "profile": {
+    "schema_version": 1,
+    "profile": "os-sre",
+    "collector_job_regex": "dcgm.*",
+    "nightingale_job_regex": "nightingale.*",
+    "lifecycle_job_regex": "gpu-lifecycle.*",
+    "freshness_seconds": 90,
+    "counter_window_seconds": 300,
+    "confirmation_seconds": 60,
+    "gpus": [], "switches": [], "links": [], "monitor_targets": []
+  },
+  "gateway": {"admin_token_file": "/run/secrets/admin", "viewer_token_file": "/run/secrets/viewer", "port": 9480},
+  "nightingale": {"url": "http://nightingale:17000", "token_file": "/run/secrets/n9e", "gateway_url": "http://sre-runtime:9480", "group_id": 1, "notify_rule_id": 1, "eval_interval_seconds": 30},
+  "watchdog": {
+    "targets": [{"name": "rule-gateway", "url": "http://sre-runtime:9480/ready"}, {"name": "nightingale", "url": "http://nightingale:17000/"}],
+    "callback_url": "https://replace-with-independent-notification-endpoint.example/webhook",
+    "callback_token_file": "/run/secrets/notify", "interval_seconds": 5, "failure_count": 3, "timeout_seconds": 3, "repeat_seconds": 3600
+  },
+  "notification_counter_verified": false,
+  "rule_overrides": {}
+}

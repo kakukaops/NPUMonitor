@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "profile": "os-sre",
+  "status": "passed",
+  "rule_records": 46,
+  "executable_expressions": 45,
+  "stateful_observations": 34,
+  "direct_expressions": 11,
+  "blocked_rules": [
+    "os_sre.platform_notify_failure"
+  ],
+  "diagnostic_views": 25,
+  "promtool_cases": 53,
+  "promtool_assertions": 134,
+  "configuration_tests": 7,
+  "legacy_rule_tests": 27,
+  "all_promtool_suites_passed": 7,
+  "frozen_payloads_unchanged": 45,
+  "business_labels_required": false,
+  "collector_job_is_prometheus_scrape_job": true,
+  "optional_asset_inventory_default": "empty; no fabricated devices",
+  "live_simulation_bindings_modified": false,
+  "new_stateful_nightingale_binding": "separate runtime acceptance: ../../../runtime/evidence/summary.json",
+  "real_gpu_validation": "not_run",
+  "real_npu_validation": "not_run",
+  "ml_module_changed": false,
+  "production_ready": false,
+  "passed_scope": "synthetic expressions and configuration checks only",
+  "production_audit": "../../../docs/12-生产就绪审计与任务清单.md",
+  "real_data_required_for_software_release": false,
+  "software_release_acceptance": "versioned metric contracts + simulated data through real Prometheus/state/Nightingale components",
+  "production_not_ready_reason": "See separate runtime RC evidence and release checklist; this file only certifies expressions and configuration checks."
+}

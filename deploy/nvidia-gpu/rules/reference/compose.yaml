@@ -1,0 +1,112 @@
+name: npumonitor-rules-contract
+services:
+  sre-redis:
+    image: redis:7.4.2-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      retries: 30
+  sre-nightingale:
+    image: flashcatcloud/nightingale:9.3.0
+    command: [/app/n9e]
+    working_dir: /app
+    volumes:
+      - ./nightingale.toml:/app/etc/config.toml:ro
+      - nightingale-data:/app/data
+      - nightingale-logs:/app/logs
+    ports: ['127.0.0.1:17001:17000']
+    depends_on:
+      sre-redis:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python3, -c, "import urllib.request;urllib.request.urlopen('http://localhost:17000/',timeout=3)"]
+      interval: 3s
+      retries: 60
+  sre-source:
+    image: npumonitor-rules-fixture:1.0.0-rc1
+    build:
+      context: ../../../..
+      dockerfile: modules/devices/nvidia-gpu/rules/runtime/reference/Dockerfile
+    environment:
+      FIXTURE_MODE: source
+      FIXTURE_PORT: '9490'
+      FIXTURE_TOKEN_FILE: /run/secrets/admin
+    volumes:
+      - ../../../../modules/devices/nvidia-gpu/rules/monitoring/os-sre/catalog.json:/contract/catalog.json:ro
+      - ../../../../.local/npumonitor-rules-contract/admin-token:/run/secrets/admin:ro
+      - source-data:/data
+    ports: ['127.0.0.1:19471:9490']
+    networks: [default]
+  sre-receiver:
+    image: npumonitor-rules-fixture:1.0.0-rc1
+    environment:
+      FIXTURE_MODE: receiver
+      FIXTURE_PORT: '9492'
+      FIXTURE_TOKEN_FILE: /run/secrets/admin
+    volumes:
+      - ../../../../modules/devices/nvidia-gpu/rules/monitoring/os-sre/catalog.json:/contract/catalog.json:ro
+      - ../../../../.local/npumonitor-rules-contract/admin-token:/run/secrets/admin:ro
+      - receiver-data:/data
+    ports: ['127.0.0.1:19473:9492']
+    networks: [default]
+  sre-prometheus:
+    image: prom/prometheus:v3.2.1
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=1d]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports: ['127.0.0.1:19091:9090']
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://localhost:9090/-/ready']
+      interval: 2s
+      retries: 40
+    networks: [default]
+  sre-runtime:
+    image: npumonitor-rules:1.0.0-rc1
+    build:
+      context: ../../../..
+      dockerfile: modules/devices/nvidia-gpu/rules/runtime/Dockerfile
+    environment:
+      NPUMONITOR_RULES_BUNDLE: /etc/npumonitor/bundle.json
+    volumes:
+      - ../../../../.local/npumonitor-rules-contract:/etc/npumonitor:ro
+      - ../../../../.local/npumonitor-rules-contract/admin-token:/run/secrets/admin:ro
+      - ../../../../.local/npumonitor-rules-contract/viewer-token:/run/secrets/viewer:ro
+      - ../../../../.local/npumonitor-rules-contract/n9e-token:/run/secrets/n9e:ro
+      - runtime-data:/data
+    ports: ['127.0.0.1:19470:9480']
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request;urllib.request.urlopen('http://localhost:9480/health',timeout=3)"]
+      interval: 2s
+      retries: 40
+    restart: unless-stopped
+    networks: [default]
+  sre-watchdog:
+    image: npumonitor-rules:1.0.0-rc1
+    command: [python, -m, npumonitor_rules.cli, watchdog]
+    environment:
+      NPUMONITOR_RULES_BUNDLE: /etc/npumonitor/bundle.json
+    volumes:
+      - ../../../../.local/npumonitor-rules-contract:/etc/npumonitor:ro
+      - ../../../../.local/npumonitor-rules-contract/admin-token:/run/secrets/admin:ro
+      - watchdog-data:/data
+    ports: ['127.0.0.1:19472:9481']
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request;urllib.request.urlopen('http://localhost:9481/health',timeout=3)"]
+      interval: 3s
+      retries: 30
+    restart: unless-stopped
+    networks: [default]
+volumes:
+  redis-data:
+  nightingale-data:
+  nightingale-logs:
+  source-data:
+  receiver-data:
+  prometheus-data:
+  runtime-data:
+  watchdog-data:
+networks:
+  default:

@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0-rc1",
+  "date": "2026-11-13",
+  "status": "candidate; release gates remain",
+  "production_ready": false,
+  "real_gpu_validation": "not_run; not a software release prerequisite",
+  "data_scope": "synthetic DCGM contract, actual Prometheus 3.2.1 and Nightingale 9.3.0",
+  "runtime_unit_tests": 31,
+  "configuration_tests": 7,
+  "promtool_suites_passed": 7,
+  "os_sre_promtool_cases": 53,
+  "os_sre_promtool_assertions": 134,
+  "source_provenance_check": "passed; 46 rules, 25 views, 19 sources, 37 field locators, 12 parameter origins",
+  "frozen_original_payloads_verified": 45,
+  "e2e": {
+    "basic": {
+      "passed": true,
+      "cases": 6,
+      "evidence": "basic.json"
+    },
+    "matrix": {
+      "passed": true,
+      "cases": 14,
+      "evidence": "matrix.json"
+    },
+    "operations": {
+      "passed": true,
+      "cases": 3,
+      "evidence": "operations.json"
+    },
+    "release": {
+      "passed": true,
+      "cases": 4,
+      "evidence": "release.json"
+    },
+    "capacity": {
+      "passed": true,
+      "cases": 1,
+      "evidence": "capacity.json"
+    }
+  },
+  "e2e_cases_passed": 28,
+  "notification_failure_rule": "disabled: actual native HTTP strategy did not expose the expected counter; see notification-counter-negative.json and operations.json",
+  "independent_watchdog": "verified runtime/Nightingale stop, persisted retry after receiver 503 and watchdog restart, correlated component recovery",
+  "capacity": {
+    "duration_seconds": 30.17,
+    "query_requests_per_second": 22.61,
+    "max_cycle_seconds": 1.368636131286621,
+    "asset_inventory_scope": "two GPUs with PCIe/fabric/link inventory; raw metrics and inventory-independent detection for 100 GPUs",
+    "container_resources": {
+      "BlockIO": "791kB / 127MB",
+      "CPUPerc": "72.60%",
+      "Container": "npumonitor-rules-contract-sre-runtime-1",
+      "ID": "a792a7b1a736",
+      "MemPerc": "0.50%",
+      "MemUsage": "156.2MiB / 30.58GiB",
+      "Name": "npumonitor-rules-contract-sre-runtime-1",
+      "NetIO": "44.7MB / 57.8MB",
+      "PIDs": "35"
+    }
+  },
+  "release_gates_remaining": [
+    "Fix final release commit and registry artifact digest; CI configuration exists but GitHub Actions has not run.",
+    "Independent operator installation/upgrade exercise and required notification routing/silence policy acceptance.",
+    "Capacity acceptance under declared production CPU/memory quotas and required duration; current measurement is a short uncapped single-host sample.",
+    "Notification-failure coverage for the selected Nightingale native notification path remains unsupported; do not enable its counter rule without verified evidence."
+  ],
+  "untouched_scope": [
+    "Existing shared Nightingale and Prometheus",
+    "ML modules",
+    "Frozen historical rule payloads"
+  ],
+  "secret_scan": "No generated isolated-environment credentials found in tracked/unignored project files.",
+  "local_candidate_image_id": "sha256:caf665a0470fff9011b1b66f67876fc66ee1a77f302297a03d36b6cc2f3d868d",
+  "running_container_matches_candidate": true,
+  "final_smoke": "basic.json: actual final image thermal/missing/restart/recovery/XID/sync passed",
+  "github_actions_execution": "not_run; workflow added and constituent checks run locally",
+  "benchmark_image_scope": "Capacity measurement preceded final changes to coverage reporting, interrupted-sync recovery and owner-only backup creation; it is a short reference baseline, not final-image resource-limit certification."
+}

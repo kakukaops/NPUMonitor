@@ -1,0 +1,36 @@
+name: GPU OS SRE rules
+on:
+  push:
+    paths: ['modules/devices/nvidia-gpu/**', 'deploy/nvidia-gpu/rules/**', 'scripts/check_module_layout.py', '.github/workflows/gpu-rules.yml']
+  pull_request:
+    paths: ['modules/devices/nvidia-gpu/**', 'deploy/nvidia-gpu/rules/**', 'scripts/check_module_layout.py', '.github/workflows/gpu-rules.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  software-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install PyYAML==6.0.2
+      - run: python scripts/check_module_layout.py
+      - run: python modules/devices/nvidia-gpu/rules/scripts/check_gpu_monitoring_master.py --self-test
+      - run: python modules/devices/nvidia-gpu/common/scripts/sync_monitoring_contract.py --check
+      - run: python modules/devices/nvidia-gpu/rules/scripts/build_production_contract.py --check
+      - run: python modules/devices/nvidia-gpu/rules/scripts/build_os_sre.py --check
+      - run: python modules/devices/nvidia-gpu/rules/scripts/check_os_sre_provenance.py
+      - run: python modules/devices/nvidia-gpu/rules/scripts/test_os_sre.py
+      - run: python modules/devices/nvidia-gpu/rules/scripts/build_master_simulation.py
+      - run: python modules/devices/nvidia-gpu/rules/scripts/build_master_rule_tests.py
+      - run: python modules/devices/nvidia-gpu/rules/scripts/build_master_rule_tests.py --production
+      - run: git diff --exit-code -- modules/devices/nvidia-gpu/rules/runtime/master modules/devices/nvidia-gpu/rules/runtime/src/npumonitor_rules/master-profile.json modules/devices/nvidia-gpu/rules/runtime/src/npumonitor_rules/production-contract.json modules/devices/nvidia-gpu/rules/runtime/production
+      - run: docker run --rm --entrypoint /bin/promtool -v "$PWD/modules/devices/nvidia-gpu/rules/runtime/master:/work:ro" prom/prometheus:v3.2.1 test rules /work/tests.promtool.yaml
+      - run: docker run --rm --entrypoint /bin/promtool -v "$PWD/modules/devices/nvidia-gpu/rules/runtime/production:/work:ro" prom/prometheus:v3.2.1 test rules /work/tests.promtool.yaml
+      - run: python -m unittest discover -s modules/devices/nvidia-gpu/rules/runtime/tests -v
+        env:
+          PYTHONPATH: modules/devices/nvidia-gpu/rules/runtime/src
+      - run: bash modules/devices/nvidia-gpu/rules/scripts/test_monitoring.sh

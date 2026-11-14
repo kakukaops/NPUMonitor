@@ -1,0 +1,2651 @@
+{
+  "schema_version": 1,
+  "derived_from": "14-GPU监控指标与告警规则说明表.md",
+  "document_revision": "1.2",
+  "document_sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d",
+  "candidate_inventory_sha256": "d12110cf05eaa9c0854c5cca380bfbf56f59c9d799dbee6d39e07b5821a78ff5",
+  "implementation_catalog_sha256": "ec45a52cf8c7de033f5240a88107bf2d1dc29dfbb217c4103d704521bb8d086b",
+  "scope": "H100 physical baseline; conditional capabilities/version contracts; not universal NVIDIA field coverage",
+  "candidate_dispositions": [
+    {
+      "metric_id": "nvidia.driver_version",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-driver-version",
+      "field_id": 1,
+      "names_and_aliases": [
+        "DCGM_FI_DRIVER_VERSION",
+        "DCGM_FI_SYSTEM_DRIVER_VERSION"
+      ],
+      "requirement": "必选",
+      "implementation_status": "metadata_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "label",
+      "semantic_unit": "version",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "资产概览第1节的配置/版本元数据，未列精确collector字段；需显式固定driver版本标签语义。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_name",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-name",
+      "field_id": 50,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_NAME"
+      ],
+      "requirement": "必选",
+      "implementation_status": "metadata_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "string",
+      "semantic_unit": "text",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "资产概览第1节设备身份元数据，未列精确GPU_NAME字段；不得把GPU名字当型号支持验证。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_uuid",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-uuid",
+      "field_id": 54,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_UUID"
+      ],
+      "requirement": "必选",
+      "implementation_status": "metadata_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "string",
+      "semantic_unit": "text",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "UUID已用于现有规则身份；独立资产概览和NVML/Exporter元数据接入覆盖尚未完备。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "inventory.expected_devices",
+      "origin": "candidate",
+      "doc_anchor": "m-inventory-expected-devices",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "current_feature",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "configuration",
+      "semantic_unit": "device_set",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有OS静态预期GPU/交换机清单和entity_missing规则；不能从历史观测自动推导永久资产。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "inventory.hardware_stack",
+      "origin": "candidate",
+      "doc_anchor": "m-inventory-hardware-stack",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "production_feature",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "configuration",
+      "semantic_unit": "inventory",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "已有声明契约选择与版本说明，不等于运行中的型号/驱动/DCGM/Exporter版本自动盘点。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "nvidia.inforom_valid",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-inforom-valid",
+      "field_id": 84,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_INFOROM_VALID"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "管理固件有效性诊断缺口；失败、读不出、不支持必须区分，不能先设无效值=故障。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.xid_last",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-xid-last",
+      "field_id": 230,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_XID_ERROR",
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "error_code",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_mode",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-mode",
+      "field_id": 300,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_MODE"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "ECC配置背景缺口；不支持或缺失不能解释成ECC关闭。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_pending",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-pending",
+      "field_id": 301,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_PENDING"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "待生效ECC配置，须与当前模式分开；配置不生效可能需要维护，不直接判卡坏。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_sbe_volatile",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-sbe-volatile",
+      "field_id": 310,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_dbe_volatile_total",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-dbe-volatile-total",
+      "field_id": 311,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_sbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-sbe-aggregate",
+      "field_id": 312,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_TOTAL"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整内存可靠性视图应交代历史可纠正错误；默认只诊断，不以历史累计非零呼叫。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.ecc_dbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-ecc-dbe-aggregate",
+      "field_id": 313,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.dram_sbe_volatile",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-dram-sbe-volatile",
+      "field_id": 318,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_DEV"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.dram_dbe_volatile",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-dram-dbe-volatile",
+      "field_id": 319,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_DEV"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.dram_sbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-dram-sbe-aggregate",
+      "field_id": 328,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_DEV"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "DRAM历史可纠正错误分布为诊断补充；不能当近期错误速率。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.dram_dbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-dram-dbe-aggregate",
+      "field_id": 329,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_DEV"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sram_sbe_volatile",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sram-sbe-volatile",
+      "field_id": 342,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_VOL_SRM"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sram_dbe_volatile",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sram-dbe-volatile",
+      "field_id": 343,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_SRM"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sram_sbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sram-sbe-aggregate",
+      "field_id": 344,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_SBE_AGG_SRM"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "SRAM历史可纠正错误分布为诊断补充；与uncorrectable错误及SRAM超阈值标志区分。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sram_dbe_aggregate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sram-dbe-aggregate",
+      "field_id": 345,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ECC_DBE_AGG_SRM"
+      ],
+      "requirement": "可选",
+      "implementation_status": "current_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sram_exceeded",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sram-exceeded",
+      "field_id": 346,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_SRAM_EXCEEDED"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_bank_max",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-bank-max",
+      "field_id": 385,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_MAX"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "banks",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_bank_high",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-bank-high",
+      "field_id": 386,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_HIGH"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "banks",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_bank_partial",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-bank-partial",
+      "field_id": 387,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_PARTIAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "banks",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_bank_low",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-bank-low",
+      "field_id": 388,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_LOW"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "banks",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_bank_none",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-bank-none",
+      "field_id": 389,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "banks",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "完整行重映射资源视图中的bank可用性桶；反映剩余冗余资源分布，不是当前错误次数，告警阈值不能拍定。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remapped_uncorrectable",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remapped-uncorrectable",
+      "field_id": 393,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL",
+        "DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "rows",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remapped_correctable",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remapped-correctable",
+      "field_id": 394,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_CORRECTABLE_REMAPPED_ROWS",
+        "DCGM_FI_DEV_ROW_REMAP_CORRECTABLE_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "rows",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_failed",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-failed",
+      "field_id": 395,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILED",
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.remap_pending",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-remap-pending",
+      "field_id": 396,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "state",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.recovery_action",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-recovery-action",
+      "field_id": 1523,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_RECOVERY_ACTION"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "rationale": "驱动报告的建议恢复动作可补XID处理，但新字段1523的存在不保证目标旧栈支持，不自动执行动作。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fb_free",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fb-free",
+      "field_id": 251,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FB_FREE"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MiB",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fb_used",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fb-used",
+      "field_id": 252,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FB_USED"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MiB",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_util",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-util",
+      "field_id": 203,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_UTIL"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "percent",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gr_engine_ratio",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gr-engine-ratio",
+      "field_id": 1001,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_GR_ENGINE_ACTIVE",
+        "DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "ratio",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sm_active_ratio",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sm-active-ratio",
+      "field_id": 1002,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_SM_ACTIVE",
+        "DCGM_FI_PROF_SM_UTIL_RATIO"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "ratio",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sm_occupancy_ratio",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sm-occupancy-ratio",
+      "field_id": 1003,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_SM_OCCUPANCY",
+        "DCGM_FI_PROF_SM_OCCUPANCY_RATIO"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "ratio",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.tensor_active_ratio",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-tensor-active-ratio",
+      "field_id": 1004,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_PIPE_TENSOR_ACTIVE",
+        "DCGM_FI_PROF_TENSOR_UTIL_RATIO"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "ratio",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.mem_copy_util",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-mem-copy-util",
+      "field_id": 204,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_MEM_COPY_UTIL"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "percent",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.dram_active_ratio",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-dram-active-ratio",
+      "field_id": 1005,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_DRAM_ACTIVE",
+        "DCGM_FI_PROF_DRAM_UTIL_RATIO"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "ratio",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sm_clock",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sm-clock",
+      "field_id": 100,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_SM_CLOCK"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MHz",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.mem_clock",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-mem-clock",
+      "field_id": 101,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_MEM_CLOCK"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MHz",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.clock_reasons",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-clock-reasons",
+      "field_id": 112,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "bitmask",
+      "semantic_unit": "bitmask",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.memory_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-memory-temp",
+      "field_id": 140,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_MEMORY_TEMP",
+        "DCGM_FI_DEV_MEMORY_TEMP_CELSIUS"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-temp",
+      "field_id": 150,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP",
+        "DCGM_FI_DEV_GPU_TEMP_CELSIUS"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.memory_max_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-memory-max-temp",
+      "field_id": 151,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_MEMORY_MAX_OP_TEMP_CELSIUS",
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_max_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-max-temp",
+      "field_id": 152,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP",
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP_CELSIUS"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.gpu_temp_margin",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-gpu-temp-margin",
+      "field_id": 153,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "温度余量用于在硬件降速门槛附近监控，当前最大运行温度规则不能覆盖全部slowdown边界。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.board_power",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-board-power",
+      "field_id": 155,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_WATTS",
+        "DCGM_FI_DEV_POWER_USAGE"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "watts",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.board_power_raw",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-board-power-raw",
+      "field_id": 157,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_RAW_WATTS"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "gauge",
+      "semantic_unit": "watts",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "与平均/采样功率口径区别大、并非必需重复采集；作为具体版本支持下的诊断增强。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.slowdown_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-slowdown-temp",
+      "field_id": 158,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "热降速边界与最大运行温度/关机门槛不同，需文档明确语义和适用硬件。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.shutdown_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-shutdown-temp",
+      "field_id": 159,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_TEMP_SHUTDOWN_CELSIUS"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "用于风险展示的设备门槛，不把达到停机门槛当作唯一热告警时机。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.requested_power_limit",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-requested-power-limit",
+      "field_id": 160,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_LIMIT_REQUESTED_WATTS",
+        "DCGM_FI_DEV_POWER_MGMT_LIMIT"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "watts",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.enforced_power_limit",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-enforced-power-limit",
+      "field_id": 164,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_BOARD_POWER_LIMIT_ENFORCED_WATTS",
+        "DCGM_FI_DEV_ENFORCED_POWER_LIMIT"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "watts",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "第14篇已作为补充建议列出，但当前OS SRE未纳入字段契约/采集接入/规则。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pstate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pstate",
+      "field_id": 190,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_PSTATE"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "性能状态枚举是时钟/节能背景，P0并非必定最佳且高P值并不自动等于故障。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.power_violation_ns",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-power-violation-ns",
+      "field_id": 240,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_POWER_VIOLATION"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "nanoseconds",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "功率限制累计时长提供状态持续性证据，Power Cap位并不等于供电故障。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.thermal_violation_ns",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-thermal-violation-ns",
+      "field_id": 241,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "nanoseconds",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.power_throttle_seconds",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-power-throttle-seconds",
+      "field_id": 1617,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_POWER_THROTTLE_SECONDS_TOTAL"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "seconds",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "rationale": "字段1617是旧240ns字段的版本化替代候选；只选支持的一种并显式换算，不双计。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.thermal_throttle_seconds",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-thermal-throttle-seconds",
+      "field_id": 1618,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "seconds",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "版本条件字段；须固定目标驱动/DCGM/Exporter及有效枚举/单位，不能沿用旧栈存在性。",
+      "rationale": "字段1618是旧241ns字段的版本化替代候选；不得将秒和ns仅通过别名互换。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fm_status",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fm-status",
+      "field_id": 170,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fm_error",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fm-error",
+      "field_id": 171,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_ERROR"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "error_code",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "Fabric Manager具体错误码是状态异常后的补充解释；不是累计次数。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fabric_health_mask",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fabric-health-mask",
+      "field_id": 174,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_MASK"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "bitmask",
+      "semantic_unit": "bitmask",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "Fabric健康位掩码提供明细；不能把数值大小当严重度，也不能与summary枚举混用。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fabric_health_summary",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-fabric-health-summary",
+      "field_id": 175,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_replay",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-replay",
+      "field_id": 202,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER",
+        "DCGM_FI_DEV_PCIE_REPLAY_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "events",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_max_gen",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-max-gen",
+      "field_id": 235,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PCIE_MAX_LINK_GEN"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "generation",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "设备可支持的最大PCIe代际用于能力展示，但不等价于OS插槽/拓扑的预期协商代际。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_max_width",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-max-width",
+      "field_id": 236,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PCIE_MAX_LINK_WIDTH"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "lanes",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "设备可支持的最大lane数用于能力展示，静态资产目标仍要考虑主板/拓扑限制。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_gen",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-gen",
+      "field_id": 237,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PCIE_LINK_GEN"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "generation",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_width",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-width",
+      "field_id": 238,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PCIE_LINK_WIDTH"
+      ],
+      "requirement": "必选",
+      "implementation_status": "current_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "lanes",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_crc",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-nvlink-crc",
+      "field_id": 497,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "errors",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_recovery",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-nvlink-recovery",
+      "field_id": 498,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "events",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_replay",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-nvlink-replay",
+      "field_id": 499,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "events",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_link_fatal",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-link-fatal",
+      "field_id": 782,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_FATAL_ERRORS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "blocked",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "unknown",
+      "semantic_unit": "unknown",
+      "entity": "switch_port",
+      "identity": "job,instance,switch_id,link_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "已有候选记录明确字段类型未知；需确认是状态/错误码/掩码/计数，未核实前禁止rate/increase和统一数值阈值。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_link_nonfatal",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-link-nonfatal",
+      "field_id": 783,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_NON_FATAL_ERRORS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "blocked",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "unknown",
+      "semantic_unit": "unknown",
+      "entity": "switch_port",
+      "identity": "job,instance,switch_id,link_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "已有候选记录明确字段类型未知；不能仅凭ERRORS名称当counter。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_link_replay",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-link-replay",
+      "field_id": 784,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "events",
+      "entity": "switch_port",
+      "identity": "job,instance,switch_id,link_id",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_link_recovery",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-link-recovery",
+      "field_id": 785,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "events",
+      "entity": "switch_port",
+      "identity": "job,instance,switch_id,link_id",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sxid_fatal",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sxid-fatal",
+      "field_id": 856,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS",
+        "DCGM_FI_DEV_SXID_FATAL_ERROR"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "error_code",
+      "entity": "switch",
+      "identity": "job,instance,switch_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.sxid_nonfatal",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-sxid-nonfatal",
+      "field_id": 857,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS",
+        "DCGM_FI_DEV_SXID_NON_FATAL_ERROR"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "error_code",
+      "entity": "switch",
+      "identity": "job,instance,switch_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-temp",
+      "field_id": 858,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+        "DCGM_FI_DEV_NVSWITCH_TEMP_CELSIUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "switch",
+      "identity": "job,instance,switch_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_slowdown_temp",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-slowdown-temp",
+      "field_id": 859,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN",
+        "DCGM_FI_DEV_NVSWITCH_TEMP_SLOWDOWN_CELSIUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "celsius",
+      "entity": "switch",
+      "identity": "job,instance,switch_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.switch_link_state",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-switch-link-state",
+      "field_id": 870,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_STATUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "switch_port",
+      "identity": "job,instance,switch_id,link_id",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_tx_rate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-tx-rate",
+      "field_id": 1009,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_PCIE_TX_BYTES"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "bytes_per_second",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.pcie_rx_rate",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-pcie-rx-rate",
+      "field_id": 1010,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_PCIE_RX_BYTES"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "bytes_per_second",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "Profiling能力/权限/复用限制通过后启用；无上层负载预期不推断业务SLA。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_link_state",
+      "origin": "candidate",
+      "doc_anchor": "m-nvidia-nvlink-link-state",
+      "field_id": 1508,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVLINK_GET_STATE",
+        "DCGM_FI_DEV_NVLINK_LINK_STATUS"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "current_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "enum",
+      "semantic_unit": "enum",
+      "entity": "gpu_port",
+      "identity": "job,instance,UUID,link_id",
+      "validity": "版本化枚举及连接/traffic-ready目标见NVLink门禁；Sleep不能统一定故障或可通流量，正数不是通用恢复证据。",
+      "applicability": "仅在确有对应NVLink/NVSwitch/Fabric且OS预期声明启用时；未使用端口不应报警，PCIe无桥场景需区分。",
+      "rationale": "现有37字段契约之一；应保留具体规则或仅诊断角色，不代表已验证真实硬件适用性。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "inventory.expected_links",
+      "origin": "candidate",
+      "doc_anchor": "m-inventory-expected-links",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "条件必选",
+      "implementation_status": "current_feature",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "configuration",
+      "semantic_unit": "link_set",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "元数据/配置事实；不参与rate或普通数值阈值，缺失显式报覆盖缺口。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "预期启用端口及PCIe/Fabric资产清单已有；是否覆盖全资产需另外核对。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "prometheus.target_up",
+      "origin": "candidate",
+      "doc_anchor": "m-prometheus-target-up",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "current_feature",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "scrape_status",
+      "semantic_unit": "boolean",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "Prometheus自动up是当前采集可用性规则输入，不属于37个DCGM字段。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://prometheus.io/docs/concepts/jobs_instances/"
+      ]
+    },
+    {
+      "metric_id": "prometheus.field_quality",
+      "origin": "candidate",
+      "doc_anchor": "m-prometheus-field-quality",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "current_feature",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "derived_query",
+      "semantic_unit": "quality_state",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "现有缺失/陈旧/非法/重复/身份规则覆盖当前37字段；新增字段须扩展契约，不能声称自动覆盖。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "https://github.com/prometheus/prometheus/blob/v3.2.1/docs/querying/functions.md"
+      ]
+    },
+    {
+      "metric_id": "platform.evaluation_status",
+      "origin": "candidate",
+      "doc_anchor": "m-platform-evaluation-status",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "current_feature",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "platform_api_or_metrics",
+      "semantic_unit": "status",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "夜莺规则评估与数据查询计数器已有规则；不代替所有评估路径的执行SLA。",
+      "rule_and_recovery": "关联原有独立规则及其原窗口/确认/恢复，不因本规范新增阈值；未准入不给硬件健康结论。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "platform.notification_status",
+      "origin": "candidate",
+      "doc_anchor": "m-platform-notification-status",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "必选",
+      "implementation_status": "blocked",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "platform_api_or_metrics",
+      "semantic_unit": "status",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "通知失败规则已有记录但因实际发送路径无可信counter覆盖而禁用；必选监控目标不等于已满足。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "training.job_context",
+      "origin": "candidate",
+      "doc_anchor": "m-training-job-context",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "排除",
+      "implementation_status": "excluded",
+      "enablement": "当前无业务上下文，明确不实现或推导该输入",
+      "semantic_type": "external_context",
+      "semantic_unit": "job_state",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "当前OS SRE拿不到业务作业/调度上下文，明确不纳入GPU规则基线；不以其缺失阻塞其他观测。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "host.power_context",
+      "origin": "candidate",
+      "doc_anchor": "m-host-power-context",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "外部",
+      "implementation_status": "external_gap",
+      "enablement": "由独立OS/BMC/诊断采集契约实现，不伪造DCGM字段",
+      "semantic_type": "external_context",
+      "semantic_unit": "status",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "电源/风扇/环境温度/PSU/供电事件依赖BMC/Redfish/IPMI或主机采集，不假造DCGM字段。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "01-需求文档.md"
+      ]
+    },
+    {
+      "metric_id": "diagnostics.results",
+      "origin": "candidate",
+      "doc_anchor": "m-diagnostics-results",
+      "field_id": null,
+      "names_and_aliases": [],
+      "requirement": "外部",
+      "implementation_status": "external_gap",
+      "enablement": "由独立OS/BMC/诊断采集契约实现，不伪造DCGM字段",
+      "semantic_type": "external_diagnostic",
+      "semantic_unit": "diagnostic_result",
+      "entity": "target/config/event",
+      "identity": "job,instance及明确的设备/配置标识",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "H100物理GPU基线；逐栈核实字段/单位/TYPE/有效值；当前actual_collection与official_h100_field_support均未验证。",
+      "rationale": "DCGM主动诊断结果是独立运维/维护输入，不等于被动时序指标；需记录运行时间/测试/结果/影响，不能默认带载运行。",
+      "rule_and_recovery": "当前无该目标的完整生产接入；除主表明确已有规则外不新增已部署告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "14-GPU监控指标与告警规则说明表.md"
+      ]
+    }
+  ],
+  "beyond_candidate_contracts": [
+    {
+      "metric_id": "nvidia.memory_unrepairable",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-memory-unrepairable",
+      "field_id": 1507,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_MEMORY_UNREPAIRABLE",
+        "DCGM_FI_DEV_MEMORY_UNREPAIRABLE_FLAG"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "boolean",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定版本/设备能力准入，不因字段定义存在认定H100/R595已支持。",
+      "rationale": "新增缺口；官方1=yes/0=no布尔，别名MEMORY_UNREPAIRABLE_FLAG；目标栈支持未证实，非不支持即健康。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.retired_sbe",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-retired-sbe",
+      "field_id": 390,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PAGE_RETIRED_SBE_TOTAL",
+        "DCGM_FI_DEV_RETIRED_SBE"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "pages",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "传统页退休仅在明确支持的架构/版本准入；不作为H100 row-remap的替代或相加项。",
+      "rationale": "旧架构页退休兼容项；H100主路径以row-remap为准，先明确型号支持。若选用为monotoniccount，而不是现有坏页总数/错误码。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.retired_dbe",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-retired-dbe",
+      "field_id": 391,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PAGE_RETIRED_DBE_TOTAL",
+        "DCGM_FI_DEV_RETIRED_DBE"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "counter",
+      "semantic_unit": "pages",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "传统页退休仅在明确支持的架构/版本准入；不作为H100 row-remap的替代或相加项。",
+      "rationale": "同上，double-bit引起的退休页累计数；不与H100row-remap资源一一等价。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.retired_pending",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-retired-pending",
+      "field_id": 392,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_PAGE_RETIRED_PENDING",
+        "DCGM_FI_DEV_RETIRED_PENDING"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "boolean",
+      "semantic_unit": "boolean",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "传统页退休仅在明确支持的架构/版本准入；不作为H100 row-remap的替代或相加项。",
+      "rationale": "同上，bool待退休，不是count；H100不强制套用旧架构语义。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fb_used_ratio",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-fb-used-ratio",
+      "field_id": 254,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FB_USED_PERCENT",
+        "DCGM_FI_DEV_FB_USED_RATIO"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "ratio",
+      "semantic_unit": "0–1",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "固定头文件语义0≤x≤1，Used/(Total−Reserved)；PERCENT旧别名不证明×100，展示百分数须显式转换且验证分母。",
+      "applicability": "按固定版本/设备能力准入，不因字段定义存在认定H100/R595已支持。",
+      "rationale": "新增替代/对照口径；固定头文件0..1且Used/(Total-Reserved)，别名FB_USED_PERCENT。与项目USED/TOTAL派生比例不是同一分母，名字PERCENT不能证明单位是0..100。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fb_total",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-fb-total",
+      "field_id": 250,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FB_TOTAL"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MiB",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项；设备报告framebuffer总量MiB，不保证等于板卡标称或进程可分配总量。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.fb_reserved",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-fb-reserved",
+      "field_id": 253,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_FB_RESERVED"
+      ],
+      "requirement": "必选",
+      "implementation_status": "production_contract",
+      "enablement": "基线必需目标；缺失应显示实施差距",
+      "semantic_type": "gauge",
+      "semantic_unit": "MiB",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项；系统/驱动预留MiB，定义容量比例时须交代扣除口径。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.energy",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-energy",
+      "field_id": 156,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "counter",
+      "semantic_unit": "mJ",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "非负有限累计计数；先按实体处理reset再算增量；窗口退出不证明硬件修复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项；mJ累计counter；新版J字段不能仅改名，存在reset。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_tx_rate",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-nvlink-tx-rate",
+      "field_id": 1011,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_NVLINK_TX_BYTES"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "bytes/s",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项；bytes/s gauge，Profiling支持/权限/粒度须确认，不因BYTES名称就rate。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_rx_rate",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-nvlink-rx-rate",
+      "field_id": 1012,
+      "names_and_aliases": [
+        "DCGM_FI_PROF_NVLINK_RX_BYTES"
+      ],
+      "requirement": "条件必选",
+      "implementation_status": "production_contract",
+      "enablement": "按硬件/版本、拓扑/用途或采集能力准入；非适用应说明理由",
+      "semantic_type": "gauge",
+      "semantic_unit": "bytes/s",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项；bytes/s gauge，同上，不与aggregate throughput重复相加。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    },
+    {
+      "metric_id": "nvidia.nvlink_aggregate_rate",
+      "origin": "beyond_candidate",
+      "doc_anchor": "m-nvidia-nvlink-aggregate-rate",
+      "field_id": 449,
+      "names_and_aliases": [
+        "DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL",
+        "DCGM_FI_DEV_NVLINK_THROUGHPUT_TOTAL"
+      ],
+      "requirement": "可选",
+      "implementation_status": "production_contract",
+      "enablement": "只读增强；未准入不强行开启",
+      "semantic_type": "gauge",
+      "semantic_unit": "MB/s",
+      "entity": "gpu",
+      "identity": "job,instance,UUID",
+      "validity": "必须按版本核实合法枚举/范围、blank/sentinel；不支持/缺失/无效/重复/陈旧为unknown，不补0，不提供恢复。",
+      "applicability": "按固定collector版本、硬件与Profiling能力准入；field定义不保证目标栈可采，旧名/新单位须映射验证。",
+      "rationale": "已在14建议项的采集别名NVLINK_BANDWIDTH_TOTAL；固定CSVgauge MB/s，不能混其他版本counter。",
+      "rule_and_recovery": "正式输入契约和部署预检已实现；实际采集支持由逐栈/逐卡预检判定，不自动生成硬件数据。除主表明确已有规则外无独立告警。触发、严重度、窗口及有效解除需随实现审定；不支持或未知不得解除。",
+      "sources": [
+        "https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+        "https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv"
+      ]
+    }
+  ],
+  "implemented_dcgm_fields": [
+    "DCGM_FI_DEV_CLOCKS_EVENT_REASONS",
+    "DCGM_FI_DEV_ECC_DBE_AGG_DEV",
+    "DCGM_FI_DEV_ECC_DBE_AGG_SRM",
+    "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL",
+    "DCGM_FI_DEV_ECC_DBE_VOL_DEV",
+    "DCGM_FI_DEV_ECC_DBE_VOL_SRM",
+    "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL",
+    "DCGM_FI_DEV_ECC_SBE_VOL_DEV",
+    "DCGM_FI_DEV_ECC_SBE_VOL_SRM",
+    "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL",
+    "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY",
+    "DCGM_FI_DEV_FABRIC_MANAGER_STATUS",
+    "DCGM_FI_DEV_GPU_MAX_OP_TEMP",
+    "DCGM_FI_DEV_GPU_TEMP",
+    "DCGM_FI_DEV_MEMORY_TEMP",
+    "DCGM_FI_DEV_MEM_MAX_OP_TEMP",
+    "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVLINK_GET_STATE",
+    "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL",
+    "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS",
+    "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_LINK_STATUS",
+    "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS",
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN",
+    "DCGM_FI_DEV_PCIE_LINK_GEN",
+    "DCGM_FI_DEV_PCIE_LINK_WIDTH",
+    "DCGM_FI_DEV_PCIE_REPLAY_COUNTER",
+    "DCGM_FI_DEV_ROW_REMAP_FAILURE",
+    "DCGM_FI_DEV_ROW_REMAP_PENDING",
+    "DCGM_FI_DEV_SRAM_EXCEEDED",
+    "DCGM_FI_DEV_THERMAL_VIOLATION",
+    "DCGM_FI_DEV_XID_ERRORS",
+    "DCGM_FI_PROF_PCIE_RX_BYTES",
+    "DCGM_FI_PROF_PCIE_TX_BYTES"
+  ],
+  "production_contract_dcgm_fields": [
+    "DCGM_FI_DEV_BANK_REMAP_AVAIL_HIGH",
+    "DCGM_FI_DEV_BANK_REMAP_AVAIL_LOW",
+    "DCGM_FI_DEV_BANK_REMAP_AVAIL_MAX",
+    "DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE",
+    "DCGM_FI_DEV_BANK_REMAP_AVAIL_PARTIAL",
+    "DCGM_FI_DEV_BOARD_POWER_RAW_WATTS",
+    "DCGM_FI_DEV_CLOCKS_EVENT_REASONS",
+    "DCGM_FI_DEV_CORRECTABLE_REMAPPED_ROWS",
+    "DCGM_FI_DEV_ECC_DBE_AGG_DEV",
+    "DCGM_FI_DEV_ECC_DBE_AGG_SRM",
+    "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL",
+    "DCGM_FI_DEV_ECC_DBE_VOL_DEV",
+    "DCGM_FI_DEV_ECC_DBE_VOL_SRM",
+    "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL",
+    "DCGM_FI_DEV_ECC_MODE",
+    "DCGM_FI_DEV_ECC_PENDING",
+    "DCGM_FI_DEV_ECC_SBE_AGG_DEV",
+    "DCGM_FI_DEV_ECC_SBE_AGG_SRM",
+    "DCGM_FI_DEV_ECC_SBE_AGG_TOTAL",
+    "DCGM_FI_DEV_ECC_SBE_VOL_DEV",
+    "DCGM_FI_DEV_ECC_SBE_VOL_SRM",
+    "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL",
+    "DCGM_FI_DEV_ENFORCED_POWER_LIMIT",
+    "DCGM_FI_DEV_FABRIC_HEALTH_MASK",
+    "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY",
+    "DCGM_FI_DEV_FABRIC_MANAGER_ERROR",
+    "DCGM_FI_DEV_FABRIC_MANAGER_STATUS",
+    "DCGM_FI_DEV_FB_FREE",
+    "DCGM_FI_DEV_FB_RESERVED",
+    "DCGM_FI_DEV_FB_TOTAL",
+    "DCGM_FI_DEV_FB_USED",
+    "DCGM_FI_DEV_FB_USED_RATIO",
+    "DCGM_FI_DEV_GPU_MAX_OP_TEMP",
+    "DCGM_FI_DEV_GPU_POWER_THROTTLE_SECONDS_TOTAL",
+    "DCGM_FI_DEV_GPU_PSTATE",
+    "DCGM_FI_DEV_GPU_RECOVERY_ACTION",
+    "DCGM_FI_DEV_GPU_TEMP",
+    "DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS",
+    "DCGM_FI_DEV_GPU_TEMP_SHUTDOWN_CELSIUS",
+    "DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS",
+    "DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL",
+    "DCGM_FI_DEV_GPU_UTIL",
+    "DCGM_FI_DEV_INFOROM_VALID",
+    "DCGM_FI_DEV_MEMORY_TEMP",
+    "DCGM_FI_DEV_MEMORY_UNREPAIRABLE",
+    "DCGM_FI_DEV_MEM_CLOCK",
+    "DCGM_FI_DEV_MEM_COPY_UTIL",
+    "DCGM_FI_DEV_MEM_MAX_OP_TEMP",
+    "DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL",
+    "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVLINK_GET_STATE",
+    "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL",
+    "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS",
+    "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL",
+    "DCGM_FI_DEV_NVSWITCH_LINK_STATUS",
+    "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS",
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN",
+    "DCGM_FI_DEV_PAGE_RETIRED_DBE_TOTAL",
+    "DCGM_FI_DEV_PAGE_RETIRED_PENDING",
+    "DCGM_FI_DEV_PAGE_RETIRED_SBE_TOTAL",
+    "DCGM_FI_DEV_PCIE_LINK_GEN",
+    "DCGM_FI_DEV_PCIE_LINK_WIDTH",
+    "DCGM_FI_DEV_PCIE_MAX_LINK_GEN",
+    "DCGM_FI_DEV_PCIE_MAX_LINK_WIDTH",
+    "DCGM_FI_DEV_PCIE_REPLAY_COUNTER",
+    "DCGM_FI_DEV_POWER_MGMT_LIMIT",
+    "DCGM_FI_DEV_POWER_USAGE",
+    "DCGM_FI_DEV_POWER_VIOLATION",
+    "DCGM_FI_DEV_ROW_REMAP_FAILURE",
+    "DCGM_FI_DEV_ROW_REMAP_PENDING",
+    "DCGM_FI_DEV_SM_CLOCK",
+    "DCGM_FI_DEV_SRAM_EXCEEDED",
+    "DCGM_FI_DEV_THERMAL_VIOLATION",
+    "DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION",
+    "DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS",
+    "DCGM_FI_DEV_XID_ERRORS",
+    "DCGM_FI_PROF_DRAM_ACTIVE",
+    "DCGM_FI_PROF_GR_ENGINE_ACTIVE",
+    "DCGM_FI_PROF_NVLINK_RX_BYTES",
+    "DCGM_FI_PROF_NVLINK_TX_BYTES",
+    "DCGM_FI_PROF_PCIE_RX_BYTES",
+    "DCGM_FI_PROF_PCIE_TX_BYTES",
+    "DCGM_FI_PROF_PIPE_TENSOR_ACTIVE",
+    "DCGM_FI_PROF_SM_ACTIVE",
+    "DCGM_FI_PROF_SM_OCCUPANCY"
+  ],
+  "implemented_rule_ids": [
+    "os_sre.clock_unknown",
+    "os_sre.collector_down",
+    "os_sre.ecc_change_pending",
+    "os_sre.ecc_new",
+    "os_sre.entity_missing",
+    "os_sre.fabric_capability",
+    "os_sre.fabric_health",
+    "os_sre.fabric_manager",
+    "os_sre.fabric_manager_error",
+    "os_sre.field_missing",
+    "os_sre.gpu_link_down",
+    "os_sre.gpu_thermal",
+    "os_sre.hw_slowdown",
+    "os_sre.hw_thermal",
+    "os_sre.identity_missing",
+    "os_sre.inforom_invalid",
+    "os_sre.input_duplicate",
+    "os_sre.input_invalid",
+    "os_sre.input_stale",
+    "os_sre.master_field_missing",
+    "os_sre.master_input_duplicate",
+    "os_sre.master_input_invalid",
+    "os_sre.master_input_stale",
+    "os_sre.memory_thermal",
+    "os_sre.memory_unrepairable",
+    "os_sre.nvlink_crc",
+    "os_sre.nvlink_recovery",
+    "os_sre.nvlink_replay",
+    "os_sre.pcie_degraded",
+    "os_sre.pcie_replay",
+    "os_sre.platform_adapter_down",
+    "os_sre.platform_evaluation_stall",
+    "os_sre.platform_nightingale_metrics_missing",
+    "os_sre.platform_notify_failure",
+    "os_sre.platform_query_failure",
+    "os_sre.power_brake",
+    "os_sre.power_cap",
+    "os_sre.power_violation_recent",
+    "os_sre.recovery_required",
+    "os_sre.remap_failed",
+    "os_sre.remap_pending",
+    "os_sre.remap_resource_exhausted",
+    "os_sre.sram",
+    "os_sre.sw_thermal",
+    "os_sre.switch_link_down",
+    "os_sre.switch_recovery",
+    "os_sre.switch_replay",
+    "os_sre.switch_thermal",
+    "os_sre.sxid_fatal",
+    "os_sre.sxid_nonfatal",
+    "os_sre.sync_boost",
+    "os_sre.thermal_margin_exhausted",
+    "os_sre.thermal_time",
+    "os_sre.xid_app",
+    "os_sre.xid_node",
+    "os_sre.xid_reset",
+    "os_sre.xid_scope",
+    "os_sre.xid_unknown"
+  ],
+  "semantic_gates": [
+    {
+      "gate": "gate-nvlink-state-policy",
+      "status": "closed"
+    },
+    {
+      "gate": "gate-unit-contract",
+      "status": "closed"
+    },
+    {
+      "gate": "gate-implementation-parity",
+      "status": "open"
+    }
+  ],
+  "requirements_summary": {
+    "必选": 29,
+    "可选": 17,
+    "条件必选": 43,
+    "排除": 1,
+    "外部": 2
+  },
+  "production_alignment": {
+    "mandatory_implementation_gaps": [
+      "platform.notification_status"
+    ],
+    "open_semantic_gates": [
+      "gate-implementation-parity"
+    ],
+    "production_ready": false
+  }
+}

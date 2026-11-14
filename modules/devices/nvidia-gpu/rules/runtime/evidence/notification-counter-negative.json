@@ -1,0 +1,18 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794538865.1296532,
+  "cases": [
+    {
+      "name": "actual_watchdog_restart_persistent_retry_and_correlated_recovery",
+      "passed": true
+    },
+    {
+      "name": "independent_notice_when_nightingale_is_stopped",
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "finished_at": 1794539051.977966,
+  "failure_reason": "Real native HTTP notification path returned failures at the local receiver, but n9e_alert_alert_notify_error_total was not collected; expected rule activation timed out.",
+  "disposition": "Keep default disabled. Counter declaration and some sender call sites do not establish coverage of the selected notification strategy."
+}

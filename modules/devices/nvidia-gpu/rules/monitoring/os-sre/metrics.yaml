@@ -1,0 +1,545 @@
+profile: os-sre
+metrics:
+  DCGM_FI_DEV_GPU_TEMP:
+    kind: gauge
+    minimum: -140737488355328
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_GPU_MAX_OP_TEMP:
+    kind: gauge
+    minimum: 1
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_MEMORY_TEMP:
+    kind: gauge
+    minimum: -140737488355328
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_MEM_MAX_OP_TEMP:
+    kind: gauge
+    minimum: 1
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_CLOCKS_EVENT_REASONS:
+    kind: integer
+    minimum: 0
+    maximum: 9007199254740992
+    unit: bitmask
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_SRAM_EXCEEDED:
+    kind: boolean
+    minimum: 0
+    maximum: 2
+    unit: boolean
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ROW_REMAP_FAILURE:
+    kind: boolean
+    minimum: 0
+    maximum: 2
+    unit: boolean
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ROW_REMAP_PENDING:
+    kind: boolean
+    minimum: 0
+    maximum: 2
+    unit: boolean
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_VOL_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_VOL_DEV:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_VOL_SRM:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_SBE_VOL_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_SBE_VOL_DEV:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_SBE_VOL_SRM:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_AGG_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_AGG_DEV:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_ECC_DBE_AGG_SRM:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_THERMAL_VIOLATION:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: nanoseconds
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_PCIE_REPLAY_COUNTER:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: events
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: errors
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: events
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_NVLINK_REPLAY_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: events
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_XID_ERRORS:
+    kind: integer
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: code
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_PCIE_LINK_GEN:
+    kind: integer
+    minimum: 1
+    maximum: 7
+    unit: generation
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_PCIE_LINK_WIDTH:
+    kind: integer
+    minimum: 1
+    maximum: 33
+    unit: lanes
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_NVLINK_GET_STATE:
+    kind: integer
+    minimum: 0
+    maximum: 3
+    unit: enum
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    - link_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+      - link_id
+    business_labels_required: false
+  DCGM_FI_DEV_FABRIC_MANAGER_STATUS:
+    kind: integer
+    minimum: 0
+    maximum: 7
+    unit: enum
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY:
+    kind: integer
+    minimum: 0
+    maximum: 4
+    unit: enum
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS:
+    kind: integer
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: sxid_code
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS:
+    kind: integer
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: sxid_code
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT:
+    kind: gauge
+    minimum: -140737488355328
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN:
+    kind: gauge
+    minimum: 1
+    maximum: 140737488355328
+    unit: celsius
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_LINK_STATUS:
+    kind: integer
+    minimum: 0
+    maximum: 4
+    unit: enum
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    - link_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+      - link_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: events
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    - link_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+      - link_id
+    business_labels_required: false
+  DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL:
+    kind: counter
+    minimum: 0
+    maximum: 9223372036854775792
+    unit: events
+    identity_labels:
+    - job
+    - instance
+    - switch_id
+    - link_id
+    alternative_identity_labels:
+    - - job
+      - instance
+      - switch_id
+      - link_id
+    business_labels_required: false
+  DCGM_FI_PROF_PCIE_TX_BYTES:
+    kind: gauge
+    minimum: 0
+    maximum: 140737488355328
+    unit: bytes_per_second
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  DCGM_FI_PROF_PCIE_RX_BYTES:
+    kind: gauge
+    minimum: 0
+    maximum: 140737488355328
+    unit: bytes_per_second
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    business_labels_required: false
+  os_sre_recovery_verified:
+    kind: boolean
+    minimum: 0
+    maximum: 2
+    unit: boolean
+    identity_labels:
+    - job
+    - instance
+    - UUID
+    alternative_identity_labels:
+    - - job
+      - instance
+      - UUID
+    - - job
+      - instance
+      - switch_id
+    business_labels_required: false

@@ -1,0 +1,25 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794539238.2169852,
+  "cases": [
+    {
+      "name": "invalid_candidate_does_not_replace_active_release",
+      "passed": true
+    },
+    {
+      "name": "actual_release_activation_cas_and_incident_preservation",
+      "passed": true
+    },
+    {
+      "name": "actual_release_rollback_preserves_incident",
+      "passed": true
+    },
+    {
+      "name": "online_backup_checksum_verified_empty_target_restore",
+      "passed": true,
+      "sha256": "196b9f5402b2afd59d4cf00092af8c03f040596d2c804827eba449d856207813"
+    }
+  ],
+  "passed": true,
+  "finished_at": 1794539250.6658738
+}

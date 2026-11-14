@@ -23,7 +23,7 @@ def render():
     evidence=yaml.safe_load(evidence_path.read_text()) if evidence_path.exists() else {}
     verified=set(evidence.get('verified_rule_ids',[]))
     outputs={}
-    index=['# H100训练规则候选库','','本目录完成输入契约、规则参数、处置和模拟验收的对应关系。生产默认策略为disabled，真实H100采集、版本、MIG及拓扑仍待现场验收。',
+    index=['# H100训练规则候选库（历史模拟版本）','','当前OS SRE规则请使用[无业务属性版本](../os-sre/README.md)。本页保留旧模拟表达式与验收，不作为当前现场接入模板。','','本目录完成输入契约、规则参数、处置和模拟验收的对应关系。生产默认策略为disabled，真实H100采集、版本、MIG及拓扑仍待现场验收。',
            '', '[综合演示](http://localhost:19430) · [夜莺](http://localhost:17000) · [规则和指标目录](catalog.yaml)',
            '', '## 规则','','| 规则 | 严重度 | 目标持续时间 | 夜莺模拟验收 |','| --- | --- | --- | --- |']
     structured={'schema_version':'0.2.0','baseline':'H100 training / R595.112.07 design reference',
@@ -39,7 +39,7 @@ def render():
                 'documentation':'metrics/'+metric_id+'.md'}
         structured['metrics'].append(schema)
         kind='工程配置/上下文' if spec['dcgm_field_id'] is None else 'NVIDIA字段候选'
-        text=[f'# {title}','',f'metric_id `{metric_id}`，版本0.1.0，状态candidate。',
+        text=[f'# {title}','','历史模拟输入；当前接入契约见[OS SRE指标](../../os-sre/metrics.yaml)。','',f'metric_id `{metric_id}`，版本0.1.0，状态candidate。',
               '', '## 语义与单位','',f'原始名 `{name}`，字段ID `{spec["dcgm_field_id"]}`，类别为{kind}。',
               f'类型 `{spec["kind"]}`，单位 `{spec["unit"]}`。',
               '', '## 身份与适用性','', '按cluster_id及entity_id定位对象。GPU使用UUID，交换机使用switch_id，端口额外保留link_id。',
@@ -63,7 +63,7 @@ def render():
         index.append(f'| [{entry["title"]}](rules/{rule_id}.md) | {entry["severity"]} | {entry["desired_for_seconds"]}秒 | {item["nightingale_simulation"]} |')
         inputs='、'.join('`'+name+'`' for name in entry['input_fields']) or '预期输入清单与采集状态'
         owner='持久状态适配器' if stateful else '夜莺原生评估器'
-        text=[f'# {entry["title"]}','',f'rule_id `{rule_id}`，版本0.1.0，状态candidate，生产默认disabled。',
+        text=[f'# {entry["title"]}','','历史模拟规则；当前接入入口见[OS SRE规则](../../os-sre/README.md)。','',f'rule_id `{rule_id}`，版本0.1.0，状态candidate，生产默认disabled。',
               '', '## 检测目标','',entry['reason'],
               '', '## 输入与适用条件','',inputs,
               '按候选清单选择GPU、交换机或端口对象。实际硬件形态、字段支持及维护流程待现场核验。',

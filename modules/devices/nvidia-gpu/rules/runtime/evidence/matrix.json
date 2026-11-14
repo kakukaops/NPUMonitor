@@ -1,0 +1,96 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794538539.6361802,
+  "cases": [
+    {
+      "name": "hardware_flags_thermal_and_clock_bits",
+      "passed": true,
+      "rules": [
+        "sram",
+        "remap_failed",
+        "remap_pending",
+        "gpu_thermal",
+        "memory_thermal",
+        "switch_thermal",
+        "sw_thermal",
+        "hw_thermal",
+        "power_cap",
+        "power_brake",
+        "hw_slowdown",
+        "sync_boost",
+        "clock_unknown"
+      ]
+    },
+    {
+      "name": "hardware_flags_valid_clear",
+      "passed": true
+    },
+    {
+      "name": "counter_activity_window_firing",
+      "passed": true,
+      "rules": [
+        "ecc_new",
+        "thermal_time",
+        "pcie_replay",
+        "nvlink_crc",
+        "nvlink_recovery",
+        "nvlink_replay",
+        "switch_replay",
+        "switch_recovery"
+      ]
+    },
+    {
+      "name": "counter_activity_window_quiet_clear",
+      "passed": true
+    },
+    {
+      "name": "link_and_fabric_failure_states",
+      "passed": true,
+      "rules": [
+        "gpu_link_down",
+        "switch_link_down",
+        "fabric_manager",
+        "fabric_health"
+      ]
+    },
+    {
+      "name": "invalid_native_detection",
+      "passed": true
+    },
+    {
+      "name": "duplicate_native_detection",
+      "passed": true
+    },
+    {
+      "name": "scrape_error_native_detection",
+      "passed": true
+    },
+    {
+      "name": "nightingale_metrics_error_native_detection",
+      "passed": true
+    },
+    {
+      "name": "evaluation_stall_native_detection",
+      "passed": true
+    },
+    {
+      "name": "partial_field_missing",
+      "passed": true
+    },
+    {
+      "name": "pcie_120_second_confirmation",
+      "passed": true,
+      "observed_seconds": 123.92
+    },
+    {
+      "name": "idle_link_downshift_does_not_claim_recovery",
+      "passed": true
+    },
+    {
+      "name": "active_normal_pcie_clears",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "finished_at": 1794538848.9342077
+}

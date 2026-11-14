@@ -1,0 +1,119 @@
+{
+  "retired_containers": [
+    "npumonitor-gpu-rules-sre-watchdog-1",
+    "npumonitor-gpu-rules-sre-runtime-1",
+    "npumonitor-gpu-rules-gpu-os-sre-source-1",
+    "npumonitor-gpu-rules-gpu-os-sre-prometheus-1",
+    "npumonitor-rules-contract-sre-watchdog-1",
+    "npumonitor-rules-contract-sre-runtime-1",
+    "npumonitor-rules-contract-sre-source-1",
+    "npumonitor-rules-contract-sre-prometheus-1",
+    "npumonitor-rules-contract-sre-nightingale-1",
+    "npumonitor-rules-contract-sre-redis-1",
+    "npumonitor-rules-contract-sre-receiver-1",
+    "gpu-alert-lab-comprehensive-source-1",
+    "gpu-alert-lab-comprehensive-lifecycle-1",
+    "gpu-alert-lab-recovery-adapter-1",
+    "gpu-alert-lab-gpu-simulator-1"
+  ],
+  "archived_and_removed_volumes": [
+    {
+      "volume": "npumonitor-gpu-rules_current-prometheus-data",
+      "archive": "npumonitor-gpu-rules_current-prometheus-data.tgz",
+      "sha256": "a881a7b64c71b7fee793c133549da0b01bf3a10cd00818720d7a007bc37ec399",
+      "bytes": 8850863
+    },
+    {
+      "volume": "npumonitor-gpu-rules_current-source-data",
+      "archive": "npumonitor-gpu-rules_current-source-data.tgz",
+      "sha256": "74624ff867c4ee0576223972d4202b3e6f3a6badafe4661267a0461eaac8f509",
+      "bytes": 363
+    },
+    {
+      "volume": "npumonitor-gpu-rules_runtime-data",
+      "archive": "npumonitor-gpu-rules_runtime-data.tgz",
+      "sha256": "df7d142582cb699c139801a4c46960336d6461474cc187f2fad795de5a62fe5d",
+      "bytes": 63799
+    },
+    {
+      "volume": "npumonitor-gpu-rules_watchdog-data",
+      "archive": "npumonitor-gpu-rules_watchdog-data.tgz",
+      "sha256": "06fa6d425d844c634737c84cec5330be297359571cef1552c2a171a848893705",
+      "bytes": 1448
+    },
+    {
+      "volume": "npumonitor-rules-contract_nightingale-data",
+      "archive": "npumonitor-rules-contract_nightingale-data.tgz",
+      "sha256": "b313172c3489d3bbba2abf273edfa37cb347e8e1b529ca3e286e77a5a57ce44a",
+      "bytes": 235912
+    },
+    {
+      "volume": "npumonitor-rules-contract_nightingale-logs",
+      "archive": "npumonitor-rules-contract_nightingale-logs.tgz",
+      "sha256": "e4a9694771e5e8f17d7d62dd05610b3929d1637c44e9603fb8191513d911df1f",
+      "bytes": 7676786
+    },
+    {
+      "volume": "npumonitor-rules-contract_prometheus-data",
+      "archive": "npumonitor-rules-contract_prometheus-data.tgz",
+      "sha256": "01a2325791964c82ef5ebe1d1b3395d8a2607f6dcca9e97855bb0f6774746660",
+      "bytes": 19464814
+    },
+    {
+      "volume": "npumonitor-rules-contract_receiver-data",
+      "archive": "npumonitor-rules-contract_receiver-data.tgz",
+      "sha256": "64c498687a04c8144f0f1c76634a6842a93b51a043f1610c568b7afd74e4e804",
+      "bytes": 65333
+    },
+    {
+      "volume": "npumonitor-rules-contract_redis-data",
+      "archive": "npumonitor-rules-contract_redis-data.tgz",
+      "sha256": "827752a841f828dc3f126b375737eef3662a4e5cd22a9f95a2609b09476a5eb3",
+      "bytes": 814
+    },
+    {
+      "volume": "npumonitor-rules-contract_runtime-data",
+      "archive": "npumonitor-rules-contract_runtime-data.tgz",
+      "sha256": "b59bca3d62d7db7649ba674addc2c7dd13726c670a91494cd09aff96abb81fbb",
+      "bytes": 404257
+    },
+    {
+      "volume": "npumonitor-rules-contract_source-data",
+      "archive": "npumonitor-rules-contract_source-data.tgz",
+      "sha256": "add23f542206c7d20133aaf82677c8a87f7c2995ca8f1a6aa929376e3b9a4b5e",
+      "bytes": 521
+    },
+    {
+      "volume": "npumonitor-rules-contract_watchdog-data",
+      "archive": "npumonitor-rules-contract_watchdog-data.tgz",
+      "sha256": "c1cd0bc58d3eb89636b70beb6783706d7bcedb0a57837e0475967763baefce9b",
+      "bytes": 2814
+    },
+    {
+      "volume": "gpu-alert-lab_comprehensive-events",
+      "archive": "gpu-alert-lab_comprehensive-events.tgz",
+      "sha256": "48d1779a67cad2288c5d7fd65cc4851ac24086867ef16a12f1212ca3312b92bf",
+      "bytes": 28948
+    },
+    {
+      "volume": "gpu-alert-lab_comprehensive-state",
+      "archive": "gpu-alert-lab_comprehensive-state.tgz",
+      "sha256": "73d70723d7dfb5edb3776277633232d183e86e5ba17fcdadcaf5121a956a081b",
+      "bytes": 27745
+    },
+    {
+      "volume": "gpu-alert-lab_lifecycle-data",
+      "archive": "gpu-alert-lab_lifecycle-data.tgz",
+      "sha256": "1a3a1eb3a3a0c5dea5fb484b125de657f38c138ef872600a6f7f9fd5ee6a55c6",
+      "bytes": 1737
+    }
+  ],
+  "backup_directory": ".local/master-publish-20261113-205430",
+  "preserved": [
+    "gpu-alert-lab-nightingale-1",
+    "gpu-alert-lab-prometheus-1",
+    "gpu-monitoring-ml-gpu-ml-1",
+    "gpu-monitoring-ml-model-platform-1",
+    "all non-listed volumes"
+  ]
+}

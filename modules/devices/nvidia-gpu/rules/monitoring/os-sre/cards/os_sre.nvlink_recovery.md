@@ -1,0 +1,34 @@
+# Hopper NVLink recovery近期活动
+
+规则 `os_sre.nvlink_recovery`，版本0.2.0；默认disabled；状态 `candidate`。
+
+## 身份与输入
+
+匹配标签：`job,instance,UUID`。不依赖集群ID、业务任务、租户或作业状态。
+输入：`DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL`。
+
+## 语义与边界
+
+仅表示窗口内新增活动；窗口退出不是硬件修复。
+持续确认：60秒（工程配置）；真实硬件与夜莺新版本接入尚未验收。
+
+## PromQL
+
+```promql
+((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])) and (min_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]) >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]) < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]) >= 0) and (count_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]) >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} >= 0) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} < 9223372036854775792) and ((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})) <= 90) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""} == floor(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}) == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))))) > bool 0)
+```
+
+输出0/1为有效观测，空结果表示未知。必须由持久状态处理持续确认、缺数保持和恢复；不能把非空的0直接作为原生告警。
+
+## 来源与参数依据
+
+| 项目 | 内容 |
+|---|---|
+| 官方语义 | NVLink recovery字段的计量对象；计数/速率类型还要对照Exporter配置和现场TYPE。 |
+| 具体来源 | [nvidia.dcgm.fixed_fields](https://github.com/NVIDIA/DCGM/blob/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h)；[nvidia.exporter.counters](https://github.com/NVIDIA/dcgm-exporter/blob/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv)；[prometheus.functions](https://github.com/prometheus/prometheus/blob/v3.2.1/docs/querying/functions.md) |
+| 项目判据 | 有效计数在配置窗口increase>0产生异常观测，近期无增量给0观测。 |
+| 参数来源 | P02=300；P03=60；P04=30；P09=2；P01=90；P08=按metrics.yaml逐字段约束；P10=job/instance + 硬件ID；预期清单默认空 |
+| 证据边界 | 合成向量求值；不包括新版持续确认/夜莺/真实设备/生产案例；生产案例无；真实硬件未验 |
+| 待核实项 | 窗口退出表示近期无新增，不表示硬件修好；reset处理依赖函数语义，采集类型需现场核实。 |
+
+[查看完整逐条来源表](../provenance.md#os-sre-nvlink-recovery)；[结构化来源定义](../provenance.yaml)。

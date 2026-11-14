@@ -1,0 +1,919 @@
+groups:
+- name: os-sre-quality-platform
+  interval: 30s
+  rules:
+  - alert: os_sre_entity_missing
+    expr: (((sre:inventory:gpu_expected unless on (job,instance,UUID) (count by (job,instance,UUID)
+      ((label_replace((max by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*") or
+      label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*"))))) or (sre:inventory:switch_expected
+      unless on (job,instance,switch_id) (count by (job,instance,switch_id) ((label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*") or
+      label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*")))))) and on (job,instance)
+      (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 预期设备观测消失
+  - alert: os_sre_field_missing
+    expr: ((((sre:inventory:input_expected unless on (job,instance,UUID,metric_name)
+      (label_replace((max by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*") or
+      label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*"))) and on (job,instance,UUID)
+      (count by (job,instance,UUID) ((label_replace((max by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*") or
+      label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or label_replace((max
+      by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})),
+      "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})),
+      "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*")))))) and on (job,instance)
+      (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 必需测量字段缺失
+  - alert: os_sre_input_stale
+    expr: ((label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (((time()-timestamp(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      < 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((time()-timestamp(DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((time()-timestamp(DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      > 90) or ((time()-timestamp(DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      < 0))), "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*")) and
+      on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 测量样本陈旧
+  - alert: os_sre_input_invalid
+    expr: ((label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool -140737488355328))) > 0))), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 1))) > 0))), "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool -140737488355328))) > 0))), "metric_name", "DCGM_FI_DEV_MEMORY_TEMP",
+      "__name__", ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 1))) > 0))), "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9007199254740992) + (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 2) + (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 2) + (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 2) + (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 7) + (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 1)) + (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID) (((((DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 33) + (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 1)) + (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((max
+      by (job,instance,UUID,link_id) (((((DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 3) + (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or
+      label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 7) + (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*")
+      or label_replace((max by (job,instance,UUID) (((((DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 4) + (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0)) + (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool floor(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (((((DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}) + (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      < bool 0)) + (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      != bool floor(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id) (((((DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""} >= bool
+      9223372036854775792) + (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      < bool 0)) + (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      != bool floor(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id) (((((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""} >=
+      bool 140737488355328) + (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}
+      < bool -140737488355328))) > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+      "__name__", ".*") or label_replace((max by (job,instance,switch_id) (((((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}
+      >= bool 140737488355328) + (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}
+      < bool 1))) > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN",
+      "__name__", ".*") or label_replace((max by (job,instance,switch_id,link_id)
+      (((((DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= bool 4) + (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < bool 0)) + (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool floor(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*")
+      or label_replace((max by (job,instance,switch_id,link_id) (((((DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < bool 0)) + (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool floor(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,switch_id,link_id) (((((DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      + (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= bool 9223372036854775792) + (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < bool 0)) + (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      != bool floor(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      > 0))), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0))) > 0))), "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__",
+      ".*") or label_replace((max by (job,instance,UUID) (((((DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      != bool DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      + (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= bool 140737488355328) + (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < bool 0))) > 0))), "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__",
+      ".*")) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1)
+      and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 测量值无效
+  - alert: os_sre_input_duplicate
+    expr: ((label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or
+      label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or
+      label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*")
+      or label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or
+      label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID,link_id) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*")
+      or label_replace((count by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*")
+      or label_replace((count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__",
+      ".*") or label_replace((count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((count by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or
+      label_replace((count by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance,switch_id,link_id) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      > 1), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((count
+      by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 1), "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*")) and on
+      (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 重复采集输入
+  - alert: os_sre_collector_down
+    expr: (max by (job,instance) (up{job=~"dcgm.*"} == 0)) or ((max by (job,instance)
+      (sre:inventory:gpu_expected or sre:inventory:switch_expected) unless on (job,instance)
+      up{job=~"dcgm.*"}))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: DCGM采集目标不可用
+  - alert: os_sre_identity_missing
+    expr: ((label_replace((count by (job,instance) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_GPU_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_GPU_MAX_OP_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_MEMORY_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_MEM_MAX_OP_TEMP", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_CLOCKS_EVENT_REASONS", "__name__", ".*") or
+      label_replace((count by (job,instance) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_SRAM_EXCEEDED", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ROW_REMAP_FAILURE", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ROW_REMAP_PENDING", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_VOL_DEV{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_VOL_SRM{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_VOL_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_SBE_VOL_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_SBE_VOL_DEV{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_SBE_VOL_SRM{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_SBE_VOL_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_AGG_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_AGG_DEV{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_DEV", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_ECC_DBE_AGG_SRM{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_ECC_DBE_AGG_SRM", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_THERMAL_VIOLATION", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_PCIE_REPLAY_COUNTER", "__name__", ".*") or
+      label_replace((count by (job,instance) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL", "__name__", ".*") or
+      label_replace((count by (job,instance) (DCGM_FI_DEV_XID_ERRORS{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_XID_ERRORS", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_PCIE_LINK_GEN", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_PCIE_LINK_WIDTH", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",link_id="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVLINK_GET_STATE", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_FABRIC_MANAGER_STATUS", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS", "__name__", ".*")
+      or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or
+      label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",link_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_STATUS", "__name__", ".*") or
+      label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",link_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",link_id=""})
+      > 0), "metric_name", "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL", "__name__",
+      ".*") or label_replace((count by (job,instance) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_PROF_PCIE_TX_BYTES", "__name__", ".*") or label_replace((count
+      by (job,instance) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID="",GPU_I_ID="",GPU_I_PROFILE=""})
+      > 0), "metric_name", "DCGM_FI_PROF_PCIE_RX_BYTES", "__name__", ".*")) and on
+      (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} == 1) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      >= 0) and ((time()-timestamp(up{job=~"dcgm.*"})) <= 90))))
+    for: 60s
+    labels:
+      severity: '2'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 硬件身份标签缺失
+  - alert: os_sre_platform_query_failure
+    expr: ((sum by (job,instance) (increase(n9e_alert_query_data_error_total{job=~"nightingale.*"}[300s]))
+      > 0) and on (job,instance) (max by (job,instance) ((up{job=~"nightingale.*"}
+      == 1) and ((time()-timestamp(up{job=~"nightingale.*"})) >= 0) and ((time()-timestamp(up{job=~"nightingale.*"}))
+      <= 90))))
+    for: 60s
+    labels:
+      severity: '1'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 平台-查询或评估失败
+  - alert: os_sre_platform_evaluation_stall
+    expr: ((((sum by (job,instance) (increase(n9e_alert_rule_eval_total{job=~"nightingale.*"}[300s]))
+      == 0) and on (job,instance) (((sre:inventory:evaluation_expected == 1) and on
+      (job,instance) (min by (job,instance) (count_over_time(n9e_alert_rule_eval_total{job=~"nightingale.*"}[300s]))
+      >= 2))))) and on (job,instance) (max by (job,instance) ((up{job=~"nightingale.*"}
+      == 1) and ((time()-timestamp(up{job=~"nightingale.*"})) >= 0) and ((time()-timestamp(up{job=~"nightingale.*"}))
+      <= 90))))
+    for: 60s
+    labels:
+      severity: '1'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 平台-评估调度停滞
+  - alert: os_sre_platform_adapter_down
+    expr: max by (job,instance) (up{job=~"gpu-lifecycle.*"} == 0)
+    for: 60s
+    labels:
+      severity: '1'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 平台-状态适配器不可用
+  - alert: os_sre_platform_nightingale_metrics_missing
+    expr: (max by (job,instance) (up{job=~"nightingale.*"} == 0)) or (sre:inventory:monitor_expected
+      unless on (job,instance) up{job=~"nightingale.*"})
+    for: 60s
+    labels:
+      severity: '1'
+      monitoring_profile: os-sre
+    annotations:
+      summary: 平台-夜莺自监控抓取不可用

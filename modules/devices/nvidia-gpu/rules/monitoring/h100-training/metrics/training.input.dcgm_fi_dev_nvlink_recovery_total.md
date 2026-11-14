@@ -1,5 +1,7 @@
 # Hopper NVLink recovery累计
 
+历史模拟输入；当前接入契约见[OS SRE指标](../../os-sre/metrics.yaml)。
+
 metric_id `training.input.dcgm_fi_dev_nvlink_recovery_total`，版本0.1.0，状态candidate。
 
 ## 语义与单位

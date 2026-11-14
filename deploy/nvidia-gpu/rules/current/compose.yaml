@@ -1,0 +1,39 @@
+# Add the declared-contract synthetic source to the current local integration.
+# The production runtime image itself contains no simulator.
+services:
+  sre-controller:
+    environment:
+      NPUMONITOR_RULES_API: http://npumonitor-gpu-rules-master-sre-runtime-1:9480
+  gpu-master-source:
+    image: npumonitor-rules-fixture:1.0.0-rc1
+    build:
+      context: ../../../..
+      dockerfile: modules/devices/nvidia-gpu/rules/runtime/reference/Dockerfile
+    environment:
+      FIXTURE_MODE: source
+      FIXTURE_UI: 'true'
+      FIXTURE_PORT: '9490'
+      FIXTURE_TOKEN_FILE: /run/secrets/admin
+    volumes:
+      - ../../../../modules/devices/nvidia-gpu/rules/runtime/master/catalog.json:/contract/catalog.json:ro
+      - ${NPUMONITOR_RULES_CONFIG_DIR}/admin-token:/run/secrets/admin:ro
+      - current-source-data:/data
+    ports: ['127.0.0.1:19477:9490']
+    networks: [existing]
+    restart: unless-stopped
+  gpu-master-prometheus:
+    image: prom/prometheus:v3.2.1
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=1d]
+    volumes:
+      - ../current/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - current-prometheus-data:/prometheus
+    ports: ['127.0.0.1:19093:9090']
+    networks: [existing]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://localhost:9090/-/ready']
+      interval: 5s
+      retries: 20
+volumes:
+  current-source-data:
+  current-prometheus-data:

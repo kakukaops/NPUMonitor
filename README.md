@@ -1,5 +1,7 @@
 # 异构加速器监控系统
 
+GPU规则领域的指标、适用性与告警语义以[第14篇生产主清单](modules/devices/nvidia-gpu/rules/docs/14-GPU监控指标与告警规则说明表.md)为唯一规范入口；当前实现范围与未关闭的生产差距分开记录。
+
 基于夜莺与Prometheus建设规则监控及机器学习监控。当前实现NVIDIA GPU/DCGM；Huawei Ascend NPU已有独立开发入口，采集和检测尚未实现。
 
 ## 模块入口
@@ -12,6 +14,8 @@
 | [模型服务](modules/model-services/README.md) | 模型协议、平台适配器、通用算法、独立参考服务 |
 
 项目根目录现为 `NPUMonitor/`，见[根目录迁移说明](docs/项目根目录迁移说明.md)。
+
+规则现场接入请使用[OS SRE无业务属性规则](modules/devices/nvidia-gpu/rules/monitoring/os-sre/README.md)。
 
 ## 运行入口
 

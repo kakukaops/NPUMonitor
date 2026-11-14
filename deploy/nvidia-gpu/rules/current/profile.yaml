@@ -1,0 +1,50 @@
+schema_version: 1
+profile: os-sre
+collector_job_regex: dcgm-os-sre
+nightingale_job_regex: nightingale-os-sre
+lifecycle_job_regex: gpu-lifecycle-os-sre
+freshness_seconds: 90
+counter_window_seconds: 300
+confirmation_seconds: 60
+gpus:
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  UUID: GPU-CONTRACT-0000
+  required_fields:
+  - DCGM_FI_DEV_GPU_TEMP
+  - DCGM_FI_DEV_MEMORY_TEMP
+  pcie_gen: 5
+  pcie_width: 16
+  pcie_active_bytes_per_second: 1000000
+  fabric_expected: true
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  UUID: GPU-CONTRACT-0001
+  required_fields:
+  - DCGM_FI_DEV_GPU_TEMP
+  - DCGM_FI_DEV_MEMORY_TEMP
+  pcie_gen: 5
+  pcie_width: 16
+  pcie_active_bytes_per_second: 1000000
+  fabric_expected: true
+switches:
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  switch_id: SW-CONTRACT-0000
+links:
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  UUID: GPU-CONTRACT-0000
+  link_id: '0'
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  UUID: GPU-CONTRACT-0001
+  link_id: '0'
+- job: dcgm-os-sre
+  instance: gpu-master-source:9490
+  switch_id: SW-CONTRACT-0000
+  link_id: '0'
+monitor_targets:
+- job: nightingale-os-sre
+  instance: nightingale:17000
+  evaluation_expected: true

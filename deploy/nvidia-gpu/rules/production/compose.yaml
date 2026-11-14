@@ -1,0 +1,63 @@
+name: ${NPUMONITOR_RULES_PROJECT:-npumonitor-rules}
+x-common: &common
+  image: npumonitor-rules:1.0.0-rc1
+  environment:
+    NPUMONITOR_RULES_BUNDLE: /etc/npumonitor/bundle.json
+  networks: [existing]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  read_only: true
+  tmpfs: [/tmp]
+services:
+  sre-runtime:
+    <<: *common
+    build:
+      context: ../../../..
+      dockerfile: modules/devices/nvidia-gpu/rules/runtime/Dockerfile
+    volumes:
+      - ${NPUMONITOR_RULES_CONFIG_DIR:?Set private configuration directory}:/etc/npumonitor:ro
+      - ${NPUMONITOR_RULES_CONFIG_DIR}/admin-token:/run/secrets/admin:ro
+      - ${NPUMONITOR_RULES_CONFIG_DIR}/viewer-token:/run/secrets/viewer:ro
+      - runtime-data:/data
+    ports: ['${NPUMONITOR_RULES_BIND:-127.0.0.1}:${NPUMONITOR_RULES_PORT:-19470}:9480']
+    cpus: ${NPUMONITOR_RULES_CPUS:-1.0}
+    mem_limit: ${NPUMONITOR_RULES_MEMORY:-512m}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request;urllib.request.urlopen('http://localhost:9480/health',timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+  sre-controller:
+    <<: *common
+    profiles: [tools]
+    command: [python, -m, npumonitor_rules.cli, sync-plan]
+    environment:
+      NPUMONITOR_RULES_BUNDLE: /etc/npumonitor/bundle.json
+      NPUMONITOR_RULES_API: http://sre-runtime:9480
+    volumes:
+      - ${NPUMONITOR_RULES_CONFIG_DIR}:/etc/npumonitor:ro
+      - ${NPUMONITOR_RULES_CONFIG_DIR}/admin-token:/run/secrets/admin:ro
+      - ${NPUMONITOR_RULES_CONFIG_DIR}/viewer-token:/run/secrets/viewer:ro
+      - ${NPUMONITOR_N9E_TOKEN_FILE:?Set owner-only Nightingale credential file}:/run/secrets/n9e:ro
+      - runtime-data:/data
+  sre-watchdog:
+    <<: *common
+    profiles: [watchdog]
+    command: [python, -m, npumonitor_rules.cli, watchdog]
+    volumes:
+      - ${NPUMONITOR_RULES_CONFIG_DIR}:/etc/npumonitor:ro
+      - ${NPUMONITOR_NOTIFY_TOKEN_FILE:?Set independent notification credential}:/run/secrets/notify:ro
+      - watchdog-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request;urllib.request.urlopen('http://localhost:9481/health',timeout=3)"]
+      interval: 10s
+      retries: 3
+volumes:
+  runtime-data:
+  watchdog-data:
+networks:
+  existing:
+    external: true
+    name: ${NPUMONITOR_RULES_NETWORK:?Set shared network reachable by Nightingale}

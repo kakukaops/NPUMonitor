@@ -1,0 +1,57 @@
+[
+  {
+    "id": "fixed_fields",
+    "url": "https://raw.githubusercontent.com/NVIDIA/DCGM/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_fields.h",
+    "retrieved": true,
+    "sha256": "fa13c73ccc085da7ff280c0d03105ef8f80e31276fcd3f6f94db01ae1c45ade6",
+    "bytes": 148329
+  },
+  {
+    "id": "fixed_exporter",
+    "url": "https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/fafd151148052628061a80450b4ee037a5fa0c3c/etc/default-counters.csv",
+    "retrieved": true,
+    "sha256": "ddf9d12eb7c004a24241a84221843ce178c5ca075ffdf711e2d46046e7000006",
+    "bytes": 8190
+  },
+  {
+    "id": "prometheus_v3_2_1",
+    "url": "https://raw.githubusercontent.com/prometheus/prometheus/v3.2.1/docs/querying/functions.md",
+    "retrieved": true,
+    "sha256": "d32956bdbf810aac2c03ac8efaf862c6c0dc5fe882bd4a407b4e3cf1fdcf52ad",
+    "bytes": 37797
+  },
+  {
+    "id": "xid",
+    "url": "https://docs.nvidia.com/deploy/xid-errors/latest/analyzing-xid-catalog.html",
+    "retrieved": true,
+    "sha256": "492ec7830e9daa22d3018766c1e3f91bc6199e4a7441ef20594de195f40b580a",
+    "bytes": 160560
+  },
+  {
+    "id": "dcgm_structs",
+    "url": "https://raw.githubusercontent.com/NVIDIA/DCGM/9fae2867e6e5264fa0fca22a07dc898d591baa21/dcgmlib/dcgm_structs.h",
+    "retrieved": true,
+    "sha256": "428eabbac4b0e368199330ecac9f3ac0368b85ad2caae5f9eba39aef9c60a0ec",
+    "bytes": 194998
+  },
+  {
+    "id": "n9e_metrics",
+    "url": "https://api.github.com/repos/ccfos/nightingale/git/trees/v9.3.0?recursive=1",
+    "retrieved": true,
+    "sha256": "a1ca4d94fb3561c9d1d4669e60b25403079d9e27b52cd9846590f54f2b8ba644",
+    "bytes": 660119
+  },
+  {
+    "id": "n9e_alert_stats",
+    "url": "https://raw.githubusercontent.com/ccfos/nightingale/v9.3.0/alert/astats/stats.go",
+    "retrieved": true,
+    "sha256": "f29234e58f50f5a8d443548868a1f7e5bcbe10796a7af514ec438c80ade482d4",
+    "bytes": 9009
+  },
+  {
+    "id": "nvml_header",
+    "url": "https://raw.githubusercontent.com/NVIDIA/DCGM/9fae2867e6e5264fa0fca22a07dc898d591baa21/sdk/nvidia/nvml/nvml.h",
+    "retrieved": false,
+    "error": "HTTPError"
+  }
+]

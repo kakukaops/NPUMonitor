@@ -48,13 +48,14 @@ def main():
         subprocess.run(['bash', '-n', str(path)], check=True)
     # Resolve host bind sources without requiring PyYAML or access to Docker.
     mounts = 0
-    for rel in ['deploy/nvidia-gpu/lab/compose.yaml', 'deploy/nvidia-gpu/review/compose.yaml', 'deploy/nvidia-gpu/ml/compose.yaml', 'deploy/shared/compose.yaml', 'deploy/model-platform/compose.yaml']:
+    for rel in ['deploy/nvidia-gpu/lab/compose.yaml', 'deploy/nvidia-gpu/review/compose.yaml', 'deploy/nvidia-gpu/ml/compose.yaml', 'deploy/shared/compose.yaml', 'deploy/model-platform/compose.yaml', 'deploy/nvidia-gpu/rules/reference/compose.yaml', 'deploy/nvidia-gpu/rules/production/compose.yaml', 'deploy/nvidia-gpu/rules/current/compose.yaml']:
         path = ROOT / rel
         for line in path.read_text().splitlines():
             match = re.match(r'\s*- (\.\.?/[^:]+):', line)
             if match:
                 source = (path.parent / match[1]).resolve()
-                assert source.exists(), f'Missing bind source: {source}'
+                if ROOT / '.local' not in source.parents:
+                    assert source.exists(), f'Missing bind source: {source}'
                 mounts += 1
             match = re.match(r'\s*context:\s*(\.\.?/\S+)', line)
             if match:
@@ -62,6 +63,16 @@ def main():
                 assert context.is_dir(), line
                 if context != ROOT:
                     assert (context / 'Dockerfile').is_file(), line
+    current = ROOT/'modules/devices/nvidia-gpu/rules/rules/current-profile.json'
+    selection = json.loads(current.read_text())
+    assert selection['profile']=='os-sre'
+    active = json.loads((current.parent/selection['catalog']).read_text())
+    assert len(active['rules'])==46 and len(active['views'])==25
+    forbidden = r'\b(cluster_id|clusterid|entity_id|task_id|job_id|tenant|namespace|pod|workload_id)\b|DEMO_'
+    for entry in active['rules']+active['views']:
+        expression = entry.get('expression') or ''
+        assert not re.search(forbidden, expression), entry
+    assert sum(r['expression'] is None for r in active['rules'])==1
     # Shared cores cannot silently acquire vendor imports. Historical pickle shims
     # in runtime/models.py and dcgm_scenarios.py are explicit compatibility exceptions.
     shared = [ROOT/'modules/platform', ROOT/'modules/model-services/contracts',

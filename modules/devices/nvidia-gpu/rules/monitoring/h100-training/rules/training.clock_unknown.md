@@ -1,5 +1,7 @@
 # 时钟原因存在未核实位
 
+历史模拟规则；当前接入入口见[OS SRE规则](../../os-sre/README.md)。
+
 rule_id `training.clock_unknown`，版本0.1.0，状态candidate，生产默认disabled。
 
 ## 检测目标

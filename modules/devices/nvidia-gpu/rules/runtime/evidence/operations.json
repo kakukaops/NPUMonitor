@@ -1,0 +1,30 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794539078.108798,
+  "cases": [
+    {
+      "name": "actual_watchdog_restart_persistent_retry_and_correlated_recovery",
+      "passed": true
+    },
+    {
+      "name": "independent_notice_when_nightingale_is_stopped",
+      "passed": true
+    },
+    {
+      "name": "notification_failure_input_gap_detected_without_fabricating_health",
+      "passed": true,
+      "failed_deliveries": 22,
+      "capability": "platform_counter_not_collected"
+    }
+  ],
+  "passed": true,
+  "coverage_gaps": [
+    {
+      "rule": "os_sre.platform_notify_failure",
+      "status": "platform_counter_not_collected",
+      "failed_http_deliveries": 22,
+      "reason": "tested native notification path did not expose the expected counter; rule must remain disabled"
+    }
+  ],
+  "finished_at": 1794539188.354767
+}

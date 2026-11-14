@@ -1,0 +1,16 @@
+{
+  "profile": "os-sre",
+  "version": "0.2.0",
+  "default_policy": "disabled",
+  "catalog": "../monitoring/os-sre/catalog.json",
+  "metrics": "../monitoring/os-sre/metrics.yaml",
+  "views": "../monitoring/os-sre/views.yaml",
+  "legacy_catalogs_are_simulation_only": true,
+  "automatic_runtime_migration": false,
+  "production_runtime": {
+    "version": "1.0.0-rc1",
+    "readme": "../runtime/README.md",
+    "acceptance": "../runtime/evidence/summary.json",
+    "requires_explicit_deployment": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "profile": "os-sre",
+  "provenance_version": 1,
+  "reviewed_at": "2026-11-12",
+  "rules_with_per_rule_provenance": 46,
+  "diagnostic_views_with_provenance": 25,
+  "sources": 19,
+  "official_field_locators": 37,
+  "parameter_origins": 12,
+  "card_source_tables": 46,
+  "all_source_references_resolved": true,
+  "all_active_expressions_linked_to_existing_cases": true,
+  "no_claim_of_production_cases": true,
+  "real_hardware_and_new_nightingale_binding": "not_run",
+  "executable_expression_comparison": {
+    "rule_expressions": 45,
+    "view_expressions": 25,
+    "unchanged": true
+  },
+  "unchanged_files_against_prior_test_manifest": {
+    "observations.prom.yaml": true,
+    "native-alerts.prom.yaml": true,
+    "tests.promtool.yaml": true
+  },
+  "existing_promtool_cases": 53,
+  "existing_promtool_assertions": 134,
+  "configuration_tests_rerun": 7,
+  "notification_counter_correction": "v9.3.0 defines AlertNotifyErrorTotal; integration and live failure coverage not verified; rule remains blocked",
+  "online_rules_modified": false
+}

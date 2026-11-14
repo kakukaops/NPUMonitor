@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "rule_id": "os_sre.inforom_invalid",
+  "native_firing_and_recovery": true,
+  "same_event_hash": true,
+  "notification_receiver": "local-only",
+  "hash": "4d67676cad91cb58a5a581f0ee50ab5b"
+}

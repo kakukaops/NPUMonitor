@@ -1,5 +1,7 @@
 # H100必需字段陈旧或时间异常
 
+历史冻结草案；当前现场规则见[OS SRE版本](../os-sre/README.md)。
+
 rule_id：`nvidia.required_field_stale`  
 version：0.1.1；schema_version：0.2.0；lifecycle：draft；default_policy：disabled  
 日期：2026-11-09；维护者：GPU监控规则库维护者  

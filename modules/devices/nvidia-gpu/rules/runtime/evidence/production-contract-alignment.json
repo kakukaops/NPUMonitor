@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "scope": "production code against synthetic Prometheus, read-only; not physical hardware validation",
+  "authority": {
+    "document": "modules/devices/nvidia-gpu/rules/docs/14-GPU监控指标与告警规则说明表.md",
+    "revision": "1.2",
+    "sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d"
+  },
+  "numeric_fields": 88,
+  "rule_definitions": 58,
+  "source_contract_ready": true,
+  "queried_production_expressions": [
+    "os_sre.inforom_invalid",
+    "os_sre.memory_unrepairable",
+    "os_sre.thermal_margin_exhausted",
+    "os_sre.ecc_change_pending",
+    "os_sre.master_input_invalid",
+    "os_sre.master_input_stale",
+    "os_sre.master_input_duplicate",
+    "os_sre.master_field_missing"
+  ],
+  "unit_mismatch_rejected": true,
+  "unconfirmed_source_rejected": true,
+  "mandatory_coverage_gaps": [
+    "inventory.expected_devices",
+    "platform.notification_status"
+  ],
+  "rule_sync_performed": false,
+  "hardware_validation": "not_run",
+  "release_approval": false,
+  "production_promql_cases_passed": 26,
+  "simulation_promql_cases_passed": 25,
+  "unit_tests_passed": 47,
+  "production_image_preflight_passed": true,
+  "local_candidate_image": "npumonitor-rules:contract-1.2",
+  "image_id": "sha256:ffcb26dcd5f9da0c501fbc12285ae6b1af7b6f0313a030142fad6a00cf06848e"
+}

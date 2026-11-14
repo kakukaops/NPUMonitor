@@ -1,0 +1,94 @@
+{
+  "scope": "independent new-stack real Prometheus and runtime; no shared Nightingale mutations",
+  "cases": [
+    {
+      "case": "88-field runtime ready",
+      "passed": true
+    },
+    {
+      "case": "high GPU/SM activity alone is not a fault",
+      "passed": true
+    },
+    {
+      "case": "high framebuffer occupancy alone is not a fault",
+      "passed": true
+    },
+    {
+      "case": "inforom_invalid firing",
+      "passed": true
+    },
+    {
+      "case": "inforom_invalid valid clear",
+      "passed": true
+    },
+    {
+      "case": "memory_unrepairable firing",
+      "passed": true
+    },
+    {
+      "case": "memory_unrepairable valid clear",
+      "passed": true
+    },
+    {
+      "case": "recovery_required firing",
+      "passed": true
+    },
+    {
+      "case": "recovery_required valid clear",
+      "passed": true
+    },
+    {
+      "case": "remap_exhausted firing",
+      "passed": true
+    },
+    {
+      "case": "remap_exhausted valid clear",
+      "passed": true
+    },
+    {
+      "case": "thermal_margin firing",
+      "passed": true
+    },
+    {
+      "case": "thermal_margin valid clear",
+      "passed": true
+    },
+    {
+      "case": "ecc_pending firing",
+      "passed": true
+    },
+    {
+      "case": "ecc_pending valid clear",
+      "passed": true
+    },
+    {
+      "case": "fabric_error firing",
+      "passed": true
+    },
+    {
+      "case": "fabric_error valid clear",
+      "passed": true
+    },
+    {
+      "case": "NVLink inactive firing",
+      "passed": true
+    },
+    {
+      "case": "SLEEP does not declare traffic-ready recovery",
+      "passed": true
+    },
+    {
+      "case": "NVLink ACTIVE verified clear",
+      "passed": true
+    },
+    {
+      "case": "new resource field missing detected",
+      "passed": true
+    },
+    {
+      "case": "resource field restored",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

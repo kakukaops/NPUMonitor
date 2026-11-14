@@ -1,0 +1,966 @@
+{
+  "schema_version": 1,
+  "fields": {
+    "DCGM_FI_DEV_GPU_TEMP": {
+      "dcgm_field_id": 150,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": -140737488355328,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_GPU_MAX_OP_TEMP": {
+      "dcgm_field_id": 152,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": 1,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_MEMORY_TEMP": {
+      "dcgm_field_id": 140,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": -140737488355328,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_MEM_MAX_OP_TEMP": {
+      "dcgm_field_id": 151,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": 1,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_CLOCKS_EVENT_REASONS": {
+      "dcgm_field_id": 112,
+      "kind": "integer",
+      "unit": "bitmask",
+      "minimum": 0,
+      "maximum": 9007199254740992
+    },
+    "DCGM_FI_DEV_SRAM_EXCEEDED": {
+      "dcgm_field_id": 346,
+      "kind": "boolean",
+      "unit": "boolean",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "DCGM_FI_DEV_ROW_REMAP_FAILURE": {
+      "dcgm_field_id": 395,
+      "kind": "boolean",
+      "unit": "boolean",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "DCGM_FI_DEV_ROW_REMAP_PENDING": {
+      "dcgm_field_id": 396,
+      "kind": "boolean",
+      "unit": "boolean",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL": {
+      "dcgm_field_id": 311,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_DBE_VOL_DEV": {
+      "dcgm_field_id": 319,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_DBE_VOL_SRM": {
+      "dcgm_field_id": 343,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL": {
+      "dcgm_field_id": 310,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_SBE_VOL_DEV": {
+      "dcgm_field_id": 318,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_SBE_VOL_SRM": {
+      "dcgm_field_id": 342,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL": {
+      "dcgm_field_id": 313,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_DBE_AGG_DEV": {
+      "dcgm_field_id": 329,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_ECC_DBE_AGG_SRM": {
+      "dcgm_field_id": 345,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_THERMAL_VIOLATION": {
+      "dcgm_field_id": 241,
+      "kind": "counter",
+      "unit": "nanoseconds",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_PCIE_REPLAY_COUNTER": {
+      "dcgm_field_id": 202,
+      "kind": "counter",
+      "unit": "events",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL": {
+      "dcgm_field_id": 497,
+      "kind": "counter",
+      "unit": "errors",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL": {
+      "dcgm_field_id": 498,
+      "kind": "counter",
+      "unit": "events",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL": {
+      "dcgm_field_id": 499,
+      "kind": "counter",
+      "unit": "events",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_XID_ERRORS": {
+      "dcgm_field_id": 230,
+      "kind": "integer",
+      "unit": "code",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_PCIE_LINK_GEN": {
+      "dcgm_field_id": 237,
+      "kind": "integer",
+      "unit": "generation",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "DCGM_FI_DEV_PCIE_LINK_WIDTH": {
+      "dcgm_field_id": 238,
+      "kind": "integer",
+      "unit": "lanes",
+      "minimum": 1,
+      "maximum": 33
+    },
+    "DCGM_FI_DEV_NVLINK_GET_STATE": {
+      "dcgm_field_id": 1508,
+      "kind": "integer",
+      "unit": "enum",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "DCGM_FI_DEV_FABRIC_MANAGER_STATUS": {
+      "dcgm_field_id": 170,
+      "kind": "integer",
+      "unit": "enum",
+      "minimum": 0,
+      "maximum": 7
+    },
+    "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY": {
+      "dcgm_field_id": 175,
+      "kind": "integer",
+      "unit": "enum",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS": {
+      "dcgm_field_id": 856,
+      "kind": "integer",
+      "unit": "sxid_code",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS": {
+      "dcgm_field_id": 857,
+      "kind": "integer",
+      "unit": "sxid_code",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT": {
+      "dcgm_field_id": 858,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": -140737488355328,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN": {
+      "dcgm_field_id": 859,
+      "kind": "gauge",
+      "unit": "celsius",
+      "minimum": 1,
+      "maximum": 140737488355328
+    },
+    "DCGM_FI_DEV_NVSWITCH_LINK_STATUS": {
+      "dcgm_field_id": 870,
+      "kind": "integer",
+      "unit": "enum",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL": {
+      "dcgm_field_id": 784,
+      "kind": "counter",
+      "unit": "events",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    },
+    "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL": {
+      "dcgm_field_id": 785,
+      "kind": "counter",
+      "unit": "events",
+      "minimum": 0,
+      "maximum": 9223372036854775792
+    }
+  },
+  "rules": [
+    {
+      "rule_id": "training.sram",
+      "title": "SRAM超阈值标志",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_SRAM_EXCEEDED"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 0,
+      "reason": "缺数和无效输入保持已确认异常，维护操作由运维复核。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.remap_failed",
+      "title": "行重映射失败",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_ROW_REMAP_FAILURE"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 0,
+      "reason": "缺数和无效输入保持已确认异常，维护操作由运维复核。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.remap_pending",
+      "title": "行重映射待维护",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "缺数和无效输入保持已确认异常，维护操作由运维复核。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.gpu_thermal",
+      "title": "GPU达到运行温度门槛",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_GPU_TEMP",
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "5°C解除回差和10秒持续时间为本次工程提案。门槛使用设备读数。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.memory_thermal",
+      "title": "HBM达到运行温度门槛",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_MEMORY_TEMP",
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "5°C解除回差和10秒持续时间为本次工程提案。门槛使用设备读数。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.switch_thermal",
+      "title": "NVSwitch达到降速温度门槛",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT",
+        "DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "5°C解除回差和10秒持续时间为本次工程提案。门槛使用设备读数。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.sw_thermal",
+      "title": "软件热降频持续",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.hw_thermal",
+      "title": "硬件热降频持续",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.power_cap",
+      "title": "训练功率限制持续",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 3,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.power_brake",
+      "title": "外部供电限制信号",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.hw_slowdown",
+      "title": "硬件slowdown状态",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.sync_boost",
+      "title": "同步boost限制状态",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 3,
+      "desired_for_seconds": 10,
+      "reason": "分别识别热、功率、供电和组同步原因，关联作业与主机证据。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.clock_unknown",
+      "title": "时钟原因存在未核实位",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ],
+      "severity": 3,
+      "desired_for_seconds": 10,
+      "reason": "已知热降频位仍独立解码，未知位记录待核实。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.ecc_new",
+      "title": "不可纠正ECC近期新增",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_ECC_DBE_VOL_TOTAL"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.thermal_time",
+      "title": "近期热限制时长增加",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.pcie_replay",
+      "title": "PCIe replay近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.nvlink_crc",
+      "title": "Hopper NVLink CRC近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.nvlink_recovery",
+      "title": "Hopper NVLink recovery近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.nvlink_replay",
+      "title": "Hopper NVLink replay近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.switch_replay",
+      "title": "NVSwitch端口replay近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.switch_recovery",
+      "title": "NVSwitch端口recovery近期活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示窗口30秒，生产候选窗口300秒。互联>0仅为活动策略提案，按现场基线审定。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.xid_node",
+      "title": "XID节点事件待处置",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 0,
+      "reason": "其他码值和缺数保持事件。最近码无法提供完整事件流，记录原始日志后人工复核。",
+      "source_ids": [
+        "nvidia.xid.catalog"
+      ]
+    },
+    {
+      "rule_id": "training.xid_reset",
+      "title": "XID GPU重置复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 0,
+      "reason": "其他码值和缺数保持事件。最近码无法提供完整事件流，记录原始日志后人工复核。",
+      "source_ids": [
+        "nvidia.xid.catalog"
+      ]
+    },
+    {
+      "rule_id": "training.xid_app",
+      "title": "XID训练作业复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 0,
+      "reason": "其他码值和缺数保持事件。最近码无法提供完整事件流，记录原始日志后人工复核。",
+      "source_ids": [
+        "nvidia.xid.catalog"
+      ]
+    },
+    {
+      "rule_id": "training.xid_unknown",
+      "title": "XID目录外码值待复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 0,
+      "reason": "记录驱动版本与有序日志后核对适用性。",
+      "source_ids": [
+        "nvidia.xid.catalog"
+      ]
+    },
+    {
+      "rule_id": "training.xid_scope",
+      "title": "XID与部署范围需复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_XID_ERRORS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 0,
+      "reason": "物理卡训练场景中先核对部署身份。",
+      "source_ids": [
+        "nvidia.xid.catalog"
+      ]
+    },
+    {
+      "rule_id": "training.sxid_fatal",
+      "title": "NVSwitch fatal SXid待复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS"
+      ],
+      "severity": 1,
+      "desired_for_seconds": 0,
+      "reason": "按fatal/nonfatal来源分流并保存具体码。逐码RMA决策需官方排障和现场证据。",
+      "source_ids": [
+        "nvidia.nvswitch"
+      ]
+    },
+    {
+      "rule_id": "training.sxid_nonfatal",
+      "title": "NVSwitch nonfatal SXid待复核",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 0,
+      "reason": "按fatal/nonfatal来源分流并保存具体码。逐码RMA决策需官方排障和现场证据。",
+      "source_ids": [
+        "nvidia.nvswitch"
+      ]
+    },
+    {
+      "rule_id": "training.gpu_link_down",
+      "title": "预期GPU NVLink端口未连接",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVLINK_GET_STATE"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "仅配置清单中预期启用的端口参与，GPU与交换机枚举独立。",
+      "source_ids": [
+        "nvidia.topology"
+      ]
+    },
+    {
+      "rule_id": "training.switch_link_down",
+      "title": "预期NVSwitch端口未活动",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_NVSWITCH_LINK_STATUS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "仅配置清单中预期启用的端口参与，GPU与交换机枚举独立。",
+      "source_ids": [
+        "nvidia.topology"
+      ]
+    },
+    {
+      "rule_id": "training.pcie_degraded",
+      "title": "训练负载下PCIe链路退化",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_PCIE_LINK_GEN",
+        "DCGM_FI_DEV_PCIE_LINK_WIDTH"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "预期gen5/x16为模拟清单值，现场按主机、插槽和GPU配置核定。",
+      "source_ids": [
+        "nvidia.topology"
+      ]
+    },
+    {
+      "rule_id": "training.fabric_manager",
+      "title": "预期Fabric Manager未就绪",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "0/5/6另报能力或版本缺口。",
+      "source_ids": [
+        "nvidia.nvswitch"
+      ]
+    },
+    {
+      "rule_id": "training.fabric_capability",
+      "title": "预期fabric能力或版本缺口",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_FABRIC_MANAGER_STATUS"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "按采集和版本能力处理。",
+      "source_ids": [
+        "nvidia.nvswitch"
+      ]
+    },
+    {
+      "rule_id": "training.fabric_health",
+      "title": "fabric不健康或容量受限",
+      "kind": "stateful",
+      "input_fields": [
+        "DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY"
+      ],
+      "severity": 2,
+      "desired_for_seconds": 10,
+      "reason": "summary=0保留覆盖缺口，需确认实际需要fabric。",
+      "source_ids": [
+        "nvidia.nvswitch"
+      ]
+    },
+    {
+      "rule_id": "training.entity_missing",
+      "title": "预期设备观测消失",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "已有硬件异常由持久规则继续保持。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.field_missing",
+      "title": "必需测量字段缺失",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "整对象消失时抑制逐字段告警。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.input_stale",
+      "title": "测量样本陈旧",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "演示15秒，生产候选90秒。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.input_invalid",
+      "title": "测量值无效",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "按字段类型验证。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.input_duplicate",
+      "title": "重复采集输入",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "硬件规则拒绝重复输入。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    },
+    {
+      "rule_id": "training.collector_down",
+      "title": "模拟采集目标不可用",
+      "kind": "direct",
+      "input_fields": [],
+      "severity": 2,
+      "desired_for_seconds": 5,
+      "reason": "采集链路故障。",
+      "source_ids": [
+        "nvidia.dcgm.fixed_fields"
+      ]
+    }
+  ],
+  "platform_rules": [
+    {
+      "key": "platform_query_failure",
+      "name": "H100平台-查询或评估失败",
+      "severity": 1
+    },
+    {
+      "key": "platform_evaluation_stall",
+      "name": "H100平台-评估调度停滞",
+      "severity": 1
+    },
+    {
+      "key": "platform_notify_failure",
+      "name": "H100平台-主通知投递失败",
+      "severity": 1
+    },
+    {
+      "key": "platform_adapter_down",
+      "name": "H100平台-状态适配器不可用",
+      "severity": 1
+    },
+    {
+      "key": "platform_nightingale_metrics_missing",
+      "name": "H100平台-夜莺自监控抓取不可用",
+      "severity": 1
+    }
+  ],
+  "views": [
+    {
+      "query_id": "ecc.dbe_history.total",
+      "input": "DCGM_FI_DEV_ECC_DBE_AGG_TOTAL"
+    },
+    {
+      "query_id": "ecc.sbe_trend.total",
+      "input": "DCGM_FI_DEV_ECC_SBE_VOL_TOTAL"
+    },
+    {
+      "query_id": "ecc.dbe_history.device_memory",
+      "input": "DCGM_FI_DEV_ECC_DBE_AGG_DEV"
+    },
+    {
+      "query_id": "ecc.sbe_trend.device_memory",
+      "input": "DCGM_FI_DEV_ECC_SBE_VOL_DEV"
+    },
+    {
+      "query_id": "ecc.dbe_detail.device_memory",
+      "input": "DCGM_FI_DEV_ECC_DBE_VOL_DEV"
+    },
+    {
+      "query_id": "ecc.dbe_history.sram",
+      "input": "DCGM_FI_DEV_ECC_DBE_AGG_SRM"
+    },
+    {
+      "query_id": "ecc.sbe_trend.sram",
+      "input": "DCGM_FI_DEV_ECC_SBE_VOL_SRM"
+    },
+    {
+      "query_id": "ecc.dbe_detail.sram",
+      "input": "DCGM_FI_DEV_ECC_DBE_VOL_SRM"
+    },
+    {
+      "query_id": "xid.node_incident_review",
+      "input": "DCGM_FI_DEV_XID_ERRORS"
+    },
+    {
+      "query_id": "xid.gpu_reset_review",
+      "input": "DCGM_FI_DEV_XID_ERRORS"
+    },
+    {
+      "query_id": "memory.remap_pending",
+      "inputs": [
+        "DCGM_FI_DEV_ROW_REMAP_PENDING"
+      ]
+    },
+    {
+      "query_id": "thermal.gpu_operating_margin",
+      "inputs": [
+        "DCGM_FI_DEV_GPU_TEMP",
+        "DCGM_FI_DEV_GPU_MAX_OP_TEMP"
+      ]
+    },
+    {
+      "query_id": "thermal.memory_operating_margin",
+      "inputs": [
+        "DCGM_FI_DEV_MEMORY_TEMP",
+        "DCGM_FI_DEV_MEM_MAX_OP_TEMP"
+      ]
+    },
+    {
+      "query_id": "clock.sw_thermal",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.hw_thermal",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.sw_power_cap",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.hw_power_brake",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.hw_slowdown",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.sync_boost",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "clock.unknown_bits",
+      "inputs": [
+        "DCGM_FI_DEV_CLOCKS_EVENT_REASONS"
+      ]
+    },
+    {
+      "query_id": "thermal.slowdown_seconds",
+      "inputs": [
+        "DCGM_FI_DEV_THERMAL_VIOLATION"
+      ]
+    },
+    {
+      "query_id": "pcie.replay_increase",
+      "inputs": [
+        "DCGM_FI_DEV_PCIE_REPLAY_COUNTER"
+      ]
+    },
+    {
+      "query_id": "nvlink.crc_increase",
+      "inputs": [
+        "DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL"
+      ]
+    },
+    {
+      "query_id": "nvlink.recovery_increase",
+      "inputs": [
+        "DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL"
+      ]
+    },
+    {
+      "query_id": "nvlink.replay_increase",
+      "inputs": [
+        "DCGM_FI_DEV_NVLINK_REPLAY_TOTAL"
+      ]
+    }
+  ],
+  "purpose": "versioned rule semantic definitions; no simulation inventory or bound expressions"
+}

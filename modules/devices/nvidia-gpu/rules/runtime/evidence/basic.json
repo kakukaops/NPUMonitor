@@ -1,0 +1,36 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794539577.7924657,
+  "cases": [
+    {
+      "name": "thermal_firing_and_device_isolation",
+      "passed": true,
+      "episode": "0e23e8e443384bc8aba0d19e40a416dc",
+      "nightingale_hash": "92a3a5f3bc1e859dda1c4f55cb47df12"
+    },
+    {
+      "name": "missing_data_preserves_same_active_episode",
+      "passed": true,
+      "episode": "0e23e8e443384bc8aba0d19e40a416dc"
+    },
+    {
+      "name": "actual_runtime_restart_preserves_active_incident",
+      "passed": true
+    },
+    {
+      "name": "valid_recovery_correlates_same_nightingale_hash",
+      "passed": true
+    },
+    {
+      "name": "xid_requires_episode_scoped_operator_evidence",
+      "passed": true
+    },
+    {
+      "name": "actual_nightingale_sync_is_idempotent",
+      "passed": true,
+      "managed_objects": 47
+    }
+  ],
+  "passed": true,
+  "finished_at": 1794539621.6094706
+}

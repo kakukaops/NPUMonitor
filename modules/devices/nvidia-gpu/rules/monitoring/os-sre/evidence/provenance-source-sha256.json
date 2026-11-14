@@ -1,0 +1,9 @@
+{
+  "modules/devices/nvidia-gpu/rules/scripts/build_os_sre.py": "ff27c7e017474c8adea4ad9211bcda3fdaa3956bb7f0789f47f131530bb20b83",
+  "modules/devices/nvidia-gpu/rules/scripts/os_sre_provenance.py": "26f88103a14c9a63ed253576965c335dd4b9f7fa9d9fc876dca4663a94c535da",
+  "modules/devices/nvidia-gpu/rules/scripts/check_os_sre_provenance.py": "73b50bb3ae37c8c537e02d4644d1f1c88f52c5eb925657cd9f8d04cb10af87e2",
+  "modules/devices/nvidia-gpu/rules/monitoring/os-sre/provenance.yaml": "eed3d97ecee29fafd0e1cf6b4d5835cb5144e11049b1bfa169fdfbf8202b844c",
+  "modules/devices/nvidia-gpu/rules/monitoring/os-sre/provenance.md": "1c6304460ab3335282f53917add11af095fcf3a89e1f0af843870ab1576c53d9",
+  "modules/devices/nvidia-gpu/rules/monitoring/os-sre/catalog.json": "ec45a52cf8c7de033f5240a88107bf2d1dc29dfbb217c4103d704521bb8d086b",
+  "modules/devices/nvidia-gpu/rules/monitoring/os-sre/evidence/source-review.json": "a7e06a28c487f9b6ad4c435e6ae1c3677f3e54a5326b87cfb20ad3837719e6e0"
+}

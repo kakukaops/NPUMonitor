@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 2s
+  evaluation_interval: 2s
+scrape_configs:
+  - job_name: dcgm-contract
+    static_configs:
+      - targets: ['sre-source:9490']
+  - job_name: nightingale-self
+    metrics_path: /nightingale/metrics
+    static_configs:
+      - targets: ['sre-source:9490']
+  - job_name: gpu-lifecycle-contract
+    metrics_path: /gateway/metrics
+    static_configs:
+      - targets: ['sre-source:9490']

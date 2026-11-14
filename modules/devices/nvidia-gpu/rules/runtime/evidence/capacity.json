@@ -1,0 +1,194 @@
+{
+  "scope": "isolated synthetic input; actual Prometheus, runtime, Nightingale and receiver",
+  "started_at": 1794539250.709085,
+  "cases": [
+    {
+      "name": "100_gpu_synthetic_capacity",
+      "passed": true,
+      "duration_seconds": 30.17,
+      "query_requests_per_second": 22.61,
+      "max_cycle_seconds": 1.368636131286621,
+      "asset_inventory_scope": "two GPUs with PCIe/fabric/link inventory; raw metrics and inventory-independent detection for 100 GPUs",
+      "status_samples": [
+        {
+          "at": 1794539254.3889463,
+          "ready": true,
+          "cycle_seconds": 0.802537202835083,
+          "source_stats": {
+            "requests": 134,
+            "errors": 0,
+            "bytes": 698794
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539256.4134636,
+          "ready": true,
+          "cycle_seconds": 0.879518985748291,
+          "source_stats": {
+            "requests": 180,
+            "errors": 0,
+            "bytes": 1919583
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539258.4370313,
+          "ready": true,
+          "cycle_seconds": 0.8117616176605225,
+          "source_stats": {
+            "requests": 224,
+            "errors": 0,
+            "bytes": 2635792
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539260.4604619,
+          "ready": true,
+          "cycle_seconds": 0.7860965728759766,
+          "source_stats": {
+            "requests": 268,
+            "errors": 0,
+            "bytes": 3352001
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539262.4825592,
+          "ready": true,
+          "cycle_seconds": 0.8891415596008301,
+          "source_stats": {
+            "requests": 315,
+            "errors": 0,
+            "bytes": 4573066
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539264.5090241,
+          "ready": true,
+          "cycle_seconds": 1.1533548831939697,
+          "source_stats": {
+            "requests": 360,
+            "errors": 0,
+            "bytes": 5289438
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539266.6867995,
+          "ready": true,
+          "cycle_seconds": 1.075554370880127,
+          "source_stats": {
+            "requests": 405,
+            "errors": 0,
+            "bytes": 6005809
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539268.722286,
+          "ready": true,
+          "cycle_seconds": 0.88466477394104,
+          "source_stats": {
+            "requests": 452,
+            "errors": 0,
+            "bytes": 7226873
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539270.79911,
+          "ready": true,
+          "cycle_seconds": 0.9255397319793701,
+          "source_stats": {
+            "requests": 518,
+            "errors": 0,
+            "bytes": 8495755
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539272.8961089,
+          "ready": true,
+          "cycle_seconds": 0.906404972076416,
+          "source_stats": {
+            "requests": 568,
+            "errors": 0,
+            "bytes": 9748981
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539274.9674115,
+          "ready": true,
+          "cycle_seconds": 1.014436960220337,
+          "source_stats": {
+            "requests": 626,
+            "errors": 0,
+            "bytes": 10564779
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539277.1955066,
+          "ready": true,
+          "cycle_seconds": 1.368636131286621,
+          "source_stats": {
+            "requests": 678,
+            "errors": 0,
+            "bytes": 11297502
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539280.0368788,
+          "ready": true,
+          "cycle_seconds": 0.9693789482116699,
+          "source_stats": {
+            "requests": 726,
+            "errors": 0,
+            "bytes": 12534540
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539282.5293016,
+          "ready": true,
+          "cycle_seconds": 0.9231030941009521,
+          "source_stats": {
+            "requests": 771,
+            "errors": 0,
+            "bytes": 13250923
+          },
+          "errors": {}
+        },
+        {
+          "at": 1794539284.5549123,
+          "ready": true,
+          "cycle_seconds": 1.0811190605163574,
+          "source_stats": {
+            "requests": 816,
+            "errors": 0,
+            "bytes": 13967306
+          },
+          "errors": {}
+        }
+      ],
+      "container_resources": {
+        "BlockIO": "791kB / 127MB",
+        "CPUPerc": "72.60%",
+        "Container": "npumonitor-rules-contract-sre-runtime-1",
+        "ID": "a792a7b1a736",
+        "MemPerc": "0.50%",
+        "MemUsage": "156.2MiB / 30.58GiB",
+        "Name": "npumonitor-rules-contract-sre-runtime-1",
+        "NetIO": "44.7MB / 57.8MB",
+        "PIDs": "35"
+      }
+    }
+  ],
+  "passed": true,
+  "finished_at": 1794539287.8736951
+}

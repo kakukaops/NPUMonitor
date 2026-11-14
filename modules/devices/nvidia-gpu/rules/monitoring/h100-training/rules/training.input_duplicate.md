@@ -1,5 +1,7 @@
 # 重复采集输入
 
+历史模拟规则；当前接入入口见[OS SRE规则](../../os-sre/README.md)。
+
 rule_id `training.input_duplicate`，版本0.1.0，状态candidate，生产默认disabled。
 
 ## 检测目标

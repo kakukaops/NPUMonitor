@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs:
+- job_name: dcgm-os-sre
+  track_timestamps_staleness: true
+  static_configs:
+  - targets:
+    - gpu-master-source:9490
+- job_name: nightingale-os-sre
+  static_configs:
+  - targets:
+    - nightingale:17000
+- job_name: gpu-lifecycle-os-sre
+  static_configs:
+  - targets:
+    - npumonitor-gpu-rules-master-sre-runtime-1:9480
