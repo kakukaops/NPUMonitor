@@ -7,6 +7,15 @@ from .store import Conflict
 from .source import NoRedirect
 
 OWNER='npumonitor-os-sre'
+MONITORING_RELIABILITY_RULE_IDS = frozenset({
+    'os_sre.entity_missing', 'os_sre.field_missing', 'os_sre.input_stale',
+    'os_sre.input_invalid', 'os_sre.input_duplicate', 'os_sre.collector_down',
+    'os_sre.identity_missing', 'os_sre.platform_query_failure',
+    'os_sre.platform_evaluation_stall', 'os_sre.platform_notify_failure',
+    'os_sre.platform_adapter_down', 'os_sre.platform_nightingale_metrics_missing',
+    'os_sre.master_input_invalid', 'os_sre.master_input_stale',
+    'os_sre.master_input_duplicate', 'os_sre.master_field_missing', 'gateway_health',
+})
 
 class API:
     def __init__(self,config):self.config=config;self.base=url(config['url'])+'/api/n9e';self.opener=build_opener(ProxyHandler({}),NoRedirect())
@@ -40,9 +49,10 @@ def projection(rule):
     return out
 
 class Sync:
-    def __init__(self,store,api=None):
+    def __init__(self,store,api=None,*,pause_monitoring_reliability=False):
         self.store=store;self.bundle,self.generation=store.current();self.config=self.bundle['config']['nightingale'];self.api=api or API(self.config)
         self.deployment=self.bundle['config']['deployment_id'];self.group=int(self.config['group_id']);self.notify=int(self.config['notify_rule_id'])
+        self.paused_rules = MONITORING_RELIABILITY_RULE_IDS if pause_monitoring_reliability else frozenset()
     def sources(self):return self.api.call('POST','/datasource/list',{'plugin_type':'prometheus'})
     def source_name(self):return 'NPUMonitor OS SRE '+self.deployment
     def ensure_source(self,apply):
@@ -61,7 +71,7 @@ class Sync:
     def desired(self,ds):
         result=[]
         specs=list(self.bundle['rules'])
-        if self.config.get('include_gateway_health_rule',True):specs.append({'rule_id':'gateway_health','title':'规则执行组件健康','severity':1,'enabled':True})
+        if self.config.get('include_gateway_health_rule',True) or 'gateway_health' in self.paused_rules:specs.append({'rule_id':'gateway_health','title':'规则执行组件健康','severity':1,'enabled':True})
         for r in specs:
             ident=r['rule_id'];expression='sre_gateway_unhealthy' if ident=='gateway_health' else 'sre_rule_active{sre_rule_id="'+ident+'"} == 1'
             result.append({'name':'NPUMonitor '+self.deployment+' '+r['title'],'group_id':self.group,'cate':'prometheus','prod':'metric',
@@ -81,6 +91,10 @@ class Sync:
             matches=[r for r in rows if (r.get('annotations') or {}).get('deployment_id')==self.deployment and (r.get('annotations') or {}).get('sre_rule_id')==ident]
             if len(matches)>1:raise Conflict('duplicate managed identity')
             old=matches[0] if matches else old
+            if ident in self.paused_rules:
+                if not old:
+                    continue
+                desired['disabled'] = 1
             saved=self.store.get_projection('rule:'+ident)
             if old:
                 a=old.get('annotations') or {}
@@ -91,12 +105,13 @@ class Sync:
         return {'datasource_exists':ds is not None,'generation':self.generation,'bundle_sha':self.bundle['sha256'],'items':result}
     def apply(self):
         plan=self.plan()  # All rule conflicts are checked before the first write.
-        ds=self.ensure_source(True);wanted={r['annotations']['sre_rule_id']:r for r in self.desired(ds)}
+        ds=self.ensure_source(True)
         ident=uuid.uuid4().hex;op={'id':ident,'status':'applying','generation':self.generation,'before':{},'after':{},'desired':{},'pending':None}
         self.store.put_operation(ident,op)
         try:
             for item in plan['items']:
-                rid=item['rule_id'];desired=wanted[rid];old=item['old']
+                rid=item['rule_id'];desired=item['desired'];old=item['old']
+                desired['datasource_queries'][0]['values'] = [ds]
                 if self.store.current()[1]!=self.generation:raise Conflict('runtime release changed during projection')
                 op['before'][rid]=old;op['desired'][rid]=desired;op['pending']=rid;self.store.put_operation(ident,op)
                 desired['annotations']['sync_operation']=ident

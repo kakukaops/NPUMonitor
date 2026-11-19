@@ -14,8 +14,10 @@ from .pipeline import build_pipeline,load_artifact,DetectionPipeline,capabilitie
 from .evaluation import summarize,validate_labels
 from .settings import DATA,TEMPLATES,METRICS,SIMULATION,POLL,FRESHNESS
 from .simulation import UUIDS,CLUSTER,healthy
+from .baseline import diagnostics,reference_rows,PRIMARY_METRICS
 from .model_backends.http import HttpModelBackend,RemoteModel
 from .model_backends.training import TrainingCoordinator
+from .model_backends.services import ModelServices
 from .model_backends.contracts import ScoreBatch,BackendUnsupported,BackendUnavailable,BackendProtocolError
 
 
@@ -25,7 +27,7 @@ class Engine:
         self.error=None;self.models={};self.executor=concurrent.futures.ThreadPoolExecutor(max_workers=1,thread_name_prefix='training')
         self.futures={};self.lock=threading.RLock()
         (DATA/'models').mkdir(parents=True,exist_ok=True);(DATA/'snapshots').mkdir(parents=True,exist_ok=True)
-        self.backend=model_backend or HttpModelBackend();self.training=TrainingCoordinator(self,self.backend)
+        self.backend=model_backend or HttpModelBackend();self.training=TrainingCoordinator(self,self.backend);self.services=ModelServices(self)
 
     def seed(self):
         if not SIMULATION or os.environ.get('GPU_ML_LEGACY_BOOTSTRAP','false').lower()!='true':return
@@ -51,7 +53,7 @@ class Engine:
         if version not in self.models:
             record=self.store.get('model',version)
             if not record:raise ValueError('模型版本不存在')
-            self.models[version]=RemoteModel(self.backend,record) if record.get('backend') else load_artifact(DATA/'models'/record['artifact'],record['sha256'])
+            self.models[version]=RemoteModel(self.services.backend(record['backend']['backend_id']),record) if record.get('backend') else load_artifact(DATA/'models'/record['artifact'],record['sha256'])
         return self.models[version]
 
     def train_now(self,task_id,rows,provenance,algorithm,publish=False,job_id=None,config=None,labels=None):
@@ -59,10 +61,14 @@ class Engine:
         if publish:self.publish(task_id,version,'system')
         return version
 
-    def queue_training(self,task_id,algorithm,start,end,step=2,config=None,labels=None):
+    def queue_training(self,task_id,algorithm,start,end,step=2,config=None,labels=None,input_source="prometheus"):
         task=self.store.get('task',task_id)
         if not task or task.get('deleted'):raise ValueError('任务不存在或已退役')
         build_pipeline(task['template'],algorithm,config)
+        if input_source not in ('prometheus','simulation-reference'):raise ValueError('未知训练数据来源')
+        if input_source=='simulation-reference' and (not SIMULATION or task['scope']!='simulated' or task['template'] not in ['uni_'+m for m in PRIMARY_METRICS]):
+            raise ValueError('参考数据仅用于显式模拟GPU的首批单指标任务')
+        if isinstance(step,bool) or not isinstance(step,int):raise ValueError('采样步长须为整数秒')
         if not math.isfinite(start+end) or end<=start or end>time.time()+2:raise ValueError('训练时间范围无效')
         if step<2 or (end-start)/step>12000 or end-start>86400*31:raise ValueError('训练窗口或采样点数超过配额')
         scenario=TEMPLATES[task['template']].get('scenario')
@@ -70,12 +76,17 @@ class Engine:
         if scenario and end-start<scenario['minimum_history_seconds']:raise ValueError('场景参考历史不足：需要至少'+str(scenario['minimum_history_seconds'])+'秒；生产与实验profile不能混用')
         minimum=240 if TEMPLATES[task['template']].get('kind') in ('univariate','multivariate') else 180
         if (end-start)/step<minimum:raise ValueError(f'训练窗口至少需要{minimum}个有效源样本；建议覆盖完整正常负载周期')
-        if any(j['task']==task_id and j['status'] in ('queued','running') for j in self.store.list('job')):
+        if any(j['task']==task_id and j['status'] in ('queued','running','pending_sync') for j in self.store.list('job')):
             raise ValueError('该任务已有训练或回放作业')
-        return self.training.queue(task_id,algorithm,start,end,step,config,validate_labels(labels or [],start,end))
+        return self.training.queue(task_id,algorithm,start,end,step,config,validate_labels(labels or [],start,end),input_source)
 
     def read_job_rows(self,job):
         task=self.store.get('task',job['task']);required=TEMPLATES[task['template']]['required']
+        if job.get('input_source')=='simulation-reference':
+            if not SIMULATION or task['scope']!='simulated':raise ValueError('禁止真实数据使用模拟参考')
+            rows=reference_rows(task['entity'],required[0],job['start'],job['end'],job['step'])
+            job['input_diagnostics']=diagnostics(rows,required[0])
+            return rows
         rows=self.source.history(task['entity'],job['start'],job['end'],job['step'],required)
         if not rows or rows[0]['t']-job['start']>max(15,job['step']*3) or job['end']-rows[-1]['t']>max(15,job['step']*3):
             raise ValueError('请求窗口缺少起止历史，不能静默缩短训练范围')
@@ -91,6 +102,7 @@ class Engine:
                     intervals.append((action['at']-4,expiry+4))
             rows=[r for r in rows if not any(a<=r['t']<=b for a,b in intervals)]
         job['excluded_known_fault_samples']=before-len(rows)
+        if TEMPLATES[task['template']].get('kind')=='univariate':job['input_diagnostics']=diagnostics(rows,required[0])
         return rows
 
     def publish(self,task_id,model_id,actor):
@@ -102,10 +114,16 @@ class Engine:
             if record['status'] not in ('validated','published'):raise ValueError('模型保留测试异常率超过默认10%自检门槛，需复核后重新训练')
             scenario=record.get('feature_schema',{}).get('scenario')
             if scenario and scenario['profile']=='laboratory' and (not SIMULATION or task['scope']!='simulated'):raise ValueError('加速实验制品不能发布到真实GPU')
-            self.load(model_id)
+            spec=TEMPLATES[task['template']]
+            if record.get('backend') and record.get('feature_schema')!=spec:raise ValueError('模型输入契约已变化，请重新训练')
+            model=self.load(model_id)
+            if getattr(model,'cadence',2)<2:raise ValueError('模型采样周期无效')
             if record.get('backend'):
-                reference=self.training.require_remote(record)
-                deployment=self.backend.deploy(reference['model_ref'],reference['platform_id'])
+                reference=record['backend'];backend=self.services.backend(reference['backend_id'])
+                if record.get('external_registration') and reference.get('deployment_ref'):
+                    deployment=backend.deployment(reference['deployment_ref'])
+                    if deployment.get('deployment_ref')!=reference['deployment_ref']:raise BackendProtocolError('已有部署引用不匹配')
+                else:deployment=backend.deploy(reference['model_ref'],reference['platform_id'])
                 if deployment.get('status')!='ready':raise BackendUnavailable('模型部署尚未就绪，在线指针不切换')
                 if deployment.get('model_ref')!=reference['model_ref'] or deployment.get('platform_id')!=reference['platform_id']:raise BackendProtocolError('部署回执身份不匹配')
                 record['backend']={**reference,'deployment_ref':deployment['deployment_ref']}
@@ -138,6 +156,7 @@ class Engine:
         record=self.store.get('model',model_id)
         if not record:raise ValueError('模型不存在')
         if calibration is None and factor is None:raise ValueError('请提供校准配置或阈值倍率')
+        if record.get('external_registration'):raise BackendUnsupported('外部登记模型不在本地重训/重新校准；请在所属平台操作后登记新版本')
         reference=self.training.require_remote(record)
         return self.training.operation(model_id,'postprocess',{'model_ref':reference['model_ref'],'calibration':calibration,'factor':factor})
 
@@ -148,6 +167,7 @@ class Engine:
         records=[self.store.get('model',key) for key in member_ids]
         for record in records:
             if not record or (record['entity'],record['template'],record['source_type'])!=(task['entity'],task['template'],task['scope']) or record['status'] not in ('validated','published'):raise ValueError('成员不兼容或未通过自检')
+        if any(record.get('external_registration') for record in records):raise BackendUnsupported('外部登记模型不直接参加训练快照集成')
         refs=[self.training.require_remote(r) for r in records]
         if len({r['platform_id'] for r in refs})!=1 or len({r['dataset_sha256'] for r in records})!=1 or len({json.dumps(r['report'].get('partitions'),sort_keys=True) for r in records})!=1:raise ValueError('成员必须来自同一模型平台、快照和时间切分')
         return self.training.operation(member_ids[0],'ensemble',{'models':[r['model_ref'] for r in refs],'factor':factor})
@@ -160,7 +180,7 @@ class Engine:
             model=build_pipeline(task['template'],algorithm,config)
             if not isinstance(model,DetectionPipeline):raise ValueError('候选比较仅支持新流水线检测器')
         if not 2<=step or not 0<end-start<=86400*31 or (end-start)/step>12000 or (end-start)/step<240 or end>time.time()+2:raise ValueError('比较时间范围或步长无效')
-        if any(j['task']==task_id and j['status'] in ('queued','running') for j in self.store.list('job')):raise ValueError('该任务已有活动作业')
+        if any(j['task']==task_id and j['status'] in ('queued','running','pending_sync') for j in self.store.list('job')):raise ValueError('该任务已有活动作业')
         key=uuid.uuid4().hex
         self.store.put('job',key,{'task':task_id,'kind':'comparison','status':'queued','algorithms':algorithms,'start':start,'end':end,'step':step,'pipeline_config':config or {},'labels':validate_labels(labels or [],start,end),'created_at':time.time()})
         self.futures[key]=self.executor.submit(self._comparison,key)
@@ -208,7 +228,7 @@ class Engine:
                     if task['template']=='activity' and entity['values']['job_running']!=1:
                         self.store.apply(task['id'],quality='context_inactive');continue
                     try:
-                        row={'t':min(entity['times'][k] for k in required),'values':({k:entity['values'][k] for k in required} if TEMPLATES[task['template']].get('scenario') else entity['values'])}
+                        row={'t':min(entity['times'][k] for k in required),'values':{k:entity['values'][k] for k in required}}
                         if not self.observation_is_fresh(row['t']):
                             self.store.apply(task['id'],quality='inference_stale');continue
                         prior=self.store.get('state',task['id'])
@@ -232,7 +252,7 @@ class Engine:
                         if not self.observation_is_fresh(result['t']):
                             self.store.apply(task['id'],quality='inference_stale');continue
                         result['decision_config_revision']=task['revision'];result['effective_task_factor']=task.get('sensitivity',1.)
-                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result)
+                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result,confirmation_samples=task.get('confirmation_samples',3),recovery_samples=task.get('recovery_samples',3))
                     except Exception as exc:
                         self.store.apply(task['id'],quality='model_error');logging.exception('Model inference failed')
                 self.last_poll=time.time();self.error=None

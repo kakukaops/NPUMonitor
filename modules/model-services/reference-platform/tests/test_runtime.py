@@ -41,6 +41,16 @@ class RuntimeTests(unittest.TestCase):
         model=self.train();self.runtime.submit({'contract_version':1,'request_id':'post','operation':'postprocess','platform_id':model['platform_id'],'model_ref':model['model_ref'],'factor':1.5})
         job=self.done('post');self.assertEqual(job['status'],'completed',job);new=job['result']
         self.assertEqual(model['pipeline']['detector_id'],new['pipeline']['detector_id']);self.assertNotEqual(model['pipeline']['decision_id'],new['pipeline']['decision_id'])
+    def test_remote_catalog_and_existing_deployment_descriptor(self):
+        model=self.train();described=self.runtime.describe(model['model_ref'])
+        self.assertEqual(described['model_ref'],model['model_ref'])
+        self.assertNotIn('artifact',described)
+        self.assertNotIn('artifact_sha256',described)
+        deployed=self.runtime.deploy(model['model_ref'],model['platform_id'])
+        self.assertEqual(self.runtime.describe(model['model_ref'])['deployment_ref'],deployed['deployment_ref'])
+        self.assertEqual(self.runtime.deployment(deployed['deployment_ref'])['status'],'ready')
+        self.assertEqual(len(self.runtime.catalog()['models']),1)
+
     def test_deployment_survives_restart_with_stable_platform_identity(self):
         model=self.train();deployment=self.runtime.deploy(model['model_ref'],model['platform_id']);self.runtime.close()
         self.runtime=Runtime(self.tmp.name,True);self.assertEqual(self.runtime.registry.platform_id,model['platform_id'])

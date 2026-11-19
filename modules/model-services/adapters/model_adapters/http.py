@@ -36,6 +36,9 @@ class HttpModelBackend:
         except (URLError,TimeoutError,OSError):raise BackendUnavailable('模型平台不可用或请求超时') from None
         except (json.JSONDecodeError,UnicodeDecodeError):raise BackendProtocolError('模型平台响应无法解析') from None
     def info(self):return self.call('GET','/v1/info')
+    def catalog(self):return self.call('GET','/v1/models')
+    def describe(self,model_ref):return self.call('GET','/v1/models/'+quote(model_ref,safe=''))
+    def deployment(self,deployment_ref):return self.call('GET','/v1/deployments/'+quote(deployment_ref,safe=''))
     def submit(self,request_id,operation,payload):
         body={'contract_version':1,'request_id':request_id,'operation':operation,**payload}
         # Exactly the same idempotency key and input on retry; never blindly create a second job.

@@ -63,7 +63,8 @@ def main():
         serve(args.bundle,args.data);return
     if args.command.startswith('sync') or args.command=='source-auth':
         from .nightingale import Sync
-        store=Store(data/'state.sqlite',deployment);sync=Sync(store)
+        store=Store(data/'state.sqlite',deployment)
+        sync=Sync(store,pause_monitoring_reliability=os.environ.get('NPUMONITOR_PAUSE_MONITORING_RELIABILITY')=='1')
         if args.command=='sync-plan':
             plan=sync.plan();value={k:v for k,v in plan.items() if k!='items'};value['items']=[{k:r[k] for k in ('rule_id','action')} for r in plan['items']]
         elif args.command=='sync':value=sync.apply()

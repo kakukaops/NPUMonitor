@@ -1,0 +1,44 @@
+{
+  "scope": "simulated GPU; same-host independent HTTP reference; not customer platform or cross-machine verification",
+  "registered": [
+    {
+      "metric": "gpu_temp",
+      "model_id": "import-5cb27e46ab1ae620ee2d9993a2c72642",
+      "existing_deployment_reused": true,
+      "trial_points": 4,
+      "location": "reference"
+    },
+    {
+      "metric": "memory_temp",
+      "model_id": "import-4ac394fb32ddf5c19b40637286801616",
+      "existing_deployment_reused": true,
+      "trial_points": 4,
+      "location": "reference"
+    },
+    {
+      "metric": "power",
+      "model_id": "import-5d01fc6e2e1f6e6d9384e779800fab3c",
+      "existing_deployment_reused": true,
+      "trial_points": 4,
+      "location": "reference"
+    },
+    {
+      "metric": "util",
+      "model_id": "import-b02ab0684187f29843c5fd0cf899e0a5",
+      "existing_deployment_reused": true,
+      "trial_points": 4,
+      "location": "reference"
+    },
+    {
+      "metric": "mem_util",
+      "model_id": "import-749d7d03fbb47a45497ab0fb02691b9f",
+      "existing_deployment_reused": true,
+      "trial_points": 4,
+      "location": "reference"
+    }
+  ],
+  "passed": true,
+  "viewer_denied": true,
+  "credentials_returned": false,
+  "online_import_verified": "memory_temp"
+}

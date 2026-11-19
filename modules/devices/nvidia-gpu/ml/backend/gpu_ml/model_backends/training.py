@@ -3,7 +3,7 @@ import copy
 import concurrent.futures,hashlib,json,math,threading,time,uuid
 from pathlib import Path
 from .contracts import canonical_rows,dataset_hash,BackendError,BackendUnavailable,BackendProtocolError,BackendUnsupported
-from ..settings import DATA,TEMPLATES
+from ..settings import DATA,TEMPLATES,METRICS
 
 class Deferred(Exception):
     def __init__(self,job_id):self.job_id=job_id;super().__init__('external job pending')
@@ -29,10 +29,10 @@ class TrainingCoordinator:
             except BackendError:self.status.update(state='unavailable',last_checked=time.time())
             except Exception:self.status.update(state='reconciliation_error',last_checked=time.time())
             self.stop.wait(3)
-    def queue(self,task_id,algorithm,start,end,step,config,labels):
+    def queue(self,task_id,algorithm,start,end,step,config,labels,input_source="prometheus"):
         ident=uuid.uuid4().hex
         job={'task':task_id,'kind':'training','status':'queued','algorithm':algorithm,'start':start,'end':end,'step':step,'pipeline_config':config or {},'labels':labels,
-             'created_at':time.time(),'cancel_requested':False,'backend_id':self.backend.backend_id}
+             'created_at':time.time(),'cancel_requested':False,'backend_id':self.backend.backend_id,'input_source':input_source}
         self.store.put('job',ident,job);self.futures[ident]=self.executor.submit(self.run,ident)
         return self.store.get('job',ident)
     def run(self,ident):
@@ -41,9 +41,9 @@ class TrainingCoordinator:
             if job['cancel_requested']:raise ValueError('训练已取消')
             job.update(status='running');self.store.put('job',ident,job)
             rows=self.engine.read_job_rows(job)
-            current=self.store.get('job',ident);current['excluded_known_fault_samples']=job.get('excluded_known_fault_samples',0);self.store.put('job',ident,current)
+            current=self.store.get('job',ident);current['excluded_known_fault_samples']=job.get('excluded_known_fault_samples',0);current['input_diagnostics']=job.get('input_diagnostics');self.store.put('job',ident,current)
             if current.get('cancel_requested'):raise ValueError('训练已取消')
-            version=self.train_now(job['task'],rows,'prometheus-history',job['algorithm'],ident,job.get('pipeline_config'),job.get('labels'))
+            version=self.train_now(job['task'],rows,job.get('input_source','prometheus')+'-history' if job.get('input_source','prometheus')=='prometheus' else 'simulation-reference',job['algorithm'],ident,job.get('pipeline_config'),job.get('labels'))
             current=self.store.get('job',ident)
             if current['status']!='cancelled':current.update(status='completed',model_id=version,completed_at=time.time());self.store.put('job',ident,current)
         except Deferred:pass
@@ -55,6 +55,7 @@ class TrainingCoordinator:
         version=uuid.uuid4().hex;payload=canonical_rows(rows);(DATA/'snapshots').mkdir(parents=True,exist_ok=True)
         (DATA/'snapshots'/f'{version}.json').write_bytes(payload)
         spec={'template':task['template'],'algorithm':algorithm,'feature_schema':copy.deepcopy(TEMPLATES[task['template']]),
+              'input_contract':{k:{'metric_id':METRICS[k]['metric_id'],'unit':METRICS[k]['unit']} for k in TEMPLATES[task['template']]['required']},
               'source_type':task['scope'],'entity':task['entity'],'pipeline':config or {},'labels':labels or [],
               'source_window':{'start':rows[0]['t'],'end':rows[-1]['t']+1}}
         ident=job_id or uuid.uuid4().hex;job=self.store.get('job',ident) or {'id':ident,'task':task_id,'kind':'training','status':'running','created_at':time.time(),'cancel_requested':False}
@@ -104,9 +105,9 @@ class TrainingCoordinator:
             job.update(status='completed',model_id=ident,completed_at=time.time(),error=None);self.store.put('job',job['id'],job);return existing
         backend={'backend_id':self.backend.backend_id,'platform_id':remote['platform_id'],'model_ref':result['model_ref'],'contract_version':1}
         record={'task':job['task'],'entity':spec['entity'],'template':spec['template'],'algorithm':result['algorithm'],'backend':backend,
-                'snapshot':job['snapshot'],'dataset_sha256':job['dataset_sha256'],'source':job['provenance'],'source_type':spec['source_type'],
+                'input_contract':result.get('input_contract'),'training_window':spec.get('source_window'),'snapshot':job['snapshot'],'dataset_sha256':job['dataset_sha256'],'source':job['provenance'],'source_type':spec['source_type'],
                 'status':'validated' if rate<=.1 and result.get('status')=='validated' else 'review_required',
-                'report':result['report'],'capabilities':caps,'feature_schema':result['feature_schema'],'pipeline':result.get('pipeline',{}),'evaluation_labels':spec.get('labels',[]),'created_at':time.time()}
+                'report':result['report'],'capabilities':caps,'feature_schema':result['feature_schema'],'pipeline':result.get('pipeline',{}),'input_diagnostics':job.get('input_diagnostics'),'evaluation_labels':spec.get('labels',[]),'created_at':time.time()}
         if job.get('parent_model'):record['parent_model']=job['parent_model']
         self.store.put('model',ident,record);job.update(status='completed',model_id=ident,completed_at=time.time(),error=None);self.store.put('job',job['id'],job)
         return self.store.get('model',ident)
@@ -124,10 +125,10 @@ class TrainingCoordinator:
         if hashlib.sha256(raw).hexdigest()!=parent['dataset_sha256']:raise ValueError('训练快照摘要不匹配')
         ident=uuid.uuid4().hex;version=uuid.uuid4().hex
         (DATA/'snapshots'/f'{version}.json').write_bytes(raw)
-        spec={'entity':parent['entity'],'template':parent['template'],'feature_schema':parent['feature_schema'],'source_type':parent['source_type'],'labels':parent.get('evaluation_labels',[])}
+        spec={'entity':parent['entity'],'template':parent['template'],'feature_schema':parent['feature_schema'],'source_type':parent['source_type'],'input_contract':parent.get('input_contract'),'source_window':parent.get('training_window'),'labels':parent.get('evaluation_labels',[])}
         job={'id':ident,'task':parent['task'],'kind':'model_operation','operation':operation,'status':'running','created_at':time.time(),'cancel_requested':False,
              'model_version':version,'backend_request_id':ident,'backend_id':self.backend.backend_id,'dataset_sha256':parent['dataset_sha256'],'training_spec':spec,
-             'snapshot':f'{version}.json','provenance':parent['source'],'parent_model':parent_id}
+             'snapshot':f'{version}.json','provenance':parent['source'],'parent_model':parent_id,'input_diagnostics':parent.get('input_diagnostics')}
         self.store.put('job',ident,job)
         return self.await_result(job,operation,{'platform_id':reference['platform_id'],**payload})
     def cancel(self,ident):

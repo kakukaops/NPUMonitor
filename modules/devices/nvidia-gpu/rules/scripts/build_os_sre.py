@@ -32,7 +32,7 @@ def gate(expr,other,identity):return f'(({expr}) and on ({keys(identity)}) ({oth
 def attach(expr,name,value):return f'label_replace(({expr}), {quote(name)}, {quote(value)}, "__name__", ".*")'
 
 
-def compile_profile(profile,with_provenance=True,additional_required_fields=()):
+def compile_profile(profile,with_provenance=True,additional_required_fields=(), *, native_triggers=None):
     allowed={'schema_version','profile','collector_job_regex','nightingale_job_regex','lifecycle_job_regex',
              'freshness_seconds','counter_window_seconds','confirmation_seconds','gpus','switches','links','monitor_targets'}
     if set(profile)-allowed:raise ValueError('配置含未支持字段，不接受业务标签')
@@ -127,7 +127,9 @@ def compile_profile(profile,with_provenance=True,additional_required_fields=()):
     for key in ('gpu_thermal','memory_thermal','switch_thermal'):
         old=by_key[key];temp,limit=old['input_fields'];dims=identity(temp)
         margin=f'({valid(limit)} - on ({keys(dims)}) {valid(temp)})'
-        add(old,split(margin,'<= 0','> 5'),note='使用设备门槛；5°C回差为工程参数。缺少任一有效输入不提供恢复证据。')
+        item=add(old,split(margin,'<= 0','> 5'),note='使用设备门槛；5°C回差为工程参数。缺少任一有效输入不提供恢复证据。')
+        if native_triggers is not None:
+            native_triggers[item['rule_id']] = f'{margin} <= 0'
     for key,mask in [('sw_thermal',32),('hw_thermal',64),('power_cap',4),('power_brake',128),('hw_slowdown',8),('sync_boost',16)]:
         obs=f'(floor({valid("DCGM_FI_DEV_CLOCKS_EVENT_REASONS")} / {mask}) % 2)'
         item=add(by_key[key],obs,note='仅表示设备原因位；不使用作业上下文，不推断吞吐或性能故障。')
@@ -142,15 +144,31 @@ def compile_profile(profile,with_provenance=True,additional_required_fields=()):
         obs=f'(({bad}) * 0 + 1) or ((({xid} == 0) * 0) and on ({keys(GPU)}) ({valid("os_sre_recovery_verified")} == 1))'
         item=add(by_key[key],obs,inputs=['DCGM_FI_DEV_XID_ERRORS','os_sre_recovery_verified'],requirements=['恢复确认由OS运维流程提供；缺少时只能触发并保持，不能自动解除'],note='按XID码分流，不需要作业ID、进程名或业务归属；其他码及缺数不解除已确认事件。')
         if key=='xid_app':item['title']='XID进程/软件排查线索（OS侧）'
+        if native_triggers is not None:
+            raw_xid = raw('DCGM_FI_DEV_XID_ERRORS')
+            codes = [r['code'] for r in xid_catalog if disposition is None or r['disposition']==disposition]
+            matches = '(' + '\n  or '.join(f'{raw_xid} == {code}' for code in codes) + ')'
+            if disposition is None:
+                trigger = f'({xid} > 0) unless on ({keys(GPU)}) {matches}'
+            else:
+                trigger = f'{matches}\nand on ({keys(GPU)}) {xid}'
+                trigger = max_by(trigger, GPU)
+            native_triggers[item['rule_id']] = trigger
     for key in ('sxid_fatal','sxid_nonfatal'):
         old=by_key[key];name=old['input_fields'][0];code=valid(name)
         # Recovery evidence is per hardware identity, with switch_id for NVSwitch.
         recovery=valid('os_sre_recovery_verified',SWITCH)
         obs=f'(({code} > 0) * 0 + 1) or ((({code} == 0) * 0) and on ({keys(SWITCH)}) ({recovery} == 1))'
-        add(old,obs,inputs=[name,'os_sre_recovery_verified'],requirements=['NVSwitch真实switch_id及运维恢复确认'],note='最近错误码不是有序事件流；无恢复证据时事件保持。')
+        item=add(old,obs,inputs=[name,'os_sre_recovery_verified'],requirements=['NVSwitch真实switch_id及运维恢复确认'],note='最近错误码不是有序事件流；无恢复证据时事件保持。')
+        if native_triggers is not None:
+            native_triggers[item['rule_id']] = f'{code} > 0'
     for key,expected,bad,clear in [('gpu_link_down','gpu_link_expected','== 0','> 0'),('switch_link_down','switch_link_expected','!= 2','== 2')]:
         old=by_key[key];name=old['input_fields'][0];dims=identity(name)
-        add(old,gate(split(valid(name),bad,clear),f'sre:inventory:{expected} == 1',dims),requirements=['OS维护的预期启用端口清单；无清单则不判断掉链'])
+        value=valid(name)
+        expected_port=f'sre:inventory:{expected} == 1'
+        item=add(old,gate(split(value,bad,clear),expected_port,dims),requirements=['OS维护的预期启用端口清单；无清单则不判断掉链'])
+        if native_triggers is not None:
+            native_triggers[item['rule_id']] = gate(f'({value} {bad})',expected_port,dims)
     gen=f'({valid("DCGM_FI_DEV_PCIE_LINK_GEN")} < bool on ({keys(GPU)}) sre:inventory:pcie_gen)'
     width=f'({valid("DCGM_FI_DEV_PCIE_LINK_WIDTH")} < bool on ({keys(GPU)}) sre:inventory:pcie_width)'
     traffic=f'({valid("DCGM_FI_PROF_PCIE_TX_BYTES")} + on ({keys(GPU)}) {valid("DCGM_FI_PROF_PCIE_RX_BYTES")})'
@@ -163,6 +181,13 @@ def compile_profile(profile,with_provenance=True,additional_required_fields=()):
                 'fabric_capability':f'((({fm} == bool 0)+({fm} == bool 5)+({fm} == bool 6)) > bool 0)',
                 'fabric_health':split(fabric,'>= 2','== 1')}
     for key,expr in conditions.items():add(by_key[key],gate(expr,'sre:inventory:fabric_expected == 1',GPU),requirements=['OS资产声明该设备需要fabric；不由训练作业判断'])
+    if native_triggers is not None:
+        fm_metric = raw('DCGM_FI_DEV_FABRIC_MANAGER_STATUS')
+        for key, codes in (('fabric_manager', (1, 2, 4)), ('fabric_capability', (0, 5, 6))):
+            matches = ' or '.join(f'{fm_metric} == {code}' for code in codes)
+            trigger = gate(fm, matches, GPU)
+            native_triggers['os_sre.'+key] = gate(trigger, 'sre:inventory:fabric_expected == 1', GPU)
+        native_triggers['os_sre.fabric_health'] = gate(f'({fabric} >= 2)', 'sre:inventory:fabric_expected == 1', GPU)
     # Data quality uses the same physical/port keys and never silently chooses a duplicate.
     measurements=[];stale=[];invalid=[];duplicates=[];missing_ids=[]
     for name,f in fields.items():

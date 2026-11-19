@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-11-17T11:08:52.230002+00:00",
+  "version": "0.7.0",
+  "backend_tests": 49,
+  "platform_tests": 9,
+  "frontend_contract": "passed",
+  "browser_visual": "not_run",
+  "scope": "same-host reference HTTP; no customer/cross-machine integration",
+  "registered_models": 5,
+  "services": [
+    {
+      "name": "默认训练与模型服务",
+      "location": "reference"
+    },
+    {
+      "name": "参考平台接入验证（同机）",
+      "location": "reference"
+    }
+  ],
+  "production_admitted": false,
+  "full_backup_restore": {
+    "passed": true,
+    "model_records": 44,
+    "registered_references": 5,
+    "credentials_archived": false,
+    "note": "Initial 30s CLI request timed out while the 4.8GB historical DB was archiving; verified the completed archive in an isolated temporary directory"
+  }
+}

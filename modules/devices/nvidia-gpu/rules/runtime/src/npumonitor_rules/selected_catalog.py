@@ -1,7 +1,7 @@
 """Shared rule compiler; receives a declared definition, never fixture defaults."""
 import copy,json
 
-def extend_selected_catalog(catalog,profile,master,production=False):
+def extend_selected_catalog(catalog,profile,master,production=False, *, native_triggers=None):
     result=copy.deepcopy(catalog);fields=master['metric_contracts'];result['metric_contracts'].update(fields)
     if not production:result['master_simulation']=master
     result['version']=catalog['version']+('+master-prod1' if production else '+master-sim1')
@@ -26,6 +26,8 @@ def extend_selected_catalog(catalog,profile,master,production=False):
           'source_ids':['project.master.simulation'],'default_policy':'disabled','real_hardware_tests':'not_run'})
     def single(key,title,mid,bad,clear,severity=2,seconds=None):
         name=by_ids[mid];value=valid(name);add(key,title,[name],f'(({value} {bad}) * 0 + 1) or (({value} {clear}) * 0)',severity,seconds)
+        if native_triggers is not None:
+            native_triggers['os_sre.'+key] = f'{value} {bad}'
     single('inforom_invalid','InfoROM校验无效','nvidia.inforom_valid','== 0','== 1',1,0)
     single('memory_unrepairable','设备报告不可修复内存','nvidia.memory_unrepairable','== 1','== 0',1,0)
     single('recovery_required','GPU报告需要恢复处置','nvidia.recovery_action','> 0','== 0',1,0)
@@ -42,6 +44,8 @@ def extend_selected_catalog(catalog,profile,master,production=False):
         if rule['rule_id']=='os_sre.gpu_link_down':
             name=by_ids['nvidia.nvlink_link_state'];value=valid(name)
             rule['expression']=f'((({value} == 0) * 0 + 1) or (({value} == 1) * 0)) and on (job,instance,UUID,link_id) (sre:inventory:gpu_link_expected == 1)'
+            if native_triggers is not None:
+                native_triggers[rule['rule_id']] = f'({value} == 0) and on (job,instance,UUID,link_id) (sre:inventory:gpu_link_expected == 1)'
             rule['note']='Simulation recovery policy ACTIVE=1 only; SLEEP=2 is unknown/hold, not declared faulty. State3 is outside this R595 contract. No universal real-hardware policy inferred.'
     # Apply quality monitoring to the newly introduced numeric fields too.
     base=set(catalog['metric_contracts']);invalid=[];stale=[];duplicate=[];missing=[]

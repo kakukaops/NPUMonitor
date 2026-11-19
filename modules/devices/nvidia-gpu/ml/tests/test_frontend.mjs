@@ -36,7 +36,7 @@ await new Promise(resolve=>setImmediate(resolve));
 assert.equal(vm.runInContext('currentTask()',sandbox),undefined);
 if(fixture.state.tasks.some(t=>t.policy_kind)){
  vm.runInContext("document.getElementById('newTask').onclick()",sandbox);
- assert.equal(document.getElementById('policyMetrics').value,'gpu_temp,memory_temp,power,sm_clock,util');
+ assert.equal(document.getElementById('policyMetrics').value,'gpu_temp,memory_temp,power,util,mem_util');
  vm.runInContext("openTraining(data.tasks.find(t=>t.template==='uni_gpu_temp'))",sandbox);
  assert.deepEqual(document.getElementById('trainAlgorithm').children.map(n=>n.value),fixture.state.algorithm_catalog?['temporal_mad','level_mad']:['temporal_mad']);
  vm.runInContext("openTraining(data.tasks.find(t=>t.policy_kind==='multivariate'))",sandbox);

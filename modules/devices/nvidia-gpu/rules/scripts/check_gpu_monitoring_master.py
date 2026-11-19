@@ -64,7 +64,7 @@ def extract(text):
                 continue
             require(category_heading, 'contract row must belong to a visible category section')
             row = cells(line)
-            require(len(row) == 6, 'contract table must have six columns')
+            require(len(row) == 7, 'contract table must have seven columns')
             match = re.search(r'<a id="([^"]+)"></a>\*\*`([^`]+)`\*\*', row[0])
             require(match, 'contract anchor or stable metric ID missing')
             field = re.search(r'字段ID：([^<]+)', row[0])

@@ -1,0 +1,493 @@
+schema_version: 0.1.0
+profile_id: ascend-a3-26.1-cann9.2
+lifecycle: research_draft
+defaults:
+  missing: unknown，不补零
+  stale: 不得作为健康或恢复证据
+  unsupported: 按能力矩阵豁免；不能由缺数推断
+  nonfinite: invalid
+  physical_key_candidate:
+  - instance
+  - vdie_id
+  identity_status: 必须验证vdie_id非空、稳定及每节点唯一；id仅展示，不作稳定身份
+  workload_labels: pod/namespace/container变化不能拆成多个物理芯片；重复值不一致时报告数据冲突，禁止静默max/min
+  raw_type: 未取得固定发行版# TYPE，均不推定counter
+metrics:
+- id: up
+  title: Exporter抓取状态
+  group: prometheus
+  raw_name: up
+  raw_type: unverified
+  unit: boolean
+  validity: 0或1
+  scope: target
+  backend: Prometheus
+  a3_support: prometheus_builtin
+  sources:
+  - metrics
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 只表示HTTP抓取，不证明DCMI与hccn_tool采集成功
+  category: 监控链路可靠性
+  acquisition_path: X
+- id: machine_npu_nums
+  title: 当前枚举芯片数
+  group: npu
+  raw_name: machine_npu_nums
+  raw_type: unverified
+  unit: count
+  validity: 非负整数；与预期资产数分开
+  scope: node
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 资产、身份与配置
+  acquisition_path: E
+- id: machine_card_nums
+  title: 当前板卡数
+  group: npu
+  raw_name: machine_card_nums
+  raw_type: unverified
+  unit: count
+  validity: 非负整数；与预期资产数分开
+  scope: node
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 资产、身份与配置
+  acquisition_path: E
+- id: machine_healthy_npu_nums
+  title: 健康芯片数
+  group: npu
+  raw_name: machine_healthy_npu_nums
+  raw_type: unverified
+  unit: count
+  validity: 非负整数；与预期资产数分开
+  scope: node
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: machine_unhealthy_npu_nums
+  title: 不健康芯片数
+  group: npu
+  raw_name: machine_unhealthy_npu_nums
+  raw_type: unverified
+  unit: count
+  validity: 非负整数；与预期资产数分开
+  scope: node
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: machine_unknown_npu_nums
+  title: 健康未知芯片数
+  group: npu
+  raw_name: machine_unknown_npu_nums
+  raw_type: unverified
+  unit: count
+  validity: 非负整数；与预期资产数分开
+  scope: node
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_health_status
+  title: Exporter芯片健康
+  group: npu
+  raw_name: npu_chip_info_health_status
+  raw_type: unverified
+  unit: boolean
+  validity: 1健康、0不健康；unknown/NotReport具体输出或缺失待固定版本核实
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_network_status
+  title: Exporter网络健康
+  group: npu
+  raw_name: npu_chip_info_network_status
+  raw_type: unverified
+  unit: boolean
+  validity: 1健康、0不健康；失败及不支持不能当0
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 互联与网络
+  acquisition_path: E
+- id: npu_chip_info_temperature
+  title: 芯片温度
+  group: npu
+  raw_name: npu_chip_info_temperature
+  raw_type: unverified
+  unit: unknown
+  validity: 需核实单位、范围和负值sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 温度、功耗与时钟
+  acquisition_path: E
+- id: npu_chip_info_power
+  title: 芯片功率
+  group: npu
+  raw_name: npu_chip_info_power
+  raw_type: unverified
+  unit: unknown
+  validity: 需核实单位及芯片/板卡粒度
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 温度、功耗与时钟
+  acquisition_path: E
+- id: npu_chip_info_voltage
+  title: 芯片电压
+  group: npu
+  raw_name: npu_chip_info_voltage
+  raw_type: unverified
+  unit: unknown
+  validity: 需核实单位和sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 温度、功耗与时钟
+  acquisition_path: E
+- id: npu_chip_info_aicore_current_freq
+  title: AI Core当前频率
+  group: npu
+  raw_name: npu_chip_info_aicore_current_freq
+  raw_type: unverified
+  unit: MHz
+  validity: 非负；0不直接判故障
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 温度、功耗与时钟
+  acquisition_path: E
+- id: npu_chip_info_process_info_num
+  title: 设备进程数量
+  group: npu
+  raw_name: npu_chip_info_process_info_num
+  raw_type: unverified
+  unit: count
+  validity: 非负整数
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - constants
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: ''
+  category: 资源容量与占用
+  acquisition_path: E
+- id: npu_chip_info_hbm_used_memory
+  title: HBM已用容量
+  group: hbm
+  raw_name: npu_chip_info_hbm_used_memory
+  raw_type: unverified
+  unit: unknown
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: 资源容量与占用
+  acquisition_path: E
+- id: npu_chip_info_hbm_total_memory
+  title: HBM总容量
+  group: hbm
+  raw_name: npu_chip_info_hbm_total_memory
+  raw_type: unverified
+  unit: unknown
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: 资源容量与占用
+  acquisition_path: E
+- id: npu_chip_info_hbm_utilization
+  title: HBM利用率
+  group: hbm
+  raw_name: npu_chip_info_hbm_utilization
+  raw_type: unverified
+  unit: unknown
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: 内存访问与带宽信号
+  acquisition_path: E
+- id: npu_chip_info_hbm_temperature
+  title: HBM温度
+  group: hbm
+  raw_name: npu_chip_info_hbm_temperature
+  raw_type: unverified
+  unit: unknown
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: 温度、功耗与时钟
+  acquisition_path: E
+- id: npu_chip_info_hbm_bandwidth_utilization
+  title: HBM带宽利用率
+  group: hbm
+  raw_name: npu_chip_info_hbm_bandwidth_utilization
+  raw_type: unverified
+  unit: unknown
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: 内存访问与带宽信号
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_enable_flag
+  title: HBM ECC开关
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_enable_flag
+  raw_type: unverified
+  unit: enum
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_single_bit_error_cnt
+  title: HBM单比特错误数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_single_bit_error_cnt
+  raw_type: unverified
+  unit: count
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_double_bit_error_cnt
+  title: HBM多比特错误数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_double_bit_error_cnt
+  raw_type: unverified
+  unit: count
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_total_single_bit_error_cnt
+  title: HBM历史单比特错误数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_total_single_bit_error_cnt
+  raw_type: unverified
+  unit: count
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_total_double_bit_error_cnt
+  title: HBM历史多比特错误数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_total_double_bit_error_cnt
+  raw_type: unverified
+  unit: count
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_single_bit_isolated_pages_cnt
+  title: HBM单比特隔离页数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_single_bit_isolated_pages_cnt
+  raw_type: unverified
+  unit: pages
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_hbm_ecc_double_bit_isolated_pages_cnt
+  title: HBM多比特隔离页数
+  group: hbm
+  raw_name: npu_chip_info_hbm_ecc_double_bit_isolated_pages_cnt
+  raw_type: unverified
+  unit: pages
+  validity: 待核实有效范围与sentinel
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - hbm
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 字段存在已核对源码；计数不因名称含cnt就假定为Prometheus counter；累计窗口和清零条件待查HDK接口
+  category: NPU健康、错误与维护
+  acquisition_path: E
+- id: npu_chip_info_error_code
+  title: 错误码第一槽位
+  group: npu
+  raw_name: npu_chip_info_error_code
+  raw_type: unverified
+  unit: event_code
+  validity: 不能用数值大小排序严重程度；编码与标签布局待验证
+  scope: chip
+  backend: DCMI
+  a3_support: collector_documented_field_unverified
+  sources:
+  - npu
+  - codes
+  collector_interval_seconds: null
+  reset_semantics: unknown
+  collection_verified: false
+  note: 其他槽位npu_chip_info_error_code_X逐项核实；顺序改变不能当新故障；并非完整事件历史
+  category: NPU健康、错误与维护
+  acquisition_path: E
+scope_note: 早期26项研究子集，非Exporter全集；分类和采集路径统一入口见主表，DCMI补采项暂未纳入此子集。
+review_master: ../../rules/docs/01-A3-NPU监控指标与告警规则说明表.md

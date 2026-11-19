@@ -1,3 +1,5 @@
+rule_files:
+- gpu-native-alerts.prom.yaml
 evaluation_interval: 10s
 tests:
 - name: inforom_invalid_normal
@@ -2914,3 +2916,563 @@ tests:
     exp_samples:
     - labels: '{job="dcgm-os-sre",instance="gpu-master-source:9490",UUID="GPU-CONTRACT-0000",metric_name="DCGM_FI_DEV_GPU_UTIL"}'
       value: 120
+- name: native_xid_app_retains_all_actual_codes_and_filters_invalid_samples
+  interval: 10s
+  input_series:
+  - series: up{job="dcgm-os-sre",instance="node-a:9400"}
+    values: 1x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-8"}
+    values: 8x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-11"}
+    values: 11x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-13"}
+    values: 13x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-14"}
+    values: 14x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-25"}
+    values: 25x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-31"}
+    values: 31x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-32"}
+    values: 32x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-37"}
+    values: 37x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-38"}
+    values: 38x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-39"}
+    values: 39x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-40"}
+    values: 40x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-41"}
+    values: 41x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-43"}
+    values: 43x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-44"}
+    values: 44x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-45"}
+    values: 45x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-46"}
+    values: 46x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-48"}
+    values: 48x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-54"}
+    values: 54x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-60"}
+    values: 60x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-62"}
+    values: 62x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-63"}
+    values: 63x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-64"}
+    values: 64x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-66"}
+    values: 66x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-67"}
+    values: 67x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-68"}
+    values: 68x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-69"}
+    values: 69x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-70"}
+    values: 70x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-71"}
+    values: 71x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-72"}
+    values: 72x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-74"}
+    values: 74x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-75"}
+    values: 75x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-76"}
+    values: 76x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-77"}
+    values: 77x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-78"}
+    values: 78x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-79"}
+    values: 79x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-80"}
+    values: 80x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-82"}
+    values: 82x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-83"}
+    values: 83x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-84"}
+    values: 84x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-85"}
+    values: 85x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-86"}
+    values: 86x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-88"}
+    values: 88x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-89"}
+    values: 89x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-92"}
+    values: 92x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-94"}
+    values: 94x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-95"}
+    values: 95x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-96"}
+    values: 96x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-97"}
+    values: 97x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-98"}
+    values: 98x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-99"}
+    values: 99x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-100"}
+    values: 100x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-101"}
+    values: 101x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-102"}
+    values: 102x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-103"}
+    values: 103x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-104"}
+    values: 104x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-105"}
+    values: 105x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-106"}
+    values: 106x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-107"}
+    values: 107x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-108"}
+    values: 108x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-109"}
+    values: 109x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-110"}
+    values: 110x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-119"}
+    values: 119x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-120"}
+    values: 120x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-136"}
+    values: 136x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-137"}
+    values: 137x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-140"}
+    values: 140x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-141"}
+    values: 141x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-143"}
+    values: 143x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-151"}
+    values: 151x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-154"}
+    values: 154x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-156"}
+    values: 156x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-157"}
+    values: 157x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-158"}
+    values: 158x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-167"}
+    values: 167x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-168"}
+    values: 168x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-169"}
+    values: 169x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-171"}
+    values: 171x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-172"}
+    values: 172x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-zero"}
+    values: '0x20'
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-stale"}
+    values: '13'
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-fractional"}
+    values: 13.5x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-mig",GPU_I_ID="1"}
+    values: 13x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-duplicate",replica="a"}
+    values: 13x20
+  - series: DCGM_FI_DEV_XID_ERRORS{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-duplicate",replica="b"}
+    values: 13x20
+  alert_rule_test:
+  - eval_time: 2m
+    alertname: os_sre_xid_app
+    exp_alerts:
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-8
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 8 · node-a:9400 · GPU-8
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '8'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-11
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 11 · node-a:9400 · GPU-11
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '11'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-13
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 13 · node-a:9400 · GPU-13
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '13'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-25
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 25 · node-a:9400 · GPU-25
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '25'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-31
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 31 · node-a:9400 · GPU-31
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '31'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-32
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 32 · node-a:9400 · GPU-32
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '32'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-39
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 39 · node-a:9400 · GPU-39
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '39'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-40
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 40 · node-a:9400 · GPU-40
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '40'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-41
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 41 · node-a:9400 · GPU-41
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '41'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-60
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 60 · node-a:9400 · GPU-60
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '60'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-68
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 68 · node-a:9400 · GPU-68
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '68'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-69
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 69 · node-a:9400 · GPU-69
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '69'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-70
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 70 · node-a:9400 · GPU-70
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '70'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-71
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 71 · node-a:9400 · GPU-71
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '71'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-72
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 72 · node-a:9400 · GPU-72
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '72'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-75
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 75 · node-a:9400 · GPU-75
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '75'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-76
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 76 · node-a:9400 · GPU-76
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '76'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-77
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 77 · node-a:9400 · GPU-77
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '77'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-80
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 80 · node-a:9400 · GPU-80
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '80'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-82
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 82 · node-a:9400 · GPU-82
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '82'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-83
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 83 · node-a:9400 · GPU-83
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '83'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-84
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 84 · node-a:9400 · GPU-84
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '84'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-85
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 85 · node-a:9400 · GPU-85
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '85'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-86
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 86 · node-a:9400 · GPU-86
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '86'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-88
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 88 · node-a:9400 · GPU-88
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '88'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-89
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 89 · node-a:9400 · GPU-89
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '89'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-96
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 96 · node-a:9400 · GPU-96
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '96'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-97
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 97 · node-a:9400 · GPU-97
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '97'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-98
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 98 · node-a:9400 · GPU-98
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '98'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-99
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 99 · node-a:9400 · GPU-99
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '99'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-100
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 100 · node-a:9400 · GPU-100
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '100'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-101
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 101 · node-a:9400 · GPU-101
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '101'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-102
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 102 · node-a:9400 · GPU-102
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '102'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-103
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 103 · node-a:9400 · GPU-103
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '103'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-104
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 104 · node-a:9400 · GPU-104
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '104'
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-105
+        severity: '2'
+        sre_rule_id: os_sre.xid_app
+      exp_annotations:
+        summary: XID进程/软件排查线索（OS侧） · XID 105 · node-a:9400 · GPU-105
+        input_metrics: DCGM_FI_DEV_XID_ERRORS
+        xid_code: '105'
+- name: native_inforom_zero_observation_clears_without_firing
+  interval: 30s
+  input_series:
+  - series: up{job="dcgm-os-sre",instance="node-a:9400"}
+    values: 1x5
+  - series: DCGM_FI_DEV_INFOROM_VALID{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-A"}
+    values: 0 1 1
+  alert_rule_test:
+  - eval_time: 0s
+    alertname: os_sre_inforom_invalid
+    exp_alerts:
+    - exp_labels:
+        job: dcgm-os-sre
+        instance: node-a:9400
+        UUID: GPU-A
+        severity: '1'
+        sre_rule_id: os_sre.inforom_invalid
+      exp_annotations:
+        summary: InfoROM校验无效 · node-a:9400 · GPU-A
+        input_metrics: DCGM_FI_DEV_INFOROM_VALID
+  - eval_time: 30s
+    alertname: os_sre_inforom_invalid
+    exp_alerts: []

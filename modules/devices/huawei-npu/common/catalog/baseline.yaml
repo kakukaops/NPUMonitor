@@ -1,0 +1,39 @@
+schema_version: 0.1.0
+lifecycle: research_draft
+checked_on: '2026-11-16'
+profile_id: ascend-a3-26.1-cann9.2
+hardware:
+  family: Ascend A3
+  exporter_device_type: Ascend910A3
+  product_model: null
+  form_factor: null
+  partition_scope: physical_only
+  topology: unknown
+driver:
+  requested: 26.1.x latest
+  resolved_patch: null
+  reason: 尚未取得A3官方26.1.x补丁完整列表，不能声称26.1.1为最新
+  firmware: null
+cann:
+  user_input: '9.20'
+  interpreted_version: 9.2.0
+  interpretation: 按9.2.0理解，现场需核对安装包
+exporter:
+  requested: latest
+  documented_release: 26.2.0
+  image_tag: v26.2.0-ubuntu22.04
+  image_digest: null
+  source_revision: null
+  binary_verified: false
+compatibility:
+  component_matrix: MindCluster26.2.0矩阵分别列出CANN9.2.X及HDK26.1.X为Y
+  recommended_suite: MindCluster26.2.0 / CANN9.2.0 / HDK26.2.0
+  requested_suite_status: pairwise_documented_full_stack_unverified
+  sources:
+  - release
+  - exporter
+  production_admitted: false
+validation:
+  hardware: not_run
+  prometheus: not_run
+  nightingale: not_run

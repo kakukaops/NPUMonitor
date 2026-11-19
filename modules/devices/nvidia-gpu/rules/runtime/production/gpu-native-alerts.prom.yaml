@@ -1,0 +1,1088 @@
+groups:
+- name: os-sre-gpu-native
+  interval: 30s
+  rules:
+  - alert: os_sre_sram
+    expr: (((max by (job,instance,UUID) ((((DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_SRAM_EXCEEDED{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) == 1
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.sram
+    annotations:
+      summary: SRAM超阈值标志 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_SRAM_EXCEEDED
+  - alert: os_sre_remap_failed
+    expr: (((max by (job,instance,UUID) ((((DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_FAILURE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) == 1
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.remap_failed
+    annotations:
+      summary: 行重映射失败 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_ROW_REMAP_FAILURE
+  - alert: os_sre_remap_pending
+    expr: (((max by (job,instance,UUID) ((((DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_ROW_REMAP_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.remap_pending
+    annotations:
+      summary: 行重映射待维护 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_ROW_REMAP_PENDING
+  - alert: os_sre_gpu_thermal
+    expr: (((max by (job,instance,UUID) ((((DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 1) and (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_GPU_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) - on (job,instance,UUID) ((max by (job,instance,UUID) ((((DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= -140737488355328) and (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) <= 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.gpu_thermal
+    annotations:
+      summary: GPU达到运行温度门槛 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_GPU_TEMP, DCGM_FI_DEV_GPU_MAX_OP_TEMP
+  - alert: os_sre_memory_thermal
+    expr: (((max by (job,instance,UUID) ((((DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 1) and (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_MEM_MAX_OP_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) - on (job,instance,UUID) ((max by (job,instance,UUID) ((((DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= -140737488355328) and (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_TEMP{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) <= 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.memory_thermal
+    annotations:
+      summary: HBM达到运行温度门槛 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_MEMORY_TEMP, DCGM_FI_DEV_MEM_MAX_OP_TEMP
+  - alert: os_sre_switch_thermal
+    expr: (((max by (job,instance,switch_id) ((((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}
+      >= 1) and (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}
+      < 140737488355328) and ((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}-DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""}))
+      <= 90)) and on (job,instance,switch_id) (count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN{job=~"dcgm.*",switch_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) - on (job,instance,switch_id) ((max by (job,instance,switch_id) ((((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}
+      >= -140737488355328) and (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}
+      < 140737488355328) and ((DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}-DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""}))
+      <= 90)) and on (job,instance,switch_id) (count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT{job=~"dcgm.*",switch_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) <= 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.switch_thermal
+    annotations:
+      summary: NVSwitch达到降速温度门槛 · {{ $labels.instance }} · {{ $labels.switch_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_TEMPERATURE_CURRENT, DCGM_FI_DEV_NVSWITCH_TEMPERATURE_LIMIT_SLOWDOWN
+  - alert: os_sre_sw_thermal
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 32) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.sw_thermal
+    annotations:
+      summary: 软件热降频持续 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_hw_thermal
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 64) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.hw_thermal
+    annotations:
+      summary: 硬件热降频持续 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_power_cap
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 4) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '3'
+      sre_rule_id: os_sre.power_cap
+    annotations:
+      summary: 设备功率限制状态（信息） · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_power_brake
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 128) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.power_brake
+    annotations:
+      summary: 外部供电限制信号 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_hw_slowdown
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 8) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.hw_slowdown
+    annotations:
+      summary: 硬件slowdown状态 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_sync_boost
+    expr: ((floor(((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) / 16) % 2)) == 1
+    for: 60s
+    labels:
+      severity: '3'
+      sre_rule_id: os_sre.sync_boost
+    annotations:
+      summary: 同步boost限制状态 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_clock_unknown
+    expr: ((((max by (job,instance,UUID) ((((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740992) and ((DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_CLOCKS_EVENT_REASONS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) >= bool 512)) == 1
+    for: 60s
+    labels:
+      severity: '3'
+      sre_rule_id: os_sre.clock_unknown
+    annotations:
+      summary: 时钟原因存在未核实位 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_CLOCKS_EVENT_REASONS
+  - alert: os_sre_ecc_new
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.ecc_new
+    annotations:
+      summary: 不可纠正ECC近期新增 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_ECC_DBE_VOL_TOTAL
+  - alert: os_sre_thermal_time
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_THERMAL_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.thermal_time
+    annotations:
+      summary: 近期热限制时长增加 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_THERMAL_VIOLATION
+  - alert: os_sre_pcie_replay
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_PCIE_REPLAY_COUNTER{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.pcie_replay
+    annotations:
+      summary: PCIe replay近期活动 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_PCIE_REPLAY_COUNTER
+  - alert: os_sre_nvlink_crc
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.nvlink_crc
+    annotations:
+      summary: Hopper NVLink CRC近期活动 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_NVLINK_CRC_ERROR_TOTAL
+  - alert: os_sre_nvlink_recovery
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.nvlink_recovery
+    annotations:
+      summary: Hopper NVLink recovery近期活动 · {{ $labels.instance }} · {{ $labels.UUID
+        }}
+      input_metrics: DCGM_FI_DEV_NVLINK_RECOVERY_TOTAL
+  - alert: os_sre_nvlink_replay
+    expr: (((((max by (job,instance,UUID) ((increase(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])
+      >= 2))) and on (job,instance,UUID) (((max by (job,instance,UUID) ((((DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_NVLINK_REPLAY_TOTAL{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.nvlink_replay
+    annotations:
+      summary: Hopper NVLink replay近期活动 · {{ $labels.instance }} · {{ $labels.UUID
+        }}
+      input_metrics: DCGM_FI_DEV_NVLINK_REPLAY_TOTAL
+  - alert: os_sre_switch_replay
+    expr: (((((max by (job,instance,switch_id,link_id) ((increase(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 2))) and on (job,instance,switch_id,link_id) (((max by (job,instance,switch_id,link_id)
+      ((((DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= 0) and (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}-DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      <= 90) and (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      == floor(DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      and on (job,instance,switch_id,link_id) (count by (job,instance,switch_id,link_id)
+      (DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.switch_replay
+    annotations:
+      summary: NVSwitch端口replay近期活动 · {{ $labels.instance }} · {{ $labels.switch_id
+        }} · port {{ $labels.link_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_LINK_REPLAY_ERROR_TOTAL
+  - alert: os_sre_switch_recovery
+    expr: (((((max by (job,instance,switch_id,link_id) ((increase(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s]))
+      and (min_over_time(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 0) and (max_over_time(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      < 9223372036854775792) and (sum_over_time(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 0) and (count_over_time(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}[300s])
+      >= 2))) and on (job,instance,switch_id,link_id) (((max by (job,instance,switch_id,link_id)
+      ((((DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= 0) and (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}-DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      <= 90) and (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""}
+      == floor(DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      and on (job,instance,switch_id,link_id) (count by (job,instance,switch_id,link_id)
+      (DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))))) > bool 0)) == 1
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.switch_recovery
+    annotations:
+      summary: NVSwitch端口recovery近期活动 · {{ $labels.instance }} · {{ $labels.switch_id
+        }} · port {{ $labels.link_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_LINK_RECOVERY_ERROR_TOTAL
+  - alert: os_sre_xid_node
+    expr: "max by (job,instance,UUID) ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 54\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 79)\nand on (job,instance,UUID)\
+      \ ((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} < 9223372036854775792)\
+      \ and ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}-DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == floor(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}))) and on (job,instance,UUID)\
+      \ (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}) == 1)))) and on (job,instance) (max by\
+      \ (job,instance) ((up{job=~\"dcgm.*\"} == 1) and ((time()-timestamp(up{job=~\"\
+      dcgm.*\"})) >= 0) and ((time()-timestamp(up{job=~\"dcgm.*\"})) <= 90)))))"
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.xid_node
+    annotations:
+      summary: XID节点事件待处置 · XID {{ printf "%.0f" $value }} · {{ $labels.instance }}
+        · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_XID_ERRORS
+      xid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_xid_reset
+    expr: "max by (job,instance,UUID) ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 46\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 62\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 64\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 109\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 110\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 119\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 120\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 136\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 140\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 143\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 158)\nand on (job,instance,UUID)\
+      \ ((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} < 9223372036854775792)\
+      \ and ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}-DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == floor(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}))) and on (job,instance,UUID)\
+      \ (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}) == 1)))) and on (job,instance) (max by\
+      \ (job,instance) ((up{job=~\"dcgm.*\"} == 1) and ((time()-timestamp(up{job=~\"\
+      dcgm.*\"})) >= 0) and ((time()-timestamp(up{job=~\"dcgm.*\"})) <= 90)))))"
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.xid_reset
+    annotations:
+      summary: XID GPU重置复核 · XID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_XID_ERRORS
+      xid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_xid_app
+    expr: "max by (job,instance,UUID) ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 8\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 11\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 13\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 25\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 31\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 32\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 39\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 40\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 41\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 60\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 68\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 69\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 70\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 71\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 72\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 75\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 76\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 77\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 80\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 82\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 83\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 84\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 85\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 86\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 88\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 89\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 96\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 97\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 98\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 99\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 100\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 101\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 102\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 103\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 104\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 105)\nand on (job,instance,UUID)\
+      \ ((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} < 9223372036854775792)\
+      \ and ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}-DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == floor(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}))) and on (job,instance,UUID)\
+      \ (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}) == 1)))) and on (job,instance) (max by\
+      \ (job,instance) ((up{job=~\"dcgm.*\"} == 1) and ((time()-timestamp(up{job=~\"\
+      dcgm.*\"})) >= 0) and ((time()-timestamp(up{job=~\"dcgm.*\"})) <= 90)))))"
+    for: 0s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.xid_app
+    annotations:
+      summary: XID进程/软件排查线索（OS侧） · XID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_XID_ERRORS
+      xid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_xid_scope
+    expr: "max by (job,instance,UUID) ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 78\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 151)\nand on (job,instance,UUID)\
+      \ ((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} < 9223372036854775792)\
+      \ and ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}-DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == floor(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}))) and on (job,instance,UUID)\
+      \ (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}) == 1)))) and on (job,instance) (max by\
+      \ (job,instance) ((up{job=~\"dcgm.*\"} == 1) and ((time()-timestamp(up{job=~\"\
+      dcgm.*\"})) >= 0) and ((time()-timestamp(up{job=~\"dcgm.*\"})) <= 90)))))"
+    for: 0s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.xid_scope
+    annotations:
+      summary: XID与部署范围需复核 · XID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_XID_ERRORS
+      xid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_xid_unknown
+    expr: "(((max by (job,instance,UUID) ((((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\"\
+      ,UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} >= 0) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} < 9223372036854775792)\
+      \ and ((DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}-DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\
+      \"}) == 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) >= 0) and ((time()-timestamp(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"})) <= 90) and (DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == floor(DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}))) and on (job,instance,UUID)\
+      \ (count by (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"}) == 1)))) and on (job,instance) (max by\
+      \ (job,instance) ((up{job=~\"dcgm.*\"} == 1) and ((time()-timestamp(up{job=~\"\
+      dcgm.*\"})) >= 0) and ((time()-timestamp(up{job=~\"dcgm.*\"})) <= 90)))) > 0)\
+      \ unless on (job,instance,UUID) (DCGM_FI_DEV_XID_ERRORS{job=~\"dcgm.*\",UUID!=\"\
+      \",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 8\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 11\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 13\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 14\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 25\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 31\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 32\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 37\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 38\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 39\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 40\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 41\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 43\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 44\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 45\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 46\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 48\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 54\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 60\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 62\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 63\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 64\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 66\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 67\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 68\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 69\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 70\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 71\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 72\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 74\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 75\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 76\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 77\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 78\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 79\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 80\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 82\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 83\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 84\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 85\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 86\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 88\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 89\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 92\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 94\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 95\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 96\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 97\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 98\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 99\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 100\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 101\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 102\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 103\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 104\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 105\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 106\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 107\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 108\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 109\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 110\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 119\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 120\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 136\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 137\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 140\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 141\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 143\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 151\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 154\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 156\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 157\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 158\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 167\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 168\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 169\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 171\n  or DCGM_FI_DEV_XID_ERRORS{job=~\"\
+      dcgm.*\",UUID!=\"\",GPU_I_ID=\"\",GPU_I_PROFILE=\"\"} == 172)"
+    for: 0s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.xid_unknown
+    annotations:
+      summary: XID目录外码值待复核 · XID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_XID_ERRORS
+      xid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_sxid_fatal
+    expr: ((max by (job,instance,switch_id) ((((DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      >= 0) and (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""} <
+      9223372036854775792) and ((DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}-DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      <= 90) and (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""} ==
+      floor(DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))) and
+      on (job,instance,switch_id) (count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) > 0
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.sxid_fatal
+    annotations:
+      summary: NVSwitch fatal SXid待复核 · SXID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.switch_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS
+      sxid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_sxid_nonfatal
+    expr: ((max by (job,instance,switch_id) ((((DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      >= 0) and (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      < 9223372036854775792) and ((DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}-DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}))
+      <= 90) and (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""}
+      == floor(DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})))
+      and on (job,instance,switch_id) (count by (job,instance,switch_id) (DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS{job=~"dcgm.*",switch_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) > 0
+    for: 0s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.sxid_nonfatal
+    annotations:
+      summary: NVSwitch nonfatal SXid待复核 · SXID {{ printf "%.0f" $value }} · {{ $labels.instance
+        }} · {{ $labels.switch_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_NON_FATAL_ERRORS
+      sxid_code: '{{ printf "%.0f" $value }}'
+  - alert: os_sre_gpu_link_down
+    expr: (((max by (job,instance,UUID,link_id) (((DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 3) and ((DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      and ((DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 0) or (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 1) or (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 2))) and on (job,instance,UUID,link_id) (count by (job,instance,UUID,link_id)
+      (DCGM_FI_DEV_NVLINK_GET_STATE{job=~"dcgm.*",UUID!="",link_id!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) == 0) and on (job,instance,UUID,link_id) (sre:inventory:gpu_link_expected
+      == 1)
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.gpu_link_down
+    annotations:
+      summary: 预期GPU NVLink端口未连接 · {{ $labels.instance }} · {{ $labels.UUID }} · port
+        {{ $labels.link_id }}
+      input_metrics: DCGM_FI_DEV_NVLINK_GET_STATE
+  - alert: os_sre_switch_link_down
+    expr: (((((max by (job,instance,switch_id,link_id) ((((DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      >= 0) and (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      < 4) and ((DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}-DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}))
+      <= 90) and (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""}
+      == floor(DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})))
+      and on (job,instance,switch_id,link_id) (count by (job,instance,switch_id,link_id)
+      (DCGM_FI_DEV_NVSWITCH_LINK_STATUS{job=~"dcgm.*",switch_id!="",link_id!=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) != 2)) and on (job,instance,switch_id,link_id) (sre:inventory:switch_link_expected
+      == 1))
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.switch_link_down
+    annotations:
+      summary: 预期NVSwitch端口未活动 · {{ $labels.instance }} · {{ $labels.switch_id }}
+        · port {{ $labels.link_id }}
+      input_metrics: DCGM_FI_DEV_NVSWITCH_LINK_STATUS
+  - alert: os_sre_pcie_degraded
+    expr: ((((((((max by (job,instance,UUID) ((((DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 1) and (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 7) and ((DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_GEN{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) < bool on (job,instance,UUID) sre:inventory:pcie_gen) + on (job,instance,UUID)
+      (((max by (job,instance,UUID) ((((DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 1) and (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 33) and ((DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_PCIE_LINK_WIDTH{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) < bool on (job,instance,UUID) sre:inventory:pcie_width)) > bool 0))
+      and on (job,instance,UUID) (((((max by (job,instance,UUID) ((((DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_PROF_PCIE_TX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) + on (job,instance,UUID) ((max by (job,instance,UUID) ((((DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 140737488355328) and ((DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_PROF_PCIE_RX_BYTES{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) > on (job,instance,UUID) sre:inventory:pcie_active_bps)))) == 1
+    for: 120s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.pcie_degraded
+    annotations:
+      summary: 持续PCIe传输时链路低于资产预期 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_PCIE_LINK_GEN, DCGM_FI_DEV_PCIE_LINK_WIDTH, DCGM_FI_PROF_PCIE_TX_BYTES,
+        DCGM_FI_PROF_PCIE_RX_BYTES
+  - alert: os_sre_fabric_manager
+    expr: ((((((max by (job,instance,UUID) ((((DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 7) and ((DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) and on (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 1 or DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 2 or DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 4))) and on (job,instance,UUID) (sre:inventory:fabric_expected == 1))
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.fabric_manager
+    annotations:
+      summary: 预期Fabric Manager未就绪 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_FABRIC_MANAGER_STATUS
+  - alert: os_sre_fabric_capability
+    expr: ((((((max by (job,instance,UUID) ((((DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 7) and ((DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) and on (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 0 or DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 5 or DCGM_FI_DEV_FABRIC_MANAGER_STATUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 6))) and on (job,instance,UUID) (sre:inventory:fabric_expected == 1))
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.fabric_capability
+    annotations:
+      summary: 预期fabric能力或版本缺口 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_FABRIC_MANAGER_STATUS
+  - alert: os_sre_fabric_health
+    expr: (((((max by (job,instance,UUID) ((((DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 4) and ((DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1)))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) >= 2)) and on (job,instance,UUID) (sre:inventory:fabric_expected ==
+      1))
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.fabric_health
+    annotations:
+      summary: fabric不健康或容量受限 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_FABRIC_HEALTH_SUMMARY
+  - alert: os_sre_inforom_invalid
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_INFOROM_VALID{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) == 0
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.inforom_invalid
+    annotations:
+      summary: InfoROM校验无效 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_INFOROM_VALID
+  - alert: os_sre_memory_unrepairable
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_MEMORY_UNREPAIRABLE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) == 1
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.memory_unrepairable
+    annotations:
+      summary: 设备报告不可修复内存 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_MEMORY_UNREPAIRABLE
+  - alert: os_sre_recovery_required
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740991) and ((DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      and ((DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 0) or (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 1) or (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 2) or (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 3) or (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == 4))) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_GPU_RECOVERY_ACTION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) > 0
+    for: 0s
+    labels:
+      severity: '1'
+      sre_rule_id: os_sre.recovery_required
+    annotations:
+      summary: GPU报告需要恢复处置 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_GPU_RECOVERY_ACTION
+  - alert: os_sre_remap_resource_exhausted
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740991) and ((DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) > 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.remap_resource_exhausted
+    annotations:
+      summary: 行重映射资源存在耗尽bank · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_BANK_REMAP_AVAIL_NONE
+  - alert: os_sre_thermal_margin_exhausted
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= -273.15) and (DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740991) and ((DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90)) and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) <= 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.thermal_margin_exhausted
+    annotations:
+      summary: GPU达到硬件降速温度余量门槛 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS
+  - alert: os_sre_fabric_manager_error
+    expr: ((max by (job,instance,UUID) (((DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740991) and ((DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_FABRIC_MANAGER_ERROR{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) > 0
+    for: 60s
+    labels:
+      severity: '2'
+      sre_rule_id: os_sre.fabric_manager_error
+    annotations:
+      summary: Fabric Manager报告错误码 · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_FABRIC_MANAGER_ERROR
+  - alert: os_sre_ecc_change_pending
+    expr: ((((max by (job,instance,UUID) (((DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_ECC_MODE{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))) != bool on (job,instance,UUID) ((max by (job,instance,UUID) (((DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 2) and ((DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_ECC_PENDING{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90)))))) == 1
+    for: 60s
+    labels:
+      severity: '3'
+      sre_rule_id: os_sre.ecc_change_pending
+    annotations:
+      summary: ECC配置存在待生效变更（信息） · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_ECC_MODE, DCGM_FI_DEV_ECC_PENDING
+  - alert: os_sre_power_violation_recent
+    expr: (((max by (job,instance,UUID) (increase(DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}[300s])))
+      and on (job,instance,UUID) ((max by (job,instance,UUID) (((DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      >= 0) and (DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      < 9007199254740991) and ((DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}-DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 0) and ((time()-timestamp(DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      >= 0) and ((time()-timestamp(DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}))
+      <= 90) and (DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""}
+      == floor(DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})))
+      and on (job,instance,UUID) (count by (job,instance,UUID) (DCGM_FI_DEV_POWER_VIOLATION{job=~"dcgm.*",UUID!="",GPU_I_ID="",GPU_I_PROFILE=""})
+      == 1))) and on (job,instance) (max by (job,instance) ((up{job=~"dcgm.*"} ==
+      1) and ((time()-timestamp(up{job=~"dcgm.*"})) >= 0) and ((time()-timestamp(up{job=~"dcgm.*"}))
+      <= 90))))) > bool 0) == 1
+    for: 60s
+    labels:
+      severity: '3'
+      sre_rule_id: os_sre.power_violation_recent
+    annotations:
+      summary: 近期功率限制时长增加（信息） · {{ $labels.instance }} · {{ $labels.UUID }}
+      input_metrics: DCGM_FI_DEV_POWER_VIOLATION

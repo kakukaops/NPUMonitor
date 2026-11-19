@@ -2,7 +2,7 @@
   "schema_version": 1,
   "derived_from": "14-GPU监控指标与告警规则说明表.md",
   "document_revision": "1.2",
-  "document_sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d",
+  "document_sha256": "e2138ce0e32294d8281b791aa4149b3fe57f7cf26831f5fefa5425c1d78fd5ae",
   "candidate_inventory_sha256": "d12110cf05eaa9c0854c5cca380bfbf56f59c9d799dbee6d39e07b5821a78ff5",
   "implementation_catalog_sha256": "ec45a52cf8c7de033f5240a88107bf2d1dc29dfbb217c4103d704521bb8d086b",
   "scope": "H100 physical baseline; conditional capabilities/version contracts; not universal NVIDIA field coverage",

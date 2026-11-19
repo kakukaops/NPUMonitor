@@ -1,7 +1,7 @@
 name: gpu-monitoring-ml
 services:
   gpu-ml:
-    image: gpu-monitoring-ml:0.5.1
+    image: gpu-monitoring-ml:0.7.0
     build:
       context: ../../..
       dockerfile: modules/devices/nvidia-gpu/ml/Dockerfile

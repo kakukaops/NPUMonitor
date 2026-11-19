@@ -4,7 +4,7 @@
   "authority": {
     "document": "modules/devices/nvidia-gpu/rules/docs/14-GPU监控指标与告警规则说明表.md",
     "revision": "1.2",
-    "sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d"
+    "sha256": "e2138ce0e32294d8281b791aa4149b3fe57f7cf26831f5fefa5425c1d78fd5ae"
   },
   "features": {
     "gpu_temp": {

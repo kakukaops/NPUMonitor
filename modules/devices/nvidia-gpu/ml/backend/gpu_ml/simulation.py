@@ -7,7 +7,7 @@ from .settings import METRICS
 
 UUIDS = tuple(f'GPU-ML-SIM-{i:04d}' for i in range(3))
 CLUSTER = 'gpu-ml-simulation'
-SCENARIOS = ('normal', 'temperature_spike', 'thermal_drift', 'power_clock', 'activity_drop',
+SCENARIOS = ('power_spike', 'memory_activity_drop', 'normal', 'temperature_spike', 'thermal_drift', 'power_clock', 'activity_drop',
              'thermal_aging', 'clock_aging', 'idle', 'high_load', 'missing', 'invalid', 'duplicate', 'stale')
 
 
@@ -60,6 +60,8 @@ class Simulator:
             if mode=='temperature_spike': values['gpu_temp']+=18; values['memory_temp']+=16
             if mode=='thermal_drift': values['gpu_temp']+=min(23,age*.9); values['memory_temp']+=min(20,age*.8)
             if mode=='power_clock': values['power']+=95; values['sm_clock']-=240
+            if mode=='power_spike':values['power']+=140
+            if mode=='memory_activity_drop':values['mem_util']=3.
             if mode=='activity_drop': values['util']=5.; values['power']=90.; values['sm_clock']=650.
             if mode=='thermal_aging':
                 values['gpu_temp']+=min(16,age*.08);values['memory_temp']+=min(14,age*.07)

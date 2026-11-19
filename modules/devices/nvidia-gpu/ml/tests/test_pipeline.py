@@ -11,6 +11,32 @@ class PipelineTests(unittest.TestCase):
     def fit(self,algorithm='temporal_mad',config=None):
         template='joint_gpu' if algorithm.startswith('joint_') else 'uni_gpu_temp'
         model=build_pipeline(template,algorithm,config);model.fit(data());return model
+    def test_first_batch_reference_forecasts_and_injections(self):
+        from gpu_ml.baseline import reference_rows, PRIMARY_METRICS
+        from gpu_ml.simulation import CLUSTER, UUIDS
+        end=1794900000
+        for metric in PRIMARY_METRICS:
+            with self.subTest(metric=metric):
+                rows=reference_rows(CLUSTER+'|'+UUIDS[0],metric,end-3600,end,2)
+                model=build_pipeline('uni_'+metric,'temporal_mad',{'detector':{'window':12,'alpha':2.5}})
+                report=model.fit(rows)
+                self.assertLessEqual(report['held_out_point_alert_rate'],.1)
+                self.assertEqual(model.metadata()['detector']['alpha'],2.5)
+                self.assertGreater(report['test']['forecast_comparison']['model_mae'],0)
+                future=reference_rows(CLUSTER+'|'+UUIDS[0],metric,end+2,end+240,2)
+                points=model.predict(future)
+                self.assertGreater(len({p['expected'][metric] for p in points}),10)
+                changed=copy.deepcopy(future)
+                for row in changed[40:80]:
+                    row['values'][metric]=3. if metric in ('util','mem_util') else row['values'][metric]+(140. if metric=='power' else 18.)
+                abnormal=model.predict(changed)
+                self.assertTrue(any(p['anomaly'] for p in abnormal if future[40]['t']<=p['t']<=future[79]['t']))
+                self.assertEqual(points[:28],abnormal[:28])
+                self.assertIn(metric+':level',abnormal[40]['calibrated_components'])
+        for alpha in (True,0,float('nan'),1001):
+            with self.assertRaises(ValueError):build_pipeline('uni_gpu_temp','temporal_mad',{'detector':{'alpha':alpha}})
+        with self.assertRaises(ValueError):build_pipeline('uni_gpu_temp','level_mad',{'detector':{'alpha':1}})
+
     def test_time_split_and_train_only_fit_no_future_leak(self):
         rows=data();model=self.fit();altered=copy.deepcopy(rows)
         for r in altered[1080:]:r['values']['gpu_temp']+=1000

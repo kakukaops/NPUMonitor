@@ -37,6 +37,12 @@ async def missing(request,exc):return JSONResponse({'contract_version':1,'detail
 def health():return {'alive':RUNTIME is not None,'component':'model-platform','contract_version':1}
 @app.get('/v1/info')
 def info():return RUNTIME.info()
+@app.get('/v1/models')
+def catalog():return RUNTIME.catalog()
+@app.get('/v1/models/{key}')
+def describe(key:str):return RUNTIME.describe(key)
+@app.get('/v1/deployments/{key}')
+def deployment(key:str):return RUNTIME.deployment(key)
 @app.post('/v1/jobs')
 async def submit(request:Request):return RUNTIME.submit(await request.json())
 @app.get('/v1/jobs/{key}')

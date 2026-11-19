@@ -22,7 +22,8 @@ from .settings import DATA,BASE,SIMULATION,METRICS,TEMPLATES,FRESHNESS
 from .store import Store,Conflict,check_initialization
 from .source import Source
 from .engine import Engine
-from .simulation import Simulator,SCENARIOS
+from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
+from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
 from .models import ALGORITHMS,build_model
@@ -188,7 +189,7 @@ def state(request:Request):
         if item['quality']=='valid' and time.time()-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
     return {'role':role,'time':time.time(),'simulation':SIMULATION,'production_admitted':False,
             'entities':entities,'tasks':STORE.list('task'),'states':states,'models':STORE.list('model'),
-            'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':ALGORITHMS,
+            'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':ALGORITHMS,
             'bindings':STORE.list('binding'),'sync_error':STORE.get('system','sync_error'),'nightingale':STORE.get('system','nightingale_events') or {'connected':False,'events':[]},
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
                 'enabled':(STORE.get('system','inference') or {'enabled':True})['enabled']},
@@ -262,6 +263,68 @@ async def create_policy(request:Request):
     STORE.audit(actor,'policy_expand',kind,{'entities':entities,'metrics':metrics,'created':len(created),'skipped':len(skipped)})
     return {'created':created,'skipped':skipped,'training':'required; no automatic synthetic fallback','event_aggregation':'nightingale'}
 
+@app.get('/api/gpu-ml/v1/model-services')
+def model_services(request:Request):
+    user(request);return {'services':ENGINE.services.list()}
+
+@app.post('/api/gpu-ml/v1/model-services')
+async def add_model_service(request:Request):
+    actor=user(request,'admin');body=await request.json()
+    result=await run_in_threadpool(ENGINE.services.create,body.get('name'),body.get('url'),body.get('token'),body.get('timeout_seconds',12))
+    STORE.audit(actor,'model_service_create',result['id'],{'name':result['name']})
+    return result
+
+@app.put('/api/gpu-ml/v1/model-services/{key}/credentials')
+async def update_service_credentials(key:str,request:Request):
+    actor=user(request,'admin');body=await request.json()
+    result=await run_in_threadpool(ENGINE.services.credentials,key,body.get('token'))
+    STORE.audit(actor,'model_service_credentials',key);return result
+
+@app.post('/api/gpu-ml/v1/model-services/{key}/check')
+async def check_model_service(key:str,request:Request):
+    actor=user(request,'operator');result=await run_in_threadpool(ENGINE.services.check,key)
+    STORE.audit(actor,'model_service_check',key);return {'connected':True,'platform_id':result['platform_id'],'operations':result.get('operations',[])}
+
+@app.get('/api/gpu-ml/v1/model-services/{key}/models')
+async def remote_models(key:str,request:Request,task:str):
+    user(request,'operator');return await run_in_threadpool(ENGINE.services.catalog,key,task)
+
+@app.post('/api/gpu-ml/v1/remote-models/register')
+async def register_remote_model(request:Request):
+    actor=user(request,'operator');body=await request.json()
+    result=await run_in_threadpool(ENGINE.services.register,required_body_value(body,'service_id'),required_body_value(body,'task'),required_body_value(body,'model_ref'),body.get('deployment_ref'))
+    STORE.audit(actor,'remote_model_register',result['id'],{'service_id':body['service_id'],'task':body['task']})
+    return {'model':result,'published':False,'validation':'connection, identity, input/output and trial scoring only; not detection accuracy'}
+
+@app.post('/api/gpu-ml/v1/baseline-demo')
+async def baseline_demo(request:Request):
+    actor=user(request,'operator');body=await request.json()
+    if not SIMULATION:raise ValueError('仅允许显式模拟环境初始化演示')
+    uid=body.get('uuid',UUIDS[0])
+    if uid not in UUIDS:raise ValueError('请选择显式模拟GPU')
+    entity=CLUSTER+'|'+uid
+    observed=STORE.get('entity',entity)
+    if not observed or observed['source_type']!='simulated':raise ValueError('等待Prometheus发现模拟GPU后重试')
+    tasks=[];jobs=[]
+    for metric in PRIMARY_METRICS:
+        template='uni_'+metric;ident='v2-'+hashlib.sha256((entity+'|'+template).encode()).hexdigest()[:24]
+        task=STORE.get('task',ident)
+        if task and task.get('deleted'):continue
+        if not task:
+            task=STORE.put('task',ident,{'name':uid+' · '+metric,'entity':entity,'template':template,
+                'algorithm':'temporal_mad','enabled':True,'scope':'simulated','active_model':None,
+                'sensitivity':1.,'confirmation_samples':3,'recovery_samples':3,'created_at':time.time(),
+                'policy_kind':'univariate','notification_mode':'evidence'})
+        tasks.append(task)
+        existing=any(m['entity']==entity and m['template']==template and m['source']=='simulation-reference' and m['status'] in ('validated','published') for m in STORE.list('model'))
+        busy=any(j['task']==ident and j['status'] in ('queued','running','pending_sync') for j in STORE.list('job'))
+        if not existing and not busy:
+            end=int(time.time()-4)//2*2
+            jobs.append(ENGINE.queue_training(ident,'temporal_mad',end-3600,end,2,input_source='simulation-reference'))
+    STORE.audit(actor,'baseline_demo',entity,{'tasks':len(tasks),'jobs':len(jobs),'source':'explicit synthetic normal reference, not Prometheus history'})
+    return {'tasks':tasks,'jobs':jobs,'source':'simulation-reference','published':False}
+
+
 @app.post('/api/gpu-ml/v1/tasks')
 async def create_task(request:Request):
     actor=user(request,'operator');body=await request.json()
@@ -295,12 +358,14 @@ async def update_task(key:str,request:Request):
     if not task:raise HTTPException(404,'任务不存在')
     expected=int(request.headers.get('if-match','-1'))
     if expected<1:raise HTTPException(428,'需要If-Match版本')
-    allowed={'name','enabled','sensitivity'}
+    allowed={'name','enabled','sensitivity','confirmation_samples','recovery_samples'}
     if set(body)-allowed:raise ValueError('不允许修改该字段；输入变更请创建新任务')
     if 'name' in body:required_body_value(body,'name')
     if 'enabled' in body and not isinstance(body['enabled'],bool):raise ValueError('enabled需要布尔值')
     if 'sensitivity' in body and (isinstance(body['sensitivity'],bool) or not isinstance(body['sensitivity'],(int,float)) or not .8<=body['sensitivity']<=2):raise ValueError('阈值倍率范围0.8～2')
     if task.get('deleted'):raise ValueError('任务已退役，请创建新任务')
+    for name in ('confirmation_samples','recovery_samples'):
+        if name in body:sample_count(body[name])
     task.update(body);result=STORE.put('task',key,task,expected=expected)
     if not task['enabled']:STORE.administrative_close(key,'task_paused_by_operator')
     STORE.audit(actor,'task_update',key,body);return result
@@ -320,7 +385,7 @@ def delete_task(key:str,request:Request):
 @app.post('/api/gpu-ml/v1/training-jobs')
 async def train(request:Request):
     actor=user(request,'operator');body=await request.json()
-    result=ENGINE.queue_training(required_body_value(body,'task'),body.get('algorithm','ridge_iforest'),float(body['start']),float(body['end']),int(body.get('step',2)),config=body.get('pipeline'),labels=body.get('labels'))
+    result=ENGINE.queue_training(required_body_value(body,'task'),body.get('algorithm','ridge_iforest'),float(body['start']),float(body['end']),body.get('step',2),config=body.get('pipeline'),labels=body.get('labels'),input_source=body.get('input_source','prometheus'))
     STORE.audit(actor,'training_create',result['id']);return result
 
 @app.post('/api/gpu-ml/v1/jobs/{key}/cancel')
@@ -460,7 +525,7 @@ def backup(request:Request):
     STORE.audit(actor,'backup',key)
     return {'id':key,'download':'/api/gpu-ml/v1/backups/'+key,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
             'remote_model_refs':[m['backend'] for m in STORE.list('model') if m.get('backend')],
-            'scope':'monitor configuration, snapshots and legacy local artifacts; remote weights need platform backup'}
+            'scope':'monitor configuration, snapshots and legacy local artifacts; remote weights need platform backup; service credentials excluded and require separate restore'}
 
 @app.get('/api/gpu-ml/v1/backups/{key}')
 def backup_download(key:str,request:Request):

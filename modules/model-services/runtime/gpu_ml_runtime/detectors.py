@@ -30,7 +30,7 @@ class BaseDetector:
 class LagRidgeDetector(BaseDetector):
     reference_kind='causal_forecast'
     interval=True
-    def __init__(self,spec,window=12):super().__init__(spec);self.window=window
+    def __init__(self,spec,window=12,alpha=1.):super().__init__(spec);self.window=window;self.alpha=alpha
     def windows(self,rows):
         out=[]
         for i in range(self.window,len(rows)):
@@ -43,7 +43,7 @@ class LagRidgeDetector(BaseDetector):
         windows=self.windows(rows)
         if len(windows)<20:raise ValueError('训练集连续窗口不足')
         x=np.array([r[1] for r in windows]);y=np.array([r[2] for r in windows])
-        self.regression=Ridge(alpha=1).fit(x,y);self.center=float(np.median(y))
+        self.regression=Ridge(alpha=getattr(self,'alpha',1.)).fit(x,y);self.center=float(np.median(y))
         self.residual_scale=max(float(1.4826*np.median(np.abs(y-self.regression.predict(x)))),.2)
         self.level_scale=max(float(1.4826*np.median(np.abs(y-self.center))),.2)
     def score_raw(self,rows):

@@ -79,12 +79,12 @@ class DetectionPipeline:
         if algorithm not in self.spec.get('algorithms',[]) or algorithm not in DETECTORS:raise ValueError('算法与检测配置不兼容')
         if set(self.config)-{'preprocessing','calibration','detector','decision'}:raise ValueError('流水线配置字段无效')
         params=self.config.get('detector',{})
-        if not isinstance(params,dict) or set(params)-{'window'}:raise ValueError('检测器参数无效')
+        if not isinstance(params,dict) or set(params)-{'window','alpha'}:raise ValueError('检测器参数无效')
         window=params.get('window',12)
         if not isinstance(window,int) or isinstance(window,bool) or not 4<=window<=60:raise ValueError('历史窗口范围4至60点')
         if algorithm!='temporal_mad' and params:raise ValueError('该检测器不使用历史窗口参数')
         self.preprocessor=StrictPreprocessor(self.spec['required'],self.config.get('preprocessing'))
-        self.detector=DETECTORS[algorithm](self.spec,window=window)
+        self.detector=DETECTORS[algorithm](self.spec,window=window,**({'alpha':finite_number(params.get('alpha',1.),.001,1000.)} if algorithm=='temporal_mad' else {}))
         self.calibrator=QuantileCalibrator(self.config.get('calibration'))
         decision=self.config.get('decision',{})
         if not isinstance(decision,dict) or set(decision)-{'factor'}:raise ValueError('判定参数无效')
@@ -117,6 +117,16 @@ class DetectionPipeline:
             started=time.perf_counter();points=self.predict(part)
             if len(points)<6:raise ValueError('独立'+key+'段有效评分不足6点，请扩大训练范围或缩短历史窗口')
             reports[key]=summarize(points,part,[l for l in (labels or []) if l['end']>part[0]['t'] and l['start']<=part[-1]['t']],self.cadence,time.perf_counter()-started)
+        if self.algorithm=='temporal_mad':
+            target=self.spec['targets'][0]
+            center=float(np.median([r['values'][target] for r in train]))
+            for key,part in [('selection',selection),('test',test)]:
+                predicted=self.predict(part);previous={part[i]['t']:part[i-1]['values'][target] for i in range(1,len(part))}
+                reports[key]['forecast_comparison']={
+                    'model_mae':float(np.mean([abs(p['values'][target]-p['expected'][target]) for p in predicted])),
+                    'previous_value_mae':float(np.mean([abs(p['values'][target]-previous[p['t']]) for p in predicted])),
+                    'training_median_mae':float(np.mean([abs(p['values'][target]-center) for p in predicted])),
+                    'meaning':'held-out prediction error in original units, not fault detection accuracy'}
         return {'samples':len(rows),'train_samples':len(train),'calibration_samples':len(cal),'selection_samples':len(selection),'test_samples':reports['test']['scored_points'],
                 'held_out_point_alert_rate':reports['test']['point_alert_rate'],'labelled_fault_recall':reports['test']['labelled_point_recall'],
                 'selection':reports['selection'],'test':reports['test'],
@@ -153,7 +163,7 @@ class DetectionPipeline:
     def metadata(self):
         return {'schema':3,'pipeline_id':self.pipeline_id,'preprocessor_id':self.preprocessor_id,'detector_id':self.detector_id,
                 'calibrator_id':self.calibrator_id,'decision_id':self.decision_id,'preprocessing':self.preprocessor.metadata(),
-                'detector':{'algorithm':self.algorithm,'window':self.window},'calibration':dict(self.calibrator.config,scales=self.calibrator.scales),
+                'detector':{'algorithm':self.algorithm,'window':self.window,**({'alpha':getattr(self.detector,'alpha',1.)} if self.algorithm=='temporal_mad' else {})},'calibration':dict(self.calibrator.config,scales=self.calibrator.scales),
                 'decision':{'kind':'upper_threshold','threshold':self.policy.threshold,'factor':self.policy.factor},'online_updates':False}
     def save(self,path):
         path=Path(path);joblib.dump(self,path);return hashlib.sha256(path.read_bytes()).hexdigest()

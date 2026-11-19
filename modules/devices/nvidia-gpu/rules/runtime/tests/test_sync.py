@@ -63,3 +63,24 @@ class SyncTests(unittest.TestCase):
         sync=Sync(self.store,self.api);result=sync.apply()
         self.assertEqual(result['rules'],46)
         self.assertEqual({r['annotations']['sre_rule_id'] for r in self.api.rules},{r['rule_id'] for r in b['rules']})
+
+
+    def test_current_projection_pauses_existing_and_skips_new_reliability_rules(self):
+        config = copy.deepcopy(self.config)
+        config['master_profile'] = 'h100-master-simulation-v1'
+        bundle = compile_bundle(config, ROOT)
+        self.store.activate(bundle, 1, 'test', 'master simulation')
+        paused = Sync(self.store, self.api, pause_monitoring_reliability=True)
+        Sync(self.store, self.api).apply()
+        before = {row['annotations']['sre_rule_id']: row['id'] for row in self.api.rules}
+        paused.apply()
+        enabled = {row['annotations']['sre_rule_id'] for row in self.api.rules if not row['disabled']}
+        expected = {rule['rule_id'] for rule in bundle['rules'] if rule['kind'] == 'stateful'}
+        self.assertEqual(len(expected), 42)
+        self.assertEqual(enabled, expected)
+        self.assertEqual({row['annotations']['sre_rule_id']: row['id'] for row in self.api.rules}, before)
+        self.assertEqual(paused.apply()['changed'], 0)
+
+        fresh_api = FakeAPI()
+        Sync(self.store, fresh_api, pause_monitoring_reliability=True).apply()
+        self.assertEqual({row['annotations']['sre_rule_id'] for row in fresh_api.rules}, expected)

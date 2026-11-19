@@ -31,4 +31,68 @@ name='DCGM_FI_DEV_FB_USED';lab=','.join(k+'='+json.dumps(v) for k,v in identity.
 tests.append({'name':'new_field_duplicate','interval':'10s','input_series':[{'series':name+'{'+lab+',replica="a"}','values':'20000x31'},{'series':name+'{'+lab+',replica="b"}','values':'20000x31'},{'series':'up{job="dcgm-os-sre",instance="gpu-master-source:9490"}','values':'1x31'}], 'promql_expr_test':[{'expr':rules['master_input_duplicate']['expression'],'eval_time':'2m','exp_samples':[{'labels':'{'+','.join(k+'='+json.dumps(v) for k,v in expected.items())+'}','value':2}]}]})
 name='DCGM_FI_DEV_GPU_UTIL';expected=dict(identity,metric_name=name)
 tests.append({'name':'new_field_stale_original_timestamp','interval':'10s','input_series':[{'series':name+'{'+lab+'}','values':'42'},{'series':'up{job="dcgm-os-sre",instance="gpu-master-source:9490"}','values':'1x31'}], 'promql_expr_test':[{'expr':rules['master_input_stale']['expression'],'eval_time':'2m','exp_samples':[{'labels':'{'+','.join(k+'='+json.dumps(v) for k,v in expected.items())+'}','value':120}]}]})
-(M/('runtime/production/tests.promtool.yaml' if production else 'runtime/master/tests.promtool.yaml')).write_text(yaml.safe_dump({'evaluation_interval':'10s','tests':tests},allow_unicode=True,sort_keys=False));print('Generated',len(tests),'actual PromQL cases')
+rule_files = []
+if production:
+    native = yaml.safe_load((M/'runtime/production/gpu-native-alerts.prom.yaml').read_text())['groups'][-1]['rules']
+    alerts = {rule['labels']['sre_rule_id']: rule for rule in native}
+    assert set(alerts) == {rule['rule_id'] for rule in b['rules'] if rule['kind'] == 'stateful'}
+    rule_files.append('gpu-native-alerts.prom.yaml')
+
+    xid_cases = yaml.safe_load((M/'monitoring/catalog/xid-review.yaml').read_text())['items']
+    target = {'job': 'dcgm-os-sre', 'instance': 'node-a:9400'}
+    alarm = alerts['os_sre.xid_app']
+    inputs = [{'series': 'up{job="dcgm-os-sre",instance="node-a:9400"}', 'values': '1x20'}]
+    expected = []
+
+    def xid_series(uuid, value, extra=''):
+        return {'series': f'DCGM_FI_DEV_XID_ERRORS{{job="dcgm-os-sre",instance="node-a:9400",UUID="{uuid}"{extra}}}',
+                'values': value}
+
+    for case in xid_cases:
+        code = case['code']
+        uuid = f'GPU-{code}'
+        inputs.append(xid_series(uuid, f'{code}x20'))
+        if case['disposition'] == 'training_job_review':
+            expected.append({
+                'exp_labels': dict(target, UUID=uuid, **alarm['labels']),
+                'exp_annotations': {
+                    'summary': f'XID进程/软件排查线索（OS侧） · XID {code} · node-a:9400 · {uuid}',
+                    'input_metrics': 'DCGM_FI_DEV_XID_ERRORS',
+                    'xid_code': str(code),
+                },
+            })
+    inputs.extend([
+        xid_series('GPU-zero', '0x20'),
+        xid_series('GPU-stale', '13'),
+        xid_series('GPU-fractional', '13.5x20'),
+        xid_series('GPU-mig', '13x20', ',GPU_I_ID="1"'),
+        xid_series('GPU-duplicate', '13x20', ',replica="a"'),
+        xid_series('GPU-duplicate', '13x20', ',replica="b"'),
+    ])
+    tests.append({
+        'name': 'native_xid_app_retains_all_actual_codes_and_filters_invalid_samples',
+        'interval': '10s', 'input_series': inputs,
+        'alert_rule_test': [{'eval_time': '2m', 'alertname': alarm['alert'], 'exp_alerts': expected}],
+    })
+
+    alarm = alerts['os_sre.inforom_invalid']
+    tests.append({
+        'name': 'native_inforom_zero_observation_clears_without_firing',
+        'interval': '30s',
+        'input_series': [
+            {'series': 'up{job="dcgm-os-sre",instance="node-a:9400"}', 'values': '1x5'},
+            {'series': 'DCGM_FI_DEV_INFOROM_VALID{job="dcgm-os-sre",instance="node-a:9400",UUID="GPU-A"}',
+             'values': '0 1 1'},
+        ],
+        'alert_rule_test': [
+            {'eval_time': '0s', 'alertname': alarm['alert'], 'exp_alerts': [{
+                'exp_labels': dict(target, UUID='GPU-A', **alarm['labels']),
+                'exp_annotations': {
+                    'summary': 'InfoROM校验无效 · node-a:9400 · GPU-A',
+                    'input_metrics': 'DCGM_FI_DEV_INFOROM_VALID',
+                },
+            }]},
+            {'eval_time': '30s', 'alertname': alarm['alert'], 'exp_alerts': []},
+        ],
+    })
+(M/('runtime/production/tests.promtool.yaml' if production else 'runtime/master/tests.promtool.yaml')).write_text(yaml.safe_dump(({ 'rule_files': rule_files } if rule_files else {}) | {'evaluation_interval':'10s','tests':tests},allow_unicode=True,sort_keys=False));print('Generated',len(tests),'actual PromQL cases')

@@ -1,4 +1,6 @@
-# DCGM场景清单与数据契约 v4
+# DCGM应用场景清单与数据契约
+
+分类更新：2026-11-17；算法与profile契约沿用v4。本文件描述多指标联合能力的四类应用模板，不是ML模块完整能力清单。单指标动态基线与通用联合配置见[需求](01-需求文档.md)和[当前方案](02-技术方案.md)。
 
 2026-11-12。用户当前只有DCGM采集指标，没有作业、吞吐、rank、阶段、环境温度或变更记录。本轮不构造这些上层字段，按实际输入重新确定范围。机器可读定义：[dcgm-scenarios.json](../config/dcgm-scenarios.json)。
 
@@ -11,7 +13,7 @@
 | 热行为长期漂移 | 冻结基线的温度残差持续上升/偏移 | GPU/HBM温度 | 同热关系场景；不使用过去温度作为自回归条件，避免持续升温被基线追随 | 残差中位数、原单位/小时斜率、窗口起止、分数 |
 | 时钟表现长期漂移 | 可比负载下SM时钟残差持续下降 | SM时钟 | GPU利用率、显存控制器活动及历史均值；显存时钟模式检查 | 时钟残差、偏移、斜率及窗口 |
 
-不把所有metric逐一默认套模型；每GPU每选定场景一项配置。热场景使用多目标，不拆成每个温度一个管理任务。
+本表应用模板不把所有metric逐一默认套模型；每GPU每选定场景一项配置。通用单指标配置仍按GPU×指标生成，通用联合配置按GPU×指标组生成。热场景使用多目标，不拆成每个温度一个管理任务。
 
 字段对应：gpu_temp→DCGM_FI_DEV_GPU_TEMP；memory_temp→DCGM_FI_DEV_MEMORY_TEMP；power→DCGM_FI_DEV_POWER_USAGE；sm_clock→DCGM_FI_DEV_SM_CLOCK；mem_clock→DCGM_FI_DEV_MEM_CLOCK；util→DCGM_FI_DEV_GPU_UTIL；mem_util→DCGM_FI_DEV_MEM_COPY_UTIL。单位和有效范围继续使用现有bindings.json，不改变旧源契约。MEM_COPY_UTIL不当作有效训练吞吐或精确HBM带宽。
 

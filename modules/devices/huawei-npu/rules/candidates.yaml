@@ -1,0 +1,227 @@
+schema_version: 0.1.0
+lifecycle: research_draft
+deployable: false
+notes: 候选设计，不是Prometheus规则文件；表达式仅供语义审阅，尚未包含数据有效性和新鲜度准入。所有持续时间均为工程提案。
+rules:
+- id: ascend.exporter_down
+  title: Exporter抓取失败
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - up
+  condition: up==0持续2分钟
+  expression_review_only: up{job="ascend-npu-exporter"} == 0
+  threshold_authority: project_proposal_unvalidated
+  recovery: 连续成功抓取至少2轮；底层采集需独立确认
+  action: 检查进程、端口、网络、TLS和抓取配置
+  admission_gates:
+  - 固定job标签；2分钟为工程建议
+  sources:
+  - metrics
+  validation: not_run
+- id: ascend.health_unhealthy
+  title: 芯片不健康
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_health_status
+  condition: 新鲜有效值精确等于0，持续1分钟；告警级别待故障码分级
+  expression_review_only: npu_chip_info_health_status{job="ascend-npu-exporter"} ==
+    0
+  threshold_authority: project_proposal_unvalidated
+  recovery: 新鲜有效值为1连续2轮且相关故障码清除
+  action: 查询只读健康信息及故障码；按官方建议处置，不自动复位
+  admission_gates:
+  - 物理身份验证
+  - 重复/非法/陈旧输入拦截
+  - 核实0/1映射
+  sources:
+  - constants
+  - npu
+  validation: not_run
+- id: ascend.health_unknown
+  title: 健康查询未知
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - machine_unknown_npu_nums
+  condition: 有效未知数量>0持续2分钟
+  expression_review_only: machine_unknown_npu_nums{job="ascend-npu-exporter"} > 0
+  threshold_authority: project_proposal_unvalidated
+  recovery: 未知数为0且芯片预期资产齐全、新鲜健康数据恢复
+  action: 检查DCMI权限、驱动、Exporter日志
+  admission_gates:
+  - 确认节点计数缓存与时间语义
+  sources:
+  - npu
+  validation: not_run
+- id: ascend.expected_device_missing
+  title: 预期芯片缺失
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - machine_npu_nums
+  condition: 独立资产清单中的预期芯片不在当前新鲜枚举中，持续2分钟
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 原物理身份重新出现，健康及采集恢复
+  action: 先核对维护、拓扑和枚举，再定位掉卡
+  admission_gates:
+  - 独立expected设备清单尚未实现
+  - 不写死8卡或按板卡推芯片数
+  sources:
+  - npu
+  validation: not_run
+- id: ascend.input_missing_or_stale
+  title: 必需输入缺失或陈旧
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - up
+  - npu_chip_info_health_status
+  condition: Exporter可抓取，但能力清单要求的物理芯片指标缺失或样本超龄
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 必需字段连续2轮新鲜有效
+  action: 检查采集分组、错误、缓存和时间戳
+  admission_gates:
+  - 固定采集周期和TTL
+  - 预期身份及字段清单
+  - up自身消失需由独立target清单检测
+  sources:
+  - constants
+  - metrics
+  - npu
+  validation: not_run
+- id: ascend.input_invalid_or_duplicate
+  title: 输入非法或重复冲突
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_health_status
+  condition: 非0/1、NaN/Inf，或同一物理键出现冲突值
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 输入合法且每物理键唯一连续2轮
+  action: 隔离判断输入；修复采集映射或重复抓取
+  admission_gates:
+  - 独立数据质量层尚未实现
+  sources:
+  - constants
+  - npu
+  validation: not_run
+- id: ascend.network_unhealthy
+  title: 芯片网络不健康
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_network_status
+  condition: 新鲜有效值为0持续1分钟，仅对预期启用的网络
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 新鲜健康值为1且预期链路恢复
+  action: 核对hccn_tool只读结果、交换机和链路
+  admission_gates:
+  - 确认场景需要该网络
+  - 网络枚举及sentinel核实
+  sources:
+  - constants
+  - npu
+  validation: not_run
+- id: ascend.thermal
+  title: 芯片或HBM温度异常
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_temperature
+  - npu_chip_info_hbm_temperature
+  condition: 超过对应机型官方温度限值并满足持续时间；阈值暂空
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 低于恢复阈值连续指定时间并确认散热恢复
+  action: 检查进风、风扇、环境温度；按硬件手册处置
+  admission_gates:
+  - 官方型号限值
+  - 温度单位及有效范围
+  - 迟滞与持续时间待定
+  sources:
+  - constants
+  - hbm
+  - npu
+  validation: not_run
+- id: ascend.hbm_capacity_pressure
+  title: HBM容量压力
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_hbm_used_memory
+  - npu_chip_info_hbm_total_memory
+  condition: 已用/总量超过现场容量预警阈值；与带宽利用率分开
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 同物理芯片容量比持续回落至恢复阈值
+  action: 核对内存占用与泄漏；属于容量预警
+  admission_gates:
+  - 同单位且总量>0、0<=已用<=总量
+  - 禁止用未核实的hbm_utilization替代容量比
+  - 无业务信息时不推断训练失败
+  sources:
+  - hbm
+  validation: not_run
+- id: ascend.hbm_uncorrectable_review
+  title: HBM多比特错误复核
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_hbm_ecc_double_bit_error_cnt
+  - npu_chip_info_hbm_ecc_total_double_bit_error_cnt
+  condition: 核实实时/历史计数语义后，对新增多比特错误结合健康故障码分级
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 不能要求历史累计值回零；依当前故障清除与官方复核证据
+  action: 保全故障码、ECC和隔离页信息，按手册处理
+  admission_gates:
+  - 计数清零和重置语义
+  - sentinel过滤
+  - 不直接对gauge使用rate/increase
+  sources:
+  - hbm
+  validation: not_run
+- id: ascend.hbm_correctable_trend
+  title: HBM单比特错误增长
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_hbm_ecc_single_bit_error_cnt
+  - npu_chip_info_hbm_ecc_total_single_bit_error_cnt
+  condition: 同一稳定身份窗口内增长频率或持续性达到官方/现场基线
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 窗口增长恢复基线，且无活动故障
+  action: 关注趋势及隔离页；避免历史值>0永久告警
+  admission_gates:
+  - 计数窗口和重置已验证
+  - 阈值未定
+  sources:
+  - hbm
+  validation: not_run
+- id: ascend.fault_code_policy
+  title: 故障码分类及升级
+  lifecycle: candidate
+  enabled: false
+  inputs:
+  - npu_chip_info_error_code
+  condition: 完整错误码集合经型号/HDK字典分类，频率或持续时间符合策略
+  expression_review_only: null
+  threshold_authority: project_proposal_unvalidated
+  recovery: 活动故障清除且恢复证据满足该码要求
+  action: 保存原始码、时间、位置和官方处置链接
+  admission_gates:
+  - 完整槽位及截断行为验证
+  - 不能把槽位号当故障身份
+  - 健康等级与调度处置级别分开
+  sources:
+  - codes
+  - npu
+  - plugin
+  validation: not_run

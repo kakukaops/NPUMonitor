@@ -70,6 +70,28 @@ def verify():
     print(json.dumps(result,ensure_ascii=False,indent=2),flush=True)
 
 
+def baseline_demo():
+    from .baseline import PRIMARY_METRICS
+    from .simulation import UUIDS
+    current=wait(lambda s:any(e['uuid']==UUIDS[0] and e['fresh'] for e in s['entities']),'模拟GPU采集',timeout=90)
+    if not current['simulation']:raise ValueError('仅允许模拟环境')
+    created=request('/baseline-demo',{'uuid':UUIDS[0]})
+    ids={t['id'] for t in created['tasks']}
+    if len(ids)!=5:raise ValueError('首批配置不完整；退役任务不自动重建')
+    def trained(s):
+        for task in s['tasks']:
+            if task['id'] not in ids or task.get('active_model'):continue
+            if not any(m['entity']==task['entity'] and m['template']==task['template'] and m['source']=='simulation-reference' and m['status'] in ('validated','published') for m in s['models']):return False
+        return True
+    current=wait(trained,'首批5项参考模型训练',timeout=120)
+    for task in current['tasks']:
+        if task['id'] not in ids or task.get('active_model'):continue
+        model=next(m for m in current['models'] if m['entity']==task['entity'] and m['template']==task['template'] and m['source']=='simulation-reference' and m['status'] in ('validated','published'))
+        request('/tasks/'+task['id']+'/publish',{'model':model['id']})
+    current=wait(lambda s:all(any(v['id']==key and v['quality']=='valid' for v in s['states']) for key in ids),'5项在线基线有效',timeout=90)
+    return {'ready':True,'metrics':PRIMARY_METRICS,'tasks':sorted(ids),'url':'http://localhost:19460','source':'simulation-reference; live observations from Prometheus','notifications':'new demo tasks evidence-only'}
+
+
 def restore(archive,target):
     """Offline restore to a NEW empty directory; never overwrites a running volume."""
     target=Path(target)
@@ -87,13 +109,14 @@ def restore(archive,target):
             if db.execute("SELECT value FROM meta WHERE key='schema'").fetchone()[0]!='1':raise ValueError('备份schema不兼容')
             for row in db.execute("SELECT payload FROM documents WHERE kind='model'"):
                 model=json.loads(row[0])
-                if Path(model['snapshot']).name!=model['snapshot']:raise ValueError('备份快照路径非法')
                 if model.get('backend'):
                     if not all(isinstance(model['backend'].get(k),str) and model['backend'][k] for k in ('backend_id','platform_id','model_ref')):raise ValueError('外部模型引用无效')
                 else:
                     if Path(model['artifact']).name!=model['artifact']:raise ValueError('备份制品路径非法')
                     artifact=stage/'models'/model['artifact']
                     if hashlib.sha256(artifact.read_bytes()).hexdigest()!=model['sha256']:raise ValueError('备份模型摘要错误')
+                if model.get('external_registration') and model.get('backend'):continue
+                if Path(model['snapshot']).name!=model['snapshot']:raise ValueError('备份快照路径非法')
                 snapshot=stage/'snapshots'/model['snapshot']
                 if hashlib.sha256(snapshot.read_bytes()).hexdigest()!=model['dataset_sha256']:raise ValueError('训练快照摘要错误')
         finally:db.close()
@@ -107,8 +130,9 @@ def restore(archive,target):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('command',choices=['sync','verify','backup','restore']);parser.add_argument('archive',nargs='?');parser.add_argument('target',nargs='?');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('command',choices=['sync','verify','backup','restore','baseline-demo']);parser.add_argument('archive',nargs='?');parser.add_argument('target',nargs='?');args=parser.parse_args()
     if args.command=='sync':print(json.dumps({'synced_rules':len(request('/integrations/nightingale/sync',{}))}))
+    elif args.command=='baseline-demo':print(json.dumps(baseline_demo(),ensure_ascii=False))
     elif args.command=='backup':print(json.dumps(request('/backups',{})))
     elif args.command=='restore':print(json.dumps(restore(args.archive,args.target)))
     else:

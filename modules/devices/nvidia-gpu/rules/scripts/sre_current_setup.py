@@ -10,9 +10,9 @@ from npumonitor_rules.bundle import compile_bundle
 os.umask(0o077)
 opener=build_opener(ProxyHandler({}),NoRedirect())
 
-def call(path,body=None):
+def call(path,body=None,*,method=None):
     token=(ROOT/'.local/n9e-token').read_text().strip()
-    request=Request('http://127.0.0.1:17000/api/n9e'+path,data=None if body is None else json.dumps(body).encode(),headers={'X-User-Token':token,'Content-Type':'application/json'})
+    request=Request('http://127.0.0.1:17000/api/n9e'+path,data=None if body is None else json.dumps(body).encode(),headers={'X-User-Token':token,'Content-Type':'application/json'},method=method)
     with opener.open(request,timeout=20) as response:value=json.load(response)
     if value.get('err') or value.get('error'):raise ValueError('Existing Nightingale rejected setup')
     return value.get('dat',value.get('data',value))

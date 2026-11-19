@@ -41,7 +41,32 @@ class Runtime:
         self.registry=Registry(root);self.root=self.registry.root;self.allow_laboratory=allow_laboratory
         self.executor=concurrent.futures.ThreadPoolExecutor(max_workers=1,thread_name_prefix='independent-trainer');self.cache={};self.cache_lock=threading.RLock()
     def envelope(self,**value):return {'contract_version':1,'platform_id':self.registry.platform_id,**value}
-    def info(self):return self.envelope(operations=['fit','postprocess','ensemble'],deployment=True,prediction=True,storage='independent-volume',online_update=False)
+    def info(self):return self.envelope(operations=['fit','postprocess','ensemble'],deployment=True,prediction=True,storage='independent-volume',online_update=False,model_catalog=True,model_description=True,deployment_lookup=True)
+    def describe(self,model_ref):
+        record=self.registry.get('model',model_ref)
+        if not record:raise KeyError('模型不存在')
+        metadata={k:v for k,v in record.items() if k not in ('artifact','artifact_sha256','evaluation_labels')}
+        # Old records predate entity metadata: recover the immutable original training request.
+        if not metadata.get('entity'):
+            for job in self.registry.list('job'):
+                if job.get('result',{}).get('model_ref')!=model_ref:continue
+                request=self.root/'requests'/(job['request_id']+'.json')
+                if request.exists():
+                    body=json.loads(request.read_text());spec=body.get('training_spec',{})
+                    if body.get('operation')=='fit':metadata.update(entity=spec.get('entity'),template=spec.get('template'),training_window=spec.get('source_window'),input_contract=spec.get('input_contract'))
+                    elif body.get('operation')=='postprocess':
+                        parent=self.describe(body['model_ref']);metadata.update(entity=parent.get('entity'),template=parent.get('template'),training_window=parent.get('training_window'),input_contract=parent.get('input_contract'))
+                    elif body.get('operation')=='ensemble' and body.get('models'):
+                        parent=self.describe(body['models'][0]);metadata.update(entity=parent.get('entity'),template=parent.get('template'),training_window=parent.get('training_window'),input_contract=parent.get('input_contract'))
+                break
+        deployed=next((d for d in self.registry.list('deployment') if d['model_ref']==model_ref and d['status']=='ready'),None)
+        metadata['deployment_ref']=deployed['deployment_ref'] if deployed else None
+        return self.envelope(**metadata)
+    def catalog(self):return self.envelope(models=[self.describe(r['model_ref']) for r in self.registry.list('model')])
+    def deployment(self,deployment_ref):
+        record=self.registry.get('deployment',deployment_ref)
+        if not record:raise KeyError('部署不存在')
+        return self.envelope(**record)
     def submit(self,body):
         ident=body.get('request_id','');operation=body.get('operation')
         if body.get('contract_version')!=1 or not isinstance(ident,str) or not re.fullmatch('[a-zA-Z0-9_-]{1,100}',ident):raise ValueError('任务契约或幂等键无效')
@@ -122,6 +147,8 @@ class Runtime:
                 'algorithm':model.algorithm,'feature_schema':feature_schema,'report':report,'capabilities':capabilities_for(model),'source_type':scope,
                 'pipeline':model.metadata() if isinstance(model,DetectionPipeline) else {'schema':1,'kind':'legacy_combined'},
                 'evaluation_labels':labels,'status':'validated' if report['held_out_point_alert_rate']<=.1 else 'review_required','created_at':time.time()}
+            context=spec if op=='fit' else record if op=='postprocess' else base
+            descriptor.update(input_contract=context.get('input_contract'),entity=context.get('entity'),template=context.get('template'),training_window=context.get('source_window') or context.get('training_window'))
             self.registry.put('model',model_ref,descriptor)
             job.update(status='completed',result=self.envelope(**{k:v for k,v in descriptor.items() if k not in ('artifact','artifact_sha256')}),completed_at=time.time())
         except Exception as exc:job.update(status='cancelled' if self.registry.get('job',ident).get('cancel_requested') else 'failed',error=str(exc),completed_at=time.time())

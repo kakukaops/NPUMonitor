@@ -21,10 +21,20 @@ if [[ "${1:-}" == current-* ]]; then
         (umask 077; touch "$NPUMONITOR_RULES_CONFIG_DIR/initialized")
       fi
       "${current[@]}" --profile watchdog up -d --wait --wait-timeout 120 sre-runtime sre-watchdog gpu-master-source gpu-master-prometheus
-      "${current[@]}" run --rm --no-deps sre-controller python -m npumonitor_rules.cli sync-plan
-      "${current[@]}" run --rm --no-deps sre-controller python -m npumonitor_rules.cli sync
+      python "$module_dir/scripts/sre_current_native.py" --apply
       ;;
-    current-cli) shift; "${current[@]}" run --rm --no-deps sre-controller python -m npumonitor_rules.cli "$@" ;;
+    current-cli)
+      shift
+      case "${1:-}" in
+        sync-plan) python "$module_dir/scripts/sre_current_native.py" ;;
+        sync) python "$module_dir/scripts/sre_current_native.py" --apply ;;
+        sync-rollback|sync-recover)
+          echo '旧状态规则的同步回滚已退役。原生迁移快照保存在本地配置目录。' >&2
+          exit 2
+          ;;
+        *) "${current[@]}" run --rm --no-deps sre-controller python -m npumonitor_rules.cli "$@" ;;
+      esac
+      ;;
     current-status) "${current[@]}" ps ;;
     current-simulate) shift; python "$module_dir/scripts/sre_simulate.py" "$@" ;;
     *) exit 2 ;;

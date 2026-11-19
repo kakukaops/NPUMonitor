@@ -3484,7 +3484,7 @@
     "schema": 1,
     "profile": "h100-master-simulation-v1",
     "master_revision": "1.2",
-    "master_document_sha256": "c500bdccf96cfe02f7a8592041b52f69b16768d2e416de71964dfb6e4d31bd4d",
+    "master_document_sha256": "e2138ce0e32294d8281b791aa4149b3fe57f7cf26831f5fefa5425c1d78fd5ae",
     "scope": "Synthetic all-selected-capabilities fixture; not a certified real H100 exporter mapping",
     "metric_contracts": {
       "DCGM_FI_DEV_INFOROM_VALID": {

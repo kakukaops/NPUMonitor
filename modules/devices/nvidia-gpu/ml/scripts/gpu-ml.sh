@@ -67,6 +67,10 @@ PY
     echo 'GPU ML: http://localhost:19460'
     echo 'Demo页面选择登录角色即可进入；生产关闭GPU_ML_DEMO_LOGIN。'
     ;;
+  prepare-baseline)
+    # Data initialization only; lifecycle stays in scripts/experiment.sh.
+    "${compose[@]}" exec -T gpu-ml python -m gpu_ml.cli baseline-demo
+    ;;
   platform-up)
     prepare
     "${compose[@]}" build model-platform
@@ -92,9 +96,10 @@ PY
     "${compose[@]}" exec -T gpu-ml python -m gpu_ml.cli "$program"
     ;;
   test)
+    node "$module_dir/tests/test_baseline_frontend.mjs"
     "${compose[@]}" run --rm --no-deps -v "$module_dir/tests:/tests:ro" gpu-ml python -m unittest discover -s /tests -v
     "${compose[@]}" run --rm --no-deps -v "$repository/modules/model-services/reference-platform/tests:/platform-tests:ro" model-platform python -m unittest discover -s /platform-tests -v
     ;;
   backup) "${compose[@]}" exec -T gpu-ml python -m gpu_ml.cli backup ;;
-  *) echo 'Usage: gpu-ml.sh {up|simulation-up|platform-up|platform-logs|platform-backup|credentials|status|logs|stop|sync|test|verify|backup}' ;;
+  *) echo 'Usage: gpu-ml.sh {up|simulation-up|prepare-baseline|platform-up|platform-logs|platform-backup|credentials|status|logs|stop|sync|test|verify|backup}' ;;
 esac

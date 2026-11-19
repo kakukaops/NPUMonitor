@@ -95,7 +95,9 @@ class Store:
                             (task,start,end or time.time()+1,limit)).fetchall()
             return list(reversed([json.loads(r['payload']) for r in rows]))
 
-    def apply(self,task,result=None,quality='valid',now=None):
+    def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3):
+        for count in (confirmation_samples,recovery_samples):
+            if isinstance(count,bool) or not isinstance(count,int) or not 1<=count<=30:raise ValueError('确认/恢复样本数须为1至30的整数')
         now=time.time() if now is None else now
         with self.db() as db:
             row=db.execute("SELECT payload,revision FROM documents WHERE kind='state' AND id=?",(task,)).fetchone()
@@ -104,20 +106,22 @@ class Store:
             if result is None or quality!='valid':
                 state.update(quality=quality,pending=0,clear_count=0)
             elif result['t'] > state['last_source']:
+                if result.get('decision_config_revision') is not None and state.get('decision_config_revision')!=result['decision_config_revision']:
+                    state.update(pending=0,clear_count=0)
                 gap=result['t']-state['last_source']
                 if gap>max(8,4*result.get('cadence_seconds',2)):
                     state.update(pending=0,clear_count=0)
                 state.update(last_source=result['t'],quality='valid',score=result['score'],threshold=result['threshold'],model_id=result['model'])
-                for key in ('contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
+                for key in ('raw_components','calibrated_components','expected','bounds','values','contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
                     if key in result:state[key]=result[key]
                 if result['anomaly']:
                     state['pending']+=1;state['clear_count']=0
-                    if state['pending']>=3 and not state['active']:
+                    if state['pending']>=confirmation_samples and not state['active']:
                         state.update(active=True,episode_id=uuid.uuid4().hex,opened_at=result['t'],reason='confirmed_anomaly')
                 else:
                     state['pending']=0
                     state['clear_count']+=1
-                    if state['clear_count']>=3 and state['active']:
+                    if state['clear_count']>=recovery_samples and state['active']:
                         state.update(active=False,closed_at=result['t'],reason='fresh_normal_confirmed')
                 result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'])
                 db.execute('INSERT OR IGNORE INTO results VALUES(?,?,?,?)',(task,result['t'],result['model'],json.dumps(result,allow_nan=False)))
