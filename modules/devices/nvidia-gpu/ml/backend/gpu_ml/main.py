@@ -23,6 +23,7 @@ from .store import Store,Conflict,check_initialization
 from .source import Source
 from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
+from .sre_preview import build_preview
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -148,6 +149,21 @@ def ready():
 
 @app.get('/')
 def index():return FileResponse(BASE/'frontend/index.html')
+
+@app.get('/sre')
+def sre_workbench():
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    return FileResponse(BASE / 'frontend/sre.html')
+
+
+@app.get('/api/gpu-ml/v1/sre-preview')
+def sre_preview(request: Request, scenario: str = 'fleet'):
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    user(request)
+    return build_preview(scenario)
+
 
 app.mount('/assets',StaticFiles(directory=BASE/'frontend'),name='assets')
 

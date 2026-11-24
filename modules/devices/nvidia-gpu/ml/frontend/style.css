@@ -14,3 +14,5 @@
 
 .chart.baseline-preview { height:175px; margin-top:14px; }
 #baselineCards .gpu-card { min-width:0; }
+
+.preview-link{text-decoration:none;color:#9ce3d5}.preview-link:hover{background:#294568;color:#fff}

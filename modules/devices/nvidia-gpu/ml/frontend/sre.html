@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SRE 异常工作台 · NPUMonitor</title>
+    <link rel="stylesheet" href="/assets/sre.css">
+    <script defer src="/assets/sre.js"></script>
+</head>
+<body>
+    <aside class="rail">
+        <a class="brand" href="/sre">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span>NPUMonitor<small>SRE WORKBENCH</small></span>
+        </a>
+        <div class="nav-group" aria-label="工作台视图">
+            <button class="nav-button" data-view="all" aria-pressed="true"><span aria-hidden="true">◫</span> 异常概览</button>
+            <button class="nav-button" data-view="trend" aria-pressed="false"><span aria-hidden="true">⌁</span> 单指标趋势预警</button>
+            <button class="nav-button" data-view="joint" aria-pressed="false"><span aria-hidden="true">◇</span> 多指标关联检测</button>
+            <button class="nav-button" data-view="quality" aria-pressed="false"><span aria-hidden="true">◌</span> 数据质量</button>
+        </div>
+        <div class="rail-bottom">
+            <div class="source"><i class="dot"></i><div>DCGM 模拟回放<small>本地 · 30 秒采样</small></div></div>
+            <a class="back" href="/">← 返回 GPU 监控</a>
+        </div>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div class="breadcrumb">GPU 监控 <span>/</span> SRE 异常工作台</div>
+            <span class="preview-badge"><i class="dot"></i> 模拟预览</span>
+        </header>
+
+        <div class="workbench">
+            <section class="heading">
+                <div>
+                    <h1 id="view-title">异常概览</h1>
+                    <p id="view-description">按节点和 GPU 查看行为偏离、关联证据与采集缺口。</p>
+                </div>
+                <div class="replay-controls">
+                    <label class="scenario-control" for="scenario">回放场景
+                        <select id="scenario">
+                            <option value="fleet">集群综合回放</option>
+                            <option value="drift">GPU 温度漂移</option>
+                            <option value="rule">高功耗与时钟下探</option>
+                            <option value="joint">多指标联合偏离</option>
+                            <option value="gap">指标采集缺口</option>
+                            <option value="normal">正常波动对照</option>
+                        </select>
+                    </label>
+                    <button id="replay" class="outline" type="button">↻ 重放</button>
+                </div>
+            </section>
+
+            <div class="replay-band">
+                <span><i class="dot"></i> 模拟 DCGM 指标</span>
+                <span id="replay-range">加载回放…</span>
+                <span id="replay-points">—</span>
+                <span>仅工作台提示 · 夜莺未发送</span>
+            </div>
+
+            <div id="access" class="panel access" hidden>
+                <div><h2>进入模拟工作台</h2><p id="access-message">使用只读演示角色加载回放。</p></div>
+                <button class="primary" id="login" type="button">进入演示</button>
+            </div>
+            <div id="error" class="panel error" hidden role="alert"></div>
+
+            <div id="content" hidden>
+                <section class="stats" aria-label="回放汇总">
+                    <div><span>监测 GPU</span><strong id="stat-devices">—</strong><small>节点与 GPU UUID</small></div>
+                    <div><span>趋势预警</span><strong id="stat-trend">—</strong><small>单指标持续越界</small></div>
+                    <div><span>关联线索</span><strong id="stat-joint">—</strong><small>白盒规则与联合模型</small></div>
+                    <div><span>采集缺口</span><strong id="stat-quality">—</strong><small>独立于行为预警</small></div>
+                </section>
+                <div class="workspace">
+                    <section class="panel queue-panel" aria-labelledby="queue-title">
+                        <div class="panel-head">
+                            <div><h2 id="queue-title">事件队列 <span class="counter" id="queue-count">0</span></h2><p>每个监测任务显示最近一次确认</p></div>
+                        </div>
+                        <div class="filters" id="filters" aria-label="筛选事件">
+                            <button type="button" data-filter="all" aria-pressed="true">全部</button>
+                            <button type="button" data-filter="trend" aria-pressed="false">趋势</button>
+                            <button type="button" data-filter="joint" aria-pressed="false">关联</button>
+                            <button type="button" data-filter="quality" aria-pressed="false">质量</button>
+                        </div>
+                        <div class="queue" id="queue"></div>
+                        <div class="queue-foot">样本间隔 30 秒 · 连续 3 个采样点才确认</div>
+                    </section>
+
+                    <section class="panel detail" id="detail" aria-labelledby="detail-title">
+                        <div class="panel-head detail-head">
+                            <div>
+                                <div class="detail-label"><span class="pill" id="detail-status"></span><span class="mono" id="detail-device"></span></div>
+                                <h2 id="detail-title"></h2>
+                                <p id="detail-subtitle"></p>
+                            </div>
+                            <button type="button" id="ack" class="outline">标为已查看</button>
+                        </div>
+                        <div class="detail-tabs" id="detail-tabs" aria-label="检测证据">
+                            <button type="button" data-tab="trend" aria-pressed="true">单指标趋势</button>
+                            <button type="button" data-tab="white" aria-pressed="false">白盒规则</button>
+                            <button type="button" data-tab="black" aria-pressed="false">黑盒模型</button>
+                            <button type="button" data-tab="quality" aria-pressed="false">采集质量</button>
+                        </div>
+                        <div class="detail-body">
+                            <div class="chart-head">
+                                <div>
+                                    <h3 id="chart-title"></h3>
+                                    <p id="metric-name" class="mono"></p>
+                                </div>
+                                <div class="detector-controls">
+                                    <label class="sr-only" for="metric">展示指标</label>
+                                    <select id="metric"></select>
+                                    <label class="sr-only" for="method">趋势方法</label>
+                                    <select id="method">
+                                        <option value="local_trend">局部趋势外推</option>
+                                        <option value="rolling_median">滚动中位数</option>
+                                        <option value="historical_level">历史水平基线</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="legend" id="legend"></div>
+                            <div class="plot plot-main">
+                                <canvas id="trace" role="img" aria-label="所选 GPU 指标时序图"></canvas>
+                                <div class="tip" id="tip" hidden></div>
+                            </div>
+                            <div class="score-head"><h3 id="score-title"></h3><span id="score-value" class="mono" title="异常分数按门槛倍数显示，纵轴采用对数尺度"></span></div>
+                            <div class="plot plot-score"><canvas id="score" role="img" aria-label="检测分数与确认门槛"></canvas></div>
+                            <div class="evidence-head">
+                                <div><h3 id="evidence-title"></h3><p id="evidence-context"></p></div>
+                            </div>
+                            <div id="evidence" class="evidence"></div>
+                            <p class="method-note" id="method-note"></p>
+                        </div>
+                    </section>
+                </div>
+                <footer>NPUMonitor <span>回放分数用于定位线索，故障类型由现场证据确认。</span></footer>
+            </div>
+        </div>
+        <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+            <div><strong id="toast-title"></strong><p id="toast-text"></p></div>
+            <button type="button" id="close-toast" aria-label="关闭提示">×</button>
+        </div>
+    </main>
+</body>
+</html>
