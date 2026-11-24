@@ -238,3 +238,13 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
     .workspace-nav .nav { font-size: 11px; }
     .monitoring-panel .panel-heading { gap: 8px; }
 }
+
+.detail-path{display:flex;align-items:center;gap:9px 13px;flex-wrap:wrap;margin-bottom:12px}
+.detail-path button{padding:6px 9px;color:#365b69;border-color:#cbdbe2}
+.detection-context{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.gpu-detail-card{cursor:default}
+.gpu-detail-card>button{margin-top:8px;color:#335b6a}
+#page-detection .monitoring-inputs{justify-content:flex-end}
+@media(max-width:650px){#page-detection .monitoring-inputs{justify-content:flex-start}}
+
+.detection-evidence.raw-only{grid-template-columns:1fr}
