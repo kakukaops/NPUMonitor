@@ -11,7 +11,7 @@ import uuid
 import joblib
 import numpy as np
 from .catalog import TEMPLATES, LEGACY_TYPES, legacy_model
-from .detectors import DETECTORS
+from .detectors import DETECTORS, available_algorithms
 from .evaluation import summarize
 
 
@@ -76,7 +76,7 @@ class DetectionPipeline:
     def __init__(self,template,algorithm,config=None,spec=None):
         self.template=template;self.algorithm=algorithm;self.spec=copy.deepcopy(TEMPLATES[template] if spec is None else spec);self.config=copy.deepcopy(config if config is not None else {})
         if not isinstance(self.config,dict):raise ValueError('流水线配置需要对象')
-        if algorithm not in self.spec.get('algorithms',[]) or algorithm not in DETECTORS:raise ValueError('算法与检测配置不兼容')
+        if algorithm not in available_algorithms(self.spec) or algorithm not in DETECTORS:raise ValueError('算法与检测配置不兼容')
         if set(self.config)-{'preprocessing','calibration','detector','decision'}:raise ValueError('流水线配置字段无效')
         params=self.config.get('detector',{})
         if not isinstance(params,dict) or set(params)-{'window','alpha'}:raise ValueError('检测器参数无效')
@@ -117,7 +117,7 @@ class DetectionPipeline:
             started=time.perf_counter();points=self.predict(part)
             if len(points)<6:raise ValueError('独立'+key+'段有效评分不足6点，请扩大训练范围或缩短历史窗口')
             reports[key]=summarize(points,part,[l for l in (labels or []) if l['end']>part[0]['t'] and l['start']<=part[-1]['t']],self.cadence,time.perf_counter()-started)
-        if self.algorithm=='temporal_mad':
+        if self.capabilities['reference_kind']=='causal_forecast':
             target=self.spec['targets'][0]
             center=float(np.median([r['values'][target] for r in train]))
             for key,part in [('selection',selection),('test',test)]:

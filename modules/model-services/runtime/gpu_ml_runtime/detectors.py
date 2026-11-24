@@ -3,6 +3,7 @@ No thresholds, calibration or mutable online updates live in these adapters.
 """
 from typing import Protocol
 import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.linear_model import Ridge
 from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
@@ -91,7 +92,111 @@ class LevelMADDetector(BaseDetector):
         scores=np.abs((self.array(rows)-self.center)/self.scale)
         return [{'t':r['t'],'values':r['values'],'raw_components':{k+':level':float(scores[i,j]) for j,k in enumerate(self.spec['targets'])},'component_metrics':{k+':level':k for k in self.spec['targets']},'expected':{},'bounds':{}} for i,r in enumerate(rows)]
 
-DETECTORS={'temporal_mad':LagRidgeDetector,'joint_pca':PCADetector,'joint_iforest':IsolationDetector,'level_mad':LevelMADDetector}
+
+class ContiguousWindowDetector(BaseDetector):
+    def fit_cadence(self, rows):
+        self.cadence = max(2, int(round(np.median(np.diff([row['t'] for row in rows])))))
+
+    def contiguous_windows(self, rows, size):
+        if len(rows) < size:
+            return np.empty(0, dtype=int), np.empty((0, len(self.spec['targets']), size))
+        values = sliding_window_view(self.array(rows), size, axis=0)
+        gaps = np.diff([row['t'] for row in rows])
+        bad = np.abs(gaps - self.cadence) > self.cadence * .25
+        valid = ~sliding_window_view(bad, size - 1).any(axis=1)
+        return np.flatnonzero(valid) + size - 1, values[valid]
+
+
+class RollingMedianDetector(ContiguousWindowDetector):
+    """Forecast the current sample using only the prior five observations."""
+
+    window = 5
+    reference_kind = 'causal_forecast'
+    interval = True
+
+    def forecasts(self, rows):
+        indices, values = self.contiguous_windows(rows, self.window + 1)
+        return indices, np.median(values[:, 0, :-1], axis=1), values[:, 0, -1]
+
+    def fit(self, rows):
+        self.fit_cadence(rows)
+        indices, expected, observed = self.forecasts(rows)
+        if len(indices) < 20:
+            raise ValueError('滚动中位数训练集连续窗口不足')
+        self.residual_scale = max(float(1.4826 * np.median(np.abs(observed - expected))), .2)
+
+    def score_raw(self, rows):
+        indices, expected, observed = self.forecasts(rows)
+        key = self.spec['targets'][0]
+        component = key + ':innovation'
+        width = 3 * self.residual_scale
+        return [
+            {'t': rows[i]['t'], 'values': rows[i]['values'],
+             'raw_components': {component: float(abs(actual - prediction) / self.residual_scale)},
+             'component_metrics': {component: key},
+             'expected': {key: float(prediction)},
+             'bounds': {key: [float(prediction - width), float(prediction + width)]}}
+            for i, prediction, actual in zip(indices, expected, observed)
+        ]
+
+
+class WindowPCADetector(ContiguousWindowDetector):
+    """Reconstruct joint behavior over four previous samples and the current sample."""
+
+    window = 4
+    reference_kind = 'joint_reconstruction'
+
+    def fit(self, rows):
+        self.fit_cadence(rows)
+        indices, values = self.contiguous_windows(rows, self.window + 1)
+        if len(indices) < 20:
+            raise ValueError('窗口 PCA 训练集连续窗口不足')
+        observed = self.array(rows)
+        self.center = observed.mean(axis=0)
+        self.scale = np.maximum(observed.std(axis=0), .2)
+        self.pca = PCA(n_components=3, svd_solver='full').fit(self.standardize(values))
+
+    def standardize(self, values):
+        z = (values - self.center[None, :, None]) / self.scale[None, :, None]
+        return z.reshape(len(z), -1)
+
+    def score_raw(self, rows):
+        indices, values = self.contiguous_windows(rows, self.window + 1)
+        if not len(indices):
+            return []
+        keys = self.spec['targets']
+        z = self.standardize(values)
+        reconstructed = self.pca.inverse_transform(self.pca.transform(z))
+        expected = reconstructed.reshape(values.shape)[:, :, -1] * self.scale + self.center
+        residuals = np.square(z - reconstructed).reshape(values.shape).mean(axis=2)
+        components = {key + ':window_reconstruction': key for key in keys}
+        return [
+            {'t': rows[i]['t'], 'values': rows[i]['values'],
+             'raw_components': dict(zip(components, map(float, residual))),
+             'component_metrics': components, 'expected': dict(zip(keys, map(float, reference))), 'bounds': {}}
+            for i, residual, reference in zip(indices, residuals, expected)
+        ]
+
+
+DETECTORS = {'temporal_mad': LagRidgeDetector, 'level_mad': LevelMADDetector,
+             'joint_pca': PCADetector, 'joint_iforest': IsolationDetector,
+             'rolling_median': RollingMedianDetector, 'joint_window_pca': WindowPCADetector}
+
+ADDITIONAL_ALGORITHMS = {
+    'rolling_median': '滚动中位数预测',
+    'joint_window_pca': '窗口 PCA 关联检测',
+}
+
+
+def available_algorithms(spec):
+    # Keep the persisted input schema identical for existing model artifacts and remote references.
+    algorithms = list(spec.get('algorithms', []))
+    kind, dimensions = spec.get('kind'), len(spec.get('targets', ()))
+    if kind == 'univariate' and dimensions == 1 and 'temporal_mad' in algorithms:
+        algorithms.append('rolling_median')
+    if kind == 'multivariate' and dimensions >= 2 and 'joint_pca' in algorithms:
+        algorithms.append('joint_window_pca')
+    return list(dict.fromkeys(algorithms))
 
 
 def register_detector(name,title,factory):

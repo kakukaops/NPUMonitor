@@ -28,6 +28,7 @@ from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
 from .models import ALGORITHMS,build_model
+from gpu_ml_runtime.detectors import ADDITIONAL_ALGORITHMS, available_algorithms
 from .pipeline import build_pipeline,describe_algorithms,capabilities_for
 from .dcgm_scenarios import CATALOG as DCGM_SCENARIOS,template_name
 from .model_backends.contracts import BackendError,BackendUnavailable,BackendProtocolError,BackendUnsupported
@@ -150,6 +151,11 @@ def ready():
 @app.get('/')
 def index():return FileResponse(BASE/'frontend/index.html')
 
+@app.get('/methods')
+def methods():
+    return FileResponse(BASE / 'frontend/methods.html')
+
+
 @app.get('/sre')
 def sre_workbench():
     if not SIMULATION:
@@ -205,7 +211,8 @@ def state(request:Request):
         if item['quality']=='valid' and time.time()-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
     return {'role':role,'time':time.time(),'simulation':SIMULATION,'production_admitted':False,
             'entities':entities,'tasks':STORE.list('task'),'states':states,'models':STORE.list('model'),
-            'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':ALGORITHMS,
+            'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
+            'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':STORE.list('binding'),'sync_error':STORE.get('system','sync_error'),'nightingale':STORE.get('system','nightingale_events') or {'connected':False,'events':[]},
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
                 'enabled':(STORE.get('system','inference') or {'enabled':True})['enabled']},

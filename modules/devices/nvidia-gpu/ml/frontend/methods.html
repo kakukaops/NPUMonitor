@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>方法实验室 · NPUMonitor</title>
+  <link rel="stylesheet" href="/assets/methods.css">
+</head>
+<body>
+  <aside class="rail" aria-label="方法实验室导航">
+    <a class="rail-brand" href="/"><span class="brand-mark">N<span>·</span></span><span>NPUMonitor<small>ACCELERATOR INTELLIGENCE</small></span></a>
+    <div class="rail-label">WORKSPACE</div>
+    <nav class="rail-nav">
+      <a class="rail-link active" href="/methods"><span>◈</span> 方法实验室</a>
+      <a class="rail-link" href="/"><span>▦</span> GPU 监控工作台</a>
+      <a class="rail-link" href="#architecture"><span>◇</span> 检测架构</a>
+      <a class="rail-link" href="#benchmark"><span>▤</span> 基准对照</a>
+      <a class="rail-link" href="#trace"><span>⌁</span> 原始曲线</a>
+      <a class="rail-link" href="#rules"><span>▣</span> 规则证据</a>
+    </nav>
+    <div class="rail-bottom">
+      <div class="rail-orbit"><i></i><i></i><i></i></div>
+      <strong>Evidence first.</strong>
+      <span>清楚标注数据、覆盖与边界。</span>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="crumb">GPU 监控 <span>/</span> 研究与方法 <span>/</span> <strong>方法实验室</strong></div>
+      <div class="topbar-right"><span id="liveIndicator" class="live-indicator"><i></i> 正在连接工作台</span><span class="top-divider"></span><span class="top-version">BENCHMARK · 2026.11.19</span></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-grid"></div><div class="hero-glow"></div>
+        <div class="hero-copy">
+          <div class="hero-kicker"><span class="pulse-dot"></span> ANOMALY INTELLIGENCE / RESEARCH PREVIEW</div>
+          <h1 id="heroTitle">把异常变成<br><em>可复核的证据。</em></h1>
+          <p>已知物理关系先解释，未知模式再用多指标模型筛选。每个候选都有来源、分数、覆盖状态和边界。</p>
+          <div class="hero-actions"><a class="action-primary" href="#benchmark">查看实测结果 <span>↗</span></a><a class="action-ghost" href="/">进入实时工作台 <span>→</span></a></div>
+          <div class="hero-disclosure"><span>●</span> 下方结果来自公开数据离线回放。当前在线设备的数据来源见监控工作台。</div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orbit orbit-outer"></div><div class="orbit orbit-mid"></div><div class="orbit orbit-inner"></div>
+          <div class="orbit-core"><span>01</span><strong>GPU</strong><small>signal graph</small></div>
+          <div class="orbit-node node-a"><i></i><span>TEMP</span></div>
+          <div class="orbit-node node-b"><i></i><span>POWER</span></div>
+          <div class="orbit-node node-c"><i></i><span>CLOCK</span></div>
+          <div class="orbit-node node-d"><i></i><span>UTIL</span></div>
+          <div class="orbit-caption">MULTIVARIATE<br>RELATIONSHIP ENGINE</div>
+        </div>
+        <div class="hero-metrics">
+          <div><small>SMD 异常区间命中</small><strong id="heroHit">—</strong><span>动态阈值 · 28 台服务器</span></div>
+          <div><small>未与标签重叠告警段</small><strong id="heroNoise">—</strong><span>相对冻结阈值</span></div>
+          <div><small>真实 DCGM 可评分窗口</small><strong id="heroCoverage">—</strong><span>GWDG · 事件中心数据</span></div>
+        </div>
+      </section>
+
+      <section id="architecture" class="section-block">
+        <div class="section-top"><div><div class="eyebrow">01 / DETECTION DESIGN</div><h2>一个系统，三层证据</h2><p>不同问题用不同判据；通用模型负责发现候选，不负责凭空命名根因。</p></div><span class="section-index">01—03</span></div>
+        <div class="architecture">
+          <article class="layer-card rule-layer"><div class="layer-head"><span class="layer-number">01</span><span class="layer-state state-existing">项目已有</span></div><div class="layer-icon">⌘</div><h3>明确物理规则</h3><p>XID / ECC、设备温度门槛、PCIe 链路等可解释证据。缺数为 unknown，身份和源时间必须对齐。</p><div class="layer-tags"><span>无需训练</span><span>可解释</span></div><div class="layer-foot">DIRECT EVIDENCE <b>→</b></div></article>
+          <article class="layer-card relation-layer"><div class="layer-head"><span class="layer-number">02</span><span class="layer-state state-existing">项目已有</span></div><div class="layer-icon">◌</div><h3>条件关系模型</h3><p>学习“温度相对负载”和“功耗 / 时钟相对活动”的正常关系，只报告关系脱离。</p><div class="layer-tags"><span>需健康参考</span><span>场景明确</span></div><div class="layer-foot">CONTEXTUAL RESIDUAL <b>→</b></div></article>
+          <article class="layer-card discovery-layer"><div class="layer-head"><span class="layer-number">03</span><span class="layer-state state-shadow">影子候选</span></div><div class="layer-icon">◎</div><h3>未知模式发现</h3><p>连续 5 点窗口 PCA + 历史滚动分位阈值 + 3 点确认，输出待复核实体和贡献指标。</p><div class="layer-tags"><span>离线已测</span><span>不自动通知</span></div><div class="layer-foot">REVIEW CANDIDATE <b>↗</b></div></article>
+        </div>
+        <div class="flow-line"><span>原始 exporter</span><i></i><span>质量与身份</span><i></i><span>规则 + 条件残差 + PCA</span><i></i><span>候选事件</span><i></i><span>人工复核 / 已验收通知</span></div>
+      </section>
+
+      <section id="benchmark" class="section-block">
+        <div class="section-top"><div><div class="eyebrow">02 / BENCHMARK EVIDENCE</div><h2>检测能力与告警代价一起看</h2><p>同一方法在匿名服务器时序和真实 DCGM 上分别回放，两个数据集的标签含义不同。</p></div><div class="dataset-toggle" role="tablist" aria-label="评测数据集"><button id="tabSmd" class="selected" role="tab" aria-selected="true">SMD · 有逐点标签</button><button id="tabGwdg" role="tab" aria-selected="false">GWDG · DCGM</button></div></div>
+        <div class="benchmark-layout">
+          <div class="benchmark-primary"><div class="benchmark-title"><div><span id="benchmarkBadge" class="pill pill-blue">SMD / SERVER</span><h3 id="benchmarkTitle">有标签的服务器异常区间</h3><p id="benchmarkSubtitle">28 台机器 · 38 个匿名指标 · 327 个连续异常标签区间</p></div><span class="micro-label">OFFLINE REPLAY</span></div><div id="benchmarkBars" class="benchmark-bars"></div><div id="benchmarkNote" class="benchmark-note"></div></div>
+          <div class="benchmark-side"><div class="side-kicker">RECOMMENDED CANDIDATE</div><div class="side-ring"><span id="sideRingValue">—</span><small id="sideRingLabel">区间命中</small></div><h3 id="sideTitle">窗口 PCA · 动态阈值</h3><p id="sideDescription">用过去的分数更新 P99.5，连续三点确认。产生候选，不自动通知。</p><div class="side-divider"></div><div class="side-stat"><span id="sideStatLabel">告警段与标签重叠</span><strong id="sideStatValue">—</strong></div><div class="side-stat"><span id="sideCoverageLabel">方法边界</span><strong id="sideCoverageValue">—</strong></div></div>
+        </div>
+        <div class="model-compare"><div class="model-compare-title"><div><span class="eyebrow">MODEL SELECTION</span><h3>深度模型有没有赢？</h3></div><span>同一 SMD 窗口 / 训练留出阈值 / 3 epoch</span></div><div id="modelCompareRows" class="model-compare-rows"></div><p>USAD 和普通自编码器在这次固定协议下未同时改善事件覆盖与无标签告警量；这不是对所有深度模型的否定。</p></div>
+      </section>
+
+      <section id="trace" class="section-block">
+        <div class="section-top"><div><div class="eyebrow">03 / ORIGINAL TELEMETRY</div><h2>看见一个真实指标片段</h2><p>从公开 GWDG 归档读取原始 DCGM 分钟均值，保留缺口，叠加模型分数和候选标记。</p></div><span class="trace-source">REAL TRACE · WEAK EVENT TIME</span></div>
+        <div class="trace-card"><div class="trace-header"><div><div class="trace-meta"><span class="source-dot"></span> GWDG v2 / DCGM EXPORTER</div><h3 id="traceTitle">加载原始曲线…</h3><p id="traceSubtitle"></p></div><div class="trace-controls"><label for="traceMetric">展示指标</label><select id="traceMetric"><option value="gpu_temp">GPU 温度 · °C</option><option value="power">板卡功耗 · W</option><option value="util">GPU 利用率 · %</option><option value="mem_util">显存控制器活动 · %</option><option value="sm_clock">SM 时钟 · MHz</option></select></div></div><div class="trace-legend"><span><i class="legend-observed"></i> 原始观测</span><span><i class="legend-anomaly"></i> 已确认候选</span><span><i class="legend-score"></i> PCA 分数</span><span><i class="legend-threshold"></i> 动态阈值</span><span><i class="legend-missing"></i> 采集缺口</span></div><div class="trace-plot"><canvas id="observedChart" role="img" aria-label="真实 DCGM 指标时序和异常候选"></canvas></div><div class="score-plot"><canvas id="anomalyChart" role="img" aria-label="窗口 PCA 异常分数与历史阈值"></canvas></div><div id="traceTooltip" class="trace-tooltip" hidden></div><div class="trace-footer"><span>左：事件前 180 分钟</span><span>右：Slurm 事件时刻 · 不等于物理故障起点</span></div></div>
+      </section>
+
+      <section id="rules" class="section-block">
+        <div class="section-top"><div><div class="eyebrow">04 / EXPLAINABLE EVIDENCE</div><h2>新增的多指标规则候选</h2><p>可执行、可回放；阈值尚待设备与正常机群校准，不进入生产规则目录。</p></div><span class="pill pill-amber">SHADOW ONLY</span></div>
+        <div class="rule-grid"><details class="rule-card"><summary><span class="rule-symbol amber">◉</span><div><strong>热限制与温度余量</strong><small>温度接近设备门槛 + 热限制原因位</small></div><b>↗</b></summary><p>同卡温度距设备运行门槛 ≤ 5°C，且 thermal clocks event reason 位有效。需要设备门槛与原因位同时存在，否则 unknown。本轮 GWDG 回放未评分。</p></details><details class="rule-card"><summary><span class="rule-symbol violet">▥</span><div><strong>显存容量压力</strong><small>低空闲容量 + 有显存活动</small></div><b>↗</b></summary><p>显存可用比例 ≤ 5%，同时 MEM_COPY_UTIL ≥ 50%。正常预分配也可能满足，不能直接称显存泄漏。GWDG 事件前两小时命中 1/50 个窗口。</p></details><details class="rule-card"><summary><span class="rule-symbol teal">⌁</span><div><strong>同节点活动分离</strong><small>利用率、功耗、驻留显存联合判断</small></div><b>↗</b></summary><p>目标卡利用率 ≤ 10%，至少两张同节点卡的利用率中位数 ≥ 80%，目标功耗 ≤ 同伴一半且显存仍有驻留。没有作业 / rank 对齐时不能称慢卡。GWDG 事件前两小时命中 2/50 个窗口。</p></details></div>
+      </section>
+
+      <section class="final-note"><div class="final-icon">!</div><div><strong>当前结论</strong><p>可信的下一步是把规则与条件模型作为明确证据，把动态 PCA 作为待复核候选。公开数据还不能证明真实 GPU 故障精度；上线通知前需要连续正常机群、人工确认事件和每 GPU 天告警预算。</p></div><a href="/">返回工作台 →</a></section>
+      <footer><span>NPUMonitor / Method Lab</span><span>数据：<a href="https://github.com/NetManAIOps/OmniAnomaly/tree/master/ServerMachineDataset" target="_blank" rel="noopener">SMD</a> · <a href="https://zenodo.org/records/21932615" target="_blank" rel="noopener">GWDG v2</a></span><span>离线评测 ≠ 在线故障准确率</span></footer>
+    </main>
+  </div>
+  <script src="/assets/methods-data.js"></script>
+  <script src="/assets/methods.js"></script>
+</body>
+</html>

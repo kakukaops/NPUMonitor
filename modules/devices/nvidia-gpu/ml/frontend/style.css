@@ -16,3 +16,14 @@
 #baselineCards .gpu-card { min-width:0; }
 
 .preview-link{text-decoration:none;color:#9ce3d5}.preview-link:hover{background:#294568;color:#fff}
+
+.model-routes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.model-routes>div{padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:#f8fafd}
+.model-routes p{font-size:12px;margin-top:3px}
+.trend-routes{margin-bottom:18px}
+.sidebar{display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-bottom{position:static;margin-top:auto;padding-top:15px}
+@media(max-width:650px){.model-routes{grid-template-columns:1fr}}
+.panel-link{color:var(--blue);text-decoration:none;padding:8px 5px}
+.panel-link:hover{text-decoration:underline}
+@media(min-width:1260px){#scenarioCards{grid-template-columns:repeat(4,minmax(0,1fr))}}
