@@ -17,11 +17,12 @@ class Element {
 }
 const document={createElement:tag=>new Element(tag),getElementById:id=>{if(!nodes.has(id)){const element=new Element(['cluster','window','taskSelect','metricSelect','feedbackTask','feedbackKind'].includes(id)?'select':'div');element.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
 document.getElementById('window').value='900';
-const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,devicePixelRatio:1,
+const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,URLSearchParams,devicePixelRatio:1,
  window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async url=>({ok:true,status:200,json:async()=>url.endsWith('/state')?fixture.state:url.includes('/series/')?fixture.series:url.endsWith('/audit')?[]:{points:fixture.series.points}})};
 vm.createContext(sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'),sandbox);
 await new Promise(resolve=>setImmediate(resolve));
 for(const name of [...(fixture.state.dcgm_scenarios?['scenarios']:[]),'overview','detection','tasks','models','events','health']){

@@ -252,3 +252,14 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .workspace-nav .nav-subentry{width:calc(100% - 18px);margin-left:18px;color:#b4c9d7}
 .workspace-nav .nav.context-parent{color:#e0ecee}
 @media(max-width:800px){.workspace-nav .nav-subentry{width:auto;margin-left:0}}
+
+.monitor-view-controls{margin-bottom:8px}
+.monitor-view-chart{height:245px;margin-top:5px}
+.monitor-view-score{height:130px;margin-top:5px}
+.monitor-view-note{margin:5px 0 9px}
+.monitor-view-evidence{display:flex;flex-wrap:wrap;gap:5px 9px;margin-top:8px}
+.monitor-view-evidence .badge{font-size:11px}
+.monitor-view .legend{margin-top:6px}
+.monitor-view .is-episode{background:#d69776}
+.metric-archive .gpu-grid{margin-top:12px}
+@media(max-width:650px){.monitor-view-chart{height:202px}.monitor-view-score{height:108px}}

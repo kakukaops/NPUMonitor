@@ -18,6 +18,33 @@ def check_initialization(database,guard_file):
         raise ValueError('状态数据库缺失：请从备份恢复，不自动初始化健康状态')
 
 
+def advance_detector_state(state, result, quality, now, confirmation_samples, recovery_samples):
+    """Apply one observation in memory and report whether the source sample advanced."""
+    state['attempt_at']=now
+    if result is None or quality!='valid':
+        state.update(quality=quality,pending=0,clear_count=0)
+    elif result['t'] > state['last_source']:
+        if result.get('decision_config_revision') is not None and state.get('decision_config_revision')!=result['decision_config_revision']:
+            state.update(pending=0,clear_count=0)
+        gap=result['t']-state['last_source']
+        if gap>max(8,4*result.get('cadence_seconds',2)):
+            state.update(pending=0,clear_count=0)
+        state.update(last_source=result['t'],quality='valid',score=result['score'],threshold=result['threshold'],model_id=result['model'])
+        for key in ('raw_components','calibrated_components','expected','bounds','values','contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
+            if key in result:state[key]=result[key]
+        if result['anomaly']:
+            state['pending']+=1;state['clear_count']=0
+            if state['pending']>=confirmation_samples and not state['active']:
+                state.update(active=True,episode_id=uuid.uuid4().hex,opened_at=result['t'],reason='confirmed_anomaly')
+        else:
+            state['pending']=0
+            state['clear_count']+=1
+            if state['clear_count']>=recovery_samples and state['active']:
+                state.update(active=False,closed_at=result['t'],reason='fresh_normal_confirmed')
+        return True
+    return False
+
+
 class Store:
     def __init__(self, path):
         self.path = Path(path)
@@ -102,27 +129,7 @@ class Store:
         with self.db() as db:
             row=db.execute("SELECT payload,revision FROM documents WHERE kind='state' AND id=?",(task,)).fetchone()
             state=json.loads(row['payload']) if row else {'id':task,'active':False,'quality':'unverified','last_source':0,'pending':0,'clear_count':0,'episode_id':None}
-            state['attempt_at']=now
-            if result is None or quality!='valid':
-                state.update(quality=quality,pending=0,clear_count=0)
-            elif result['t'] > state['last_source']:
-                if result.get('decision_config_revision') is not None and state.get('decision_config_revision')!=result['decision_config_revision']:
-                    state.update(pending=0,clear_count=0)
-                gap=result['t']-state['last_source']
-                if gap>max(8,4*result.get('cadence_seconds',2)):
-                    state.update(pending=0,clear_count=0)
-                state.update(last_source=result['t'],quality='valid',score=result['score'],threshold=result['threshold'],model_id=result['model'])
-                for key in ('raw_components','calibrated_components','expected','bounds','values','contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
-                    if key in result:state[key]=result[key]
-                if result['anomaly']:
-                    state['pending']+=1;state['clear_count']=0
-                    if state['pending']>=confirmation_samples and not state['active']:
-                        state.update(active=True,episode_id=uuid.uuid4().hex,opened_at=result['t'],reason='confirmed_anomaly')
-                else:
-                    state['pending']=0
-                    state['clear_count']+=1
-                    if state['clear_count']>=recovery_samples and state['active']:
-                        state.update(active=False,closed_at=result['t'],reason='fresh_normal_confirmed')
+            if advance_detector_state(state,result,quality,now,confirmation_samples,recovery_samples):
                 result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'])
                 db.execute('INSERT OR IGNORE INTO results VALUES(?,?,?,?)',(task,result['t'],result['model'],json.dumps(result,allow_nan=False)))
             # A repeated held source sample never advances confirmation or recovery.

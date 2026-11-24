@@ -25,6 +25,7 @@ from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
 from .incident_queue import build_incident_queue
+from .monitor_view import monitor_view
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -492,6 +493,14 @@ def series(key:str,request:Request,start:float=0,end:float=0):
     points=STORE.history(key,start,end)
     return {'task':task,'points':points,'point_limit':12000,'truncated':len(points)>=12000,'source':'persisted-online-prometheus-input',
             'state':STORE.get('state',key),'capabilities':capabilities_for(ENGINE.load(task['active_model'])) if task.get('active_model') else None}
+
+@app.get('/api/gpu-ml/v1/monitor-view')
+def monitor_view_data(request: Request, entity: str, metric: str, task: str = '',
+                      source: str = 'prometheus', mode: str = 'online',
+                      span: int = 900, scenario: str = 'normal'):
+    user(request)
+    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario)
+
 
 @app.get('/api/gpu-ml/v1/raw-series')
 def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metric:str='gpu_temp'):

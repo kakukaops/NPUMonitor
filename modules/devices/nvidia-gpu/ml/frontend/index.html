@@ -70,7 +70,7 @@
 <section id="page-baseline" class="page" hidden>
 <div class="panel monitoring-panel">
   <div class="panel-heading">
-    <div><h2>查看 GPU 指标</h2><p>选择 GPU 和指标，查看最近观测、趋势状态与下一步操作。</p></div>
+    <div><h2>查看 GPU 指标</h2><p>选择 GPU 和指标。下面显示在线任务状态，曲线可切换来源。</p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="baselineEntity" aria-label="动态基线GPU"></select></label>
       <label>指标 <select id="baselineMetric" aria-label="选择模型的指标"></select></label>
@@ -89,8 +89,33 @@
     <p class="caption">模拟演示基线使用生成的 1 小时正常参考数据。训练完成后可选择模型启用。</p>
   </details>
 </div>
+<div id="baselineMonitorSlot">
+  <section class="panel monitor-view" id="monitorView" aria-labelledby="monitorViewTitle">
+    <div class="panel-heading">
+      <div><h2 id="monitorViewTitle">指标曲线与评分</h2><p id="monitorViewIdentity"></p></div>
+      <button type="button" id="monitorRefresh">更新曲线</button>
+    </div>
+    <div class="controls monitoring-inputs monitor-view-controls">
+      <label id="monitorTaskControl" hidden>任务 <select id="monitorTask" aria-label="关联监测任务"></select></label>
+      <label id="monitorMetricControl" hidden>指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
+      <label>数据来源 <select id="monitorSource" aria-label="数据来源"></select></label>
+      <label>运行方式 <select id="monitorMode" aria-label="运行方式"><option value="online">在线监测</option><option value="replay">离线回放</option></select></label>
+      <label>时间范围 <select id="monitorSpan" aria-label="监测时间范围">
+        <option value="300">5 分钟</option><option value="900" selected>15 分钟</option><option value="1800">30 分钟</option><option value="3600">1 小时</option>
+      </select></label>
+      <label id="monitorScenarioControl" hidden>样例 <select id="monitorScenario" aria-label="内置样例场景">
+        <option value="normal">正常波动</option><option value="drift">所选指标偏移</option><option value="relation">功耗与时钟失配</option><option value="gap">采集缺口</option>
+      </select></label>
+    </div>
+    <p class="caption monitor-view-note" id="monitorViewStatus" role="status">等待任务和数据</p>
+    <div class="legend" id="monitorViewLegend"></div>
+    <div class="chart monitor-view-chart" id="monitorValueBox" hidden><canvas id="monitorValueChart" role="img" aria-label="观测与模型参考"></canvas><div class="tooltip" id="monitorViewTip" hidden></div></div>
+    <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
+    <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
+  </section>
+</div>
 <section class="panel comparison-panel" id="baselineComparison" aria-label="单指标同源比较" hidden></section>
-<div id="baselineCards" class="gpu-grid"></div>
+<details class="panel metric-archive" id="baselineArchive"><summary>各指标采集曲线与操作</summary><div id="baselineCards" class="gpu-grid"></div></details>
 <details class="panel">
   <summary>单指标方法说明</summary>
   <div class="model-routes trend-routes">
@@ -103,7 +128,7 @@
 <section id="page-scenarios" class="page" hidden>
 <div class="panel monitoring-panel">
   <div class="panel-heading">
-    <div><h2>已配置的关联监测</h2><p id="associationSummary">查看当前 GPU 的关联任务、输入质量和检测证据。</p></div>
+    <div><h2>已配置的关联任务</h2><p id="associationSummary">查看当前 GPU 的关联任务、输入质量和检测证据。</p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
       <button id="newScenario" class="write" type="button">＋ 白盒场景</button>
@@ -111,10 +136,11 @@
     </div>
   </div>
   <div class="table-scroll"><table class="association-table">
-    <thead><tr><th>任务与设备</th><th>检测状态</th><th>当前证据</th><th>操作</th></tr></thead>
+    <thead><tr><th>任务与设备</th><th>在线状态</th><th>在线证据</th><th>操作</th></tr></thead>
     <tbody id="associationRows"></tbody>
   </table></div>
 </div>
+<div id="associationMonitorSlot"></div>
 <div class="panel"><div class="panel-heading"><div><h2>白盒场景与条件关系</h2><p class="muted">当前只有 DCGM 指标。无作业、吞吐、环境温度或变更信息，不推断卡坏或剩余寿命。</p></div><a class="panel-link" href="#blackBoxPanel">查看黑盒模型 ↓</a></div><p>新场景默认仅记录证据；需管理员登记依据、负责人和处置动作后才能允许夜莺通知。生产参考历史与加速模拟实验严格分开。</p></div><div id="scenarioCards" class="gpu-grid"></div>
 <div class="panel" id="blackBoxPanel"><div class="panel-heading"><div><h2>黑盒联合检测</h2><p>从同一 GPU 的 DCGM 指标中选择输入，使用正常历史训练，在在线检测中查看偏离分数与可用的指标贡献。</p></div></div>
 <div class="model-routes">
@@ -133,4 +159,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
