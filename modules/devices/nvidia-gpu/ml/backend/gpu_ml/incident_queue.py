@@ -49,15 +49,7 @@ def notification(task, member, entity, binding, records, connected, now):
 
 
 def task_signal(task, state, entity, spec, now, inference_enabled):
-    last_sample = timestamp(state.get('last_source'))
-    quality = state.get('quality', 'unverified')
-    if not inference_enabled:
-        quality = 'paused'
-    elif quality == 'valid' and state.get('model_id') != task['active_model']:
-        quality = 'model_changed'
-    elif quality == 'valid' and (not entity['fresh'] or last_sample is None or not 0 <= now - last_sample <= FRESHNESS):
-        quality = 'inference_stale'
-
+    last_sample, quality = task_input_quality(task, state, entity, now, inference_enabled)
     start = timestamp(state.get('opened_at'))
     end = None
     if state.get('active') and start is not None:
@@ -77,6 +69,7 @@ def task_signal(task, state, entity, spec, now, inference_enabled):
     current_score = quality == 'valid' and phase != 'recovered'
     return {
         'id': task['id'], 'name': spec.get('name') or task['name'],
+        'episode_id': state.get('episode_id') if phase != 'pending' else None,
         'family': 'scenario' if task.get('scenario_id') else spec.get('kind', 'legacy'),
         'phase': phase, 'start': start, 'end': end, 'quality': quality, 'last_sample': last_sample,
         'pending': state.get('pending', 0), 'confirmation': task.get('confirmation_samples', 3),
@@ -90,6 +83,18 @@ def task_signal(task, state, entity, spec, now, inference_enabled):
         'score': state.get('score') if current_score else None,
         'threshold': state.get('threshold') if current_score else None,
     }
+
+
+def task_input_quality(task, state, entity, now, inference_enabled):
+    last_sample = timestamp(state.get('last_source'))
+    quality = state.get('quality', 'unverified')
+    if not inference_enabled:
+        quality = 'paused'
+    elif quality == 'valid' and state.get('model_id') != task['active_model']:
+        quality = 'model_changed'
+    elif quality == 'valid' and (not entity['fresh'] or last_sample is None or not 0 <= now - last_sample <= FRESHNESS):
+        quality = 'inference_stale'
+    return last_sample, quality
 
 
 def group_overlaps(members, now):
@@ -108,10 +113,7 @@ def group_overlaps(members, now):
         yield group
 
 
-def build_incident_queue(entities, tasks, states, templates, bindings, nightingale, now, inference_enabled=True):
-    by_entity = {entity['id']: entity for entity in entities}
-    by_binding = {binding['id']: binding for binding in bindings}
-    by_state = {state['id']: state for state in states}
+def notification_records(nightingale, now):
     checked_at = timestamp(nightingale.get('checked_at'))
     connected = bool(nightingale.get('connected') and checked_at and 0 <= now - checked_at <= SYNC_MAX_AGE)
     records = defaultdict(list)
@@ -119,26 +121,83 @@ def build_incident_queue(entities, tasks, states, templates, bindings, nightinga
         for event in [*(nightingale.get('events') or []), *(nightingale.get('history') or [])]:
             if event.get('rule_id') is not None and event.get('id') is not None:
                 records[str(event['rule_id'])].append(event)
+    return records, connected, checked_at
 
+
+def build_incident_queue(entities, tasks, states, templates, bindings, nightingale, now, inference_enabled=True):
+    by_entity = {entity['id']: entity for entity in entities}
+    by_binding = {binding['id']: binding for binding in bindings}
+    by_state = {state['id']: state for state in states}
+    records, connected, checked_at = notification_records(nightingale, now)
     per_entity = defaultdict(list)
     coverage = defaultdict(lambda: {'enabled': 0, 'scored': 0})
+    devices = {entity['id']: {'entity': {key: entity.get(key) for key in ('id', 'uuid', 'cluster', 'node')},
+                              'enabled': 0, 'scored': 0, 'issues': [], 'signals': 0} for entity in entities}
     for task in tasks:
         entity = by_entity.get(task['entity'])
-        if not entity or task.get('deleted') or not task.get('enabled') or not task.get('active_model'):
+        if not entity or task.get('deleted'):
+            continue
+        device = devices[entity['id']]
+        spec = templates[task['template']]
+        name = spec.get('name') or task['name']
+        if not task.get('enabled') or not task.get('active_model'):
+            device['issues'].append({'name': name, 'quality': 'paused' if not task.get('enabled') else 'untrained',
+                                     'missing': []})
             continue
         state = by_state.get(task['id'], {})
         counts = coverage[entity['cluster']]
         counts['enabled'] += 1
-        last_sample = timestamp(state.get('last_source'))
-        if (inference_enabled and entity['fresh'] and state.get('quality') == 'valid'
-                and last_sample and 0 <= now - last_sample <= FRESHNESS
-                and state.get('model_id') == task['active_model']):
+        device['enabled'] += 1
+        _, quality = task_input_quality(task, state, entity, now, inference_enabled)
+        if quality == 'valid':
             counts['scored'] += 1
-        member = task_signal(task, state, entity, templates[task['template']], now, inference_enabled)
+            device['scored'] += 1
+        else:
+            device['issues'].append({'name': name, 'quality': quality, 'missing': [
+                key for key in spec.get('required', []) if not entity['fresh'] or entity.get('quality', {}).get(key) != 'valid'
+            ]})
+        member = task_signal(task, state, entity, spec, now, inference_enabled)
         if member:
             member['notification'] = notification(task, member, entity, by_binding.get(task['id']), records, connected, now)
             per_entity[entity['id']].append(member)
+            if member['phase'] != 'recovered':
+                device['signals'] += 1
 
+    groups = incident_groups(per_entity, by_entity, now)
+    return {'groups': groups, 'coverage': dict(coverage), 'devices': list(devices.values()), 'nightingale_connected': connected,
+            'nightingale_checked_at': checked_at, 'at': now}
+
+
+def build_recovered_queue(entities, tasks, episodes, templates, bindings, nightingale, now):
+    by_entity = {entity['id']: entity for entity in entities}
+    by_task = {task['id']: task for task in tasks}
+    by_binding = {binding['id']: binding for binding in bindings}
+    records, connected, checked_at = notification_records(nightingale, now)
+    per_entity = defaultdict(list)
+    for episode in episodes:
+        task = by_task.get(episode['id'])
+        entity = by_entity.get(task['entity']) if task else None
+        if not entity:
+            continue
+        spec = templates[task['template']]
+        member = {
+            'id': task['id'], 'episode_id': episode['episode_id'], 'name': spec.get('name') or task['name'],
+            'family': 'scenario' if task.get('scenario_id') else spec.get('kind', 'legacy'),
+            'phase': 'recovered', 'start': episode['opened_at'], 'end': episode['closed_at'],
+            'quality': 'valid', 'last_sample': episode['last_source'], 'pending': 0,
+            'confirmation': episode['confirmation_samples'], 'clear_count': episode['clear_count'],
+            'recovery': episode['recovery_samples'], 'metrics': spec['targets'],
+            'reason_metric': episode.get('reason_metric'), 'contributions': {}, 'missing': [],
+            'score': None, 'threshold': None,
+        }
+        member['notification'] = notification(task, member, entity, by_binding.get(task['id']), records, connected, now)
+        per_entity[entity['id']].append(member)
+    groups = incident_groups(per_entity, by_entity, now)
+    groups.sort(key=lambda group: -group['end'])
+    return {'groups': groups, 'at': now, 'nightingale_connected': connected, 'nightingale_checked_at': checked_at}
+
+
+def incident_groups(per_entity, by_entity, now):
     groups = []
     for entity_id, members in per_entity.items():
         entity = by_entity[entity_id]
@@ -156,5 +215,4 @@ def build_incident_queue(entities, tasks, states, templates, bindings, nightinga
                 'members': sorted(signals, key=lambda row: (PHASE_ORDER[row['phase']], row['start'])),
             })
     groups.sort(key=lambda row: (PHASE_ORDER[row['phase']], -row['start'], row['id']))
-    return {'groups': groups, 'coverage': dict(coverage), 'nightingale_connected': connected,
-            'nightingale_checked_at': checked_at, 'at': now}
+    return groups

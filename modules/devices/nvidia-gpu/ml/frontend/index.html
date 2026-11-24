@@ -40,6 +40,10 @@
 </div>
 <section id="page-incidents" class="page">
   <div class="notice" id="incidentSource" role="status">正在加载在线检测状态…</div>
+  <section class="panel coverage-panel" id="incidentCoverage" aria-label="GPU 检测覆盖" hidden>
+    <div class="coverage-buttons" id="coverageButtons"></div>
+    <div class="coverage-details" id="coverageDetails" hidden></div>
+  </section>
   <div class="incident-summary stats" aria-label="异常队列汇总">
     <div class="stat"><span>已确认异常</span><strong id="incidentConfirmed">—</strong></div>
     <div class="stat"><span>待达确认条件</span><strong id="incidentPending">—</strong></div>
@@ -55,13 +59,14 @@
           <option value="pending">待确认</option>
           <option value="held">异常保持</option>
           <option value="recovered">最近恢复</option>
+          <option value="history">恢复归档 · 7 天</option>
         </select>
       </div>
       <div id="incidentList" class="incident-list"></div>
     </section>
     <section class="panel incident-detail" id="incidentDetail" aria-label="所选设备及其检测证据"></section>
   </div>
-  <p class="caption incident-scope">同一集群和 GPU 的重叠检测时段合并展示。恢复栏保留每项任务近 24 小时的最近一次恢复。夜莺事件记录与通知送达分别核对。</p>
+  <p class="caption incident-scope">同一张 GPU 的重叠时段合并展示。恢复归档保留本版本开始记录的最近 7 天恢复事件。</p>
 </section>
 <section id="page-replay" class="page" hidden>
 <gpu-replay-panel id="integratedReplay"><p class="notice">正在加载模拟回放…</p></gpu-replay-panel>
@@ -97,7 +102,7 @@
     </div>
     <div class="controls monitoring-inputs monitor-view-controls">
       <label id="monitorTaskControl" hidden>任务 <select id="monitorTask" aria-label="关联监测任务"></select></label>
-      <label id="monitorMetricControl" hidden>指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
+      <label id="monitorMetricControl" hidden>显示指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
       <label>数据来源 <select id="monitorSource" aria-label="数据来源"></select></label>
       <label>运行方式 <select id="monitorMode" aria-label="运行方式"><option value="online">在线监测</option><option value="replay">离线回放</option></select></label>
       <label>时间范围 <select id="monitorSpan" aria-label="监测时间范围">
@@ -109,6 +114,7 @@
     </div>
     <p class="caption monitor-view-note" id="monitorViewStatus" role="status">等待任务和数据</p>
     <div class="legend" id="monitorViewLegend"></div>
+    <div class="monitor-input-charts" id="monitorInputCharts" aria-label="按同一时间轴展示全部输入指标" hidden></div>
     <div class="chart monitor-view-chart" id="monitorValueBox" hidden><canvas id="monitorValueChart" role="img" aria-label="观测与模型参考"></canvas><div class="tooltip" id="monitorViewTip" hidden></div></div>
     <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
     <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
@@ -153,7 +159,7 @@
 <div class="detail-path"><button type="button" id="detectionBack">← 返回 GPU 总览</button></div>
 <div class="panel"><div class="panel-heading"><div><h2>曲线与检测证据</h2><div class="controls"><button id="detectChoose" class="write">选择模型（已训练基线）</button><button id="detectTrain" class="write">重新学习历史基线</button><button id="detectRuntime" class="write">运行参数</button></div><p class="muted" id="entityInfo"></p><div id="detectionContext" class="detection-context"></div></div><div class="controls monitoring-inputs"><label>检测任务 <select id="taskSelect" aria-label="检测任务"></select></label><label>指标 <select id="metricSelect" aria-label="展示指标"></select></label></div></div><div class="legend"><span><i class="blue"></i>实际观测</span><span id="referenceLegend"><i class="gray"></i><span id="referenceLabel">模型参考</span></span><span id="bandLegend"><i class="band"></i>残差参考带（适用时）</span><span id="detectionAnomalyLegend" hidden><i class="red"></i>模型异常点</span></div><div class="chart"><canvas id="metricChart" role="img" aria-label="GPU原始曲线、模型预期和异常点"></canvas><div class="tooltip" id="chartTip" hidden></div></div><div class="caption" id="chartCaption">展示已持久化的在线模型版本结果，缺口断线；参考范围不是故障概率。</div></div><div class="split detection-evidence" id="detectionEvidence"><div class="panel" id="detectionScorePanel" hidden><div class="panel-heading"><h2>异常分数</h2><span class="badge" id="scoreBadge">—</span></div><div class="chart score-chart"><canvas id="scoreChart" role="img" aria-label="异常分数和阈值"></canvas></div></div><div class="panel"><h2>当前检测证据</h2><dl id="evidence"></dl></div></div><div id="simulationPanel" class="panel" hidden><div class="panel-heading"><div><h2>GPU 模拟故障注入（仅实验）</h2><p class="muted">只影响当前选中的模拟 GPU，尖峰类90秒后结束；加速退化与缺数需手动恢复正常。</p></div><span class="badge">SIMULATED</span></div><div id="scenarioButtons" class="scenario-buttons"></div></div></section>
 <section id="page-tasks" class="page" hidden><div class="panel"><div class="panel-heading"><h2>智能检测任务</h2><button class="primary write" id="newTask">配置单指标 / 多指标</button></div><div class="table-scroll"><table><thead><tr><th>任务 / GPU</th><th>模板</th><th>状态</th><th>模型版本</th><th>操作</th></tr></thead><tbody id="taskRows"></tbody></table></div></div></section>
-<section id="page-models" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>模型服务连接</h2><p class="muted">本地文件、本机参考服务和用户登记的远程服务分别标识。远程模型可以直接登记，无需先在本系统训练。公司原生接口需标准协议桥接。</p></div><button id="addModelService" class="primary admin">接入远程模型服务</button></div><div id="modelServiceList"></div></div><div class="panel"><div class="panel-heading"><div><h2>已训练的基线</h2><p class="muted">这里保存此前训练的结果。按设备、指标、来源和时间识别版本；模拟参考与实际采集历史分别标记，内部ID收在详情中。</p></div></div><div class="table-scroll"><table><thead><tr><th>基线版本 / 设备 / 状态</th><th>检测方法</th><th>训练来源 / 历史范围</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div></div><div class="panel"><h2>训练与回放作业</h2><div class="table-scroll"><table><thead><tr><th>作业</th><th>任务</th><th>状态</th><th>结果 / 原因</th><th>操作</th></tr></thead><tbody id="jobRows"></tbody></table></div></div><div class="panel" id="replayPanel" hidden><h2>离线回放 · 与在线事件隔离</h2><div class="chart"><canvas id="replayChart" aria-label="历史回放曲线"></canvas></div><p id="replaySummary" class="caption"></p></div></section>
+<section id="page-models" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>模型服务连接</h2><p class="muted">本地文件、本机参考服务和用户登记的远程服务分别标识。远程模型可以直接登记，无需先在本系统训练。公司原生接口需标准协议桥接。</p></div><button id="addModelService" class="primary admin">接入远程模型服务</button></div><div id="modelServiceList"></div></div><div class="panel"><div class="panel-heading"><div><h2>已训练的基线</h2><p class="muted">这里保存此前训练的结果。按设备、指标、来源和时间识别版本；模拟参考与实际采集历史分别标记，内部ID收在详情中。</p></div></div><div class="table-scroll"><table><thead><tr><th>基线版本 / 设备 / 状态</th><th>检测方法</th><th>训练来源 / 历史范围</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div></div><div class="panel"><h2>训练与回放作业</h2><div class="table-scroll"><table><thead><tr><th>作业</th><th>任务</th><th>状态</th><th>结果 / 原因</th><th>操作</th></tr></thead><tbody id="jobRows"></tbody></table></div></div><div class="panel" id="replayPanel" hidden><h2>离线回放 · 与在线事件隔离</h2><div class="chart"><canvas id="replayChart" aria-label="历史回放曲线"></canvas></div><div id="replaySummary" class="caption"></div></div></section>
 <section id="page-events" class="page" hidden><div class="panel"><div class="panel-heading"><h2>夜莺活动告警</h2><span class="badge" id="n9eStatus">未对接</span></div><div id="n9eEvents"></div><p class="caption">本地检测状态不等同已通知；仅展示夜莺实际返回的事件。</p></div><div class="panel"><h2>人工反馈</h2><p class="muted">选择任务后针对当前时间范围记录真实故障、正常变化或采集问题；反馈不会自动触发重训练。</p><div class="controls feedback-form"><select id="feedbackTask"></select><select id="feedbackKind"><option value="fault">真实异常</option><option value="normal_change">正常负载变化</option><option value="collection_problem">采集问题</option><option value="unconfirmed">尚未确认</option></select><input id="feedbackNote" placeholder="记录观察证据与处理结论" maxlength="2000"><button id="feedbackSave" class="primary write">保存反馈</button></div><div id="feedbackList"></div></div></section>
 <section id="page-health" class="page" hidden><div class="panel"><div class="panel-heading"><h2>数据与平台状态</h2><div class="controls"><button id="sync" class="admin">同步夜莺规则</button><button id="inference" class="admin">暂停推理</button><button id="backup" class="admin">创建备份</button></div></div><dl id="platformInfo"></dl><div class="hint">现有时序源仅查询；当前独立服务使用本地持久结果网关对接夜莺，不修改旧GPU规则。网关不是通用PromQL服务。</div></div><div class="panel"><h2>审计记录</h2><div id="auditList" class="audit-list"></div></div></section>
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>

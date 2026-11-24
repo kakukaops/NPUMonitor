@@ -11,6 +11,7 @@ import secrets
 import tarfile
 import threading
 import time
+from typing import Optional
 import uuid
 from urllib.parse import urlsplit
 
@@ -24,7 +25,7 @@ from .source import Source
 from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
-from .incident_queue import build_incident_queue
+from .incident_queue import build_incident_queue, build_recovered_queue
 from .monitor_view import monitor_view
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
@@ -497,9 +498,10 @@ def series(key:str,request:Request,start:float=0,end:float=0):
 @app.get('/api/gpu-ml/v1/monitor-view')
 def monitor_view_data(request: Request, entity: str, metric: str, task: str = '',
                       source: str = 'prometheus', mode: str = 'online',
-                      span: int = 900, scenario: str = 'normal'):
+                      span: int = 900, scenario: str = 'normal', start: Optional[float] = None,
+                      end: Optional[float] = None, include_inputs: bool = False):
     user(request)
-    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario)
+    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs)
 
 
 @app.get('/api/gpu-ml/v1/raw-series')
@@ -510,6 +512,17 @@ def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metr
     keys=[metric] if STORE.get('entity',entity)['quality'].get(metric)=='valid' else []
     if not keys:return {'points':[],'quality':'missing'}
     return {'points':ENGINE.source.history(entity,start,end,step,keys),'source':'existing-prometheus-readonly'}
+
+@app.get('/api/gpu-ml/v1/incident-history')
+def incident_history(request: Request, cluster: str = ''):
+    user(request)
+    now = time.time()
+    entities = [entity for entity in STORE.list('entity') if not cluster or entity['cluster'] == cluster]
+    episodes = STORE.recovered_episodes(now - 7 * 86400, now, limit=201, cluster=cluster)
+    nightingale = STORE.get('system', 'nightingale_events') or {}
+    return {**build_recovered_queue(entities, STORE.list('task'), episodes[:200], TEMPLATES,
+                                    STORE.list('binding'), nightingale, now),
+            'truncated': len(episodes) > 200}
 
 @app.post('/api/gpu-ml/v1/replays')
 async def replay(request:Request):
@@ -530,8 +543,16 @@ async def feedback(request:Request):
     if not STORE.get('task',body.get('task','')):raise ValueError('任务不存在')
     start=float(body.get('start',time.time()-300));end=float(body.get('end',time.time()))
     if not 0<end-start<=86400*31 or end>time.time()+2:raise ValueError('反馈时间窗口无效')
+    episode_id = body.get('episode')
+    if episode_id is not None:
+        if not isinstance(episode_id, str) or not re.fullmatch('[a-f0-9]{32}', episode_id):
+            raise ValueError('异常事件标识无效')
+        episode = STORE.recovered_episode(episode_id) or STORE.get('state', body['task'])
+        if not episode or episode['id'] != body['task'] or episode.get('episode_id') != episode_id:
+            raise ValueError('异常事件与检测任务不匹配')
     note=str(body.get('note',''))[:2000];key=uuid.uuid4().hex
-    result=STORE.put('feedback',key,{'task':body['task'],'kind':body['kind'],'note':note,'at':time.time(),'actor':actor,'start':start,'end':end})
+    result=STORE.put('feedback',key,{'task':body['task'],'kind':body['kind'],'note':note,'at':time.time(),'actor':actor,
+                                     'start':start,'end':end,'episode':episode_id})
     STORE.audit(actor,'feedback',key);return result
 
 @app.get('/api/gpu-ml/v1/audit')

@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gpu_ml.monitor_view import replay_results, sample_rows
+from gpu_ml.monitor_view import replay_input, replay_results, sample_rows, summarize_confirmations
+from gpu_ml.source import Source
 from gpu_ml.store import Store
 
 
@@ -37,3 +38,52 @@ class MonitorViewTests(unittest.TestCase):
         self.assertTrue(all(b['t']-a['t'] == 2 for a, b in zip(points, points[1:])))
         self.assertTrue(any(not row['values'] for row in points))
         self.assertIn('gpu_temp', points[0]['values'])
+
+    def test_prometheus_missing_input_resets_confirmation_and_preserves_observation(self):
+        class PartialSource(Source):
+            def history_samples(self, entity, start, end, step, metrics=None):
+                values = {'gpu_temp': {100: 80, 102: 80, 104: 85, 106: 80},
+                          'power': {100: 200, 102: 200, 106: 200}}
+                return {key: {stamp: stamp for stamp in row} for key, row in values.items()}, values, {}
+
+        source = PartialSource()
+        frames, observations = source.monitor_history('c|gpu', 100, 106, 2, ['gpu_temp', 'power'], ['gpu_temp', 'power'])
+        self.assertEqual([point['t'] for point in source.history('c|gpu', 100, 106, 2, ['gpu_temp', 'power'])], [100, 102, 106])
+        self.assertEqual(frames[2]['input_issues'], {'power': 'missing'})
+        self.assertEqual(observations['gpu_temp'][2]['values']['gpu_temp'], 85)
+        self.assertNotIn(104, [point['t'] for point in observations['power']])
+        task = {'id': 'task', 'template': 'joint', 'confirmation_samples': 3}
+        inputs = replay_input(frames, ['gpu_temp', 'power'], task)
+        scores = [{**row, 'score': 2, 'threshold': 1, 'anomaly': True} for row in inputs]
+        _, state, episodes = replay_results(frames, scores, task, 'model', 2, ['gpu_temp', 'power'])
+        self.assertEqual(state['pending'], 1)
+        self.assertEqual(episodes, [])
+
+    def test_repeated_prometheus_source_value_does_not_count_twice(self):
+        frames = [
+            {'t': 100, 'source_time': 100, 'values': {'gpu_temp': 80}},
+            {'t': 102, 'source_time': 100, 'values': {'gpu_temp': 80}},
+            {'t': 104, 'source_time': 104, 'values': {'gpu_temp': 85}},
+        ]
+        task = {'id': 'task', 'template': 'uni_gpu_temp', 'confirmation_samples': 2}
+        rows = replay_input(frames, ['gpu_temp'], task)
+        scores = [{**row, 'score': 2, 'threshold': 1, 'anomaly': True} for row in rows]
+        replay, _, episodes = replay_results(frames, scores, task, 'model', 2, ['gpu_temp'])
+        self.assertEqual([point['t'] for point in replay], [100, 104])
+        self.assertEqual(episodes, [{'start': 104, 'end': None}])
+
+    def test_event_evaluation_uses_confirmation_time_and_explicit_labels(self):
+        rows = [{'t': stamp, 'quality': quality} for stamp, quality in
+                ((102, 'valid'), (104, 'valid'), (106, 'valid'), (112, 'missing'), (131, 'valid'), (135, 'valid'))]
+        labels = [
+            {'start': 100, 'end': 108, 'kind': 'fault'},
+            {'start': 110, 'end': 116, 'kind': 'fault'},
+            {'start': 130, 'end': 134, 'kind': 'normal_change'},
+            {'start': 134, 'end': 138, 'kind': 'normal_change'},
+        ]
+        report = summarize_confirmations(rows, [{'start': 106}, {'start': 131}, {'start': 120}], labels)
+        self.assertEqual(report['event_recall'], .5)
+        self.assertEqual(report['normal_window_false_alarm_rate'], .5)
+        self.assertEqual(report['unscored_fault_windows'], 1)
+        self.assertEqual(report['median_detection_delay_seconds'], 6)
+        self.assertAlmostEqual(report['unscored_fraction'], 1/6)

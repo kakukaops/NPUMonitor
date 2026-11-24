@@ -261,5 +261,29 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .monitor-view-evidence .badge{font-size:11px}
 .monitor-view .legend{margin-top:6px}
 .monitor-view .is-episode{background:#d69776}
+.legend .is-episode{background:#d69776}
+.legend .is-quality{background:#a286c6}
+.coverage-panel{margin-top:12px}
+.coverage-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}
+.coverage-buttons button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.coverage-buttons button[aria-pressed="true"]{background:#edf6f5;border-color:#77a49e}
+.coverage-buttons strong{font-size:16px}
+.coverage-details{margin-top:9px;max-height:230px;overflow:auto}
+.coverage-details ul{margin:0;padding:0;list-style:none}
+.coverage-details li{padding:6px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.coverage-details small{display:block;color:var(--muted)}
+.incident-range-edit{font-size:11px;color:var(--muted);margin-bottom:5px}
+.incident-range-edit summary{cursor:pointer}
+.incident-range-edit .controls{flex-wrap:wrap}
+.incident-range-edit label{display:flex;gap:5px;align-items:center}
+.monitor-input-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.monitor-input-charts[hidden]{display:none}
+.monitor-input-card{min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fff}
+.monitor-input-card h3{display:flex;justify-content:space-between;gap:5px;margin:0 2px 5px;font-size:12px;font-weight:650;color:var(--ink)}
+.monitor-input-reading{color:#3568a8;font-variant-numeric:tabular-nums}
+.monitor-input-chart{height:150px}
+.monitor-input-cursor{position:absolute;top:14px;bottom:28px;width:1px;background:#8493a5;pointer-events:none}
+.incident-chart-body .monitor-input-chart{height:132px}
+@media(max-width:680px){.monitor-input-charts{grid-template-columns:1fr}}
 .metric-archive .gpu-grid{margin-top:12px}
 @media(max-width:650px){.monitor-view-chart{height:202px}.monitor-view-score{height:108px}}

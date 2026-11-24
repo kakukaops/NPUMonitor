@@ -35,20 +35,25 @@ def sample_rows(start, end, step, metric, scenario):
     ]
 
 
-def history_with_metric(source, entity, start, end, step, required, metric):
-    try:
-        rows = source.history(entity, start, end, step, required)
-    except ValueError as error:
-        if str(error) != '历史缺少必需指标':
-            raise
-        rows = []
-    if not rows and set(required) != {metric}:
-        try:
-            rows = source.history(entity, start, end, step, [metric])
-        except ValueError as error:
-            if str(error) != '历史缺少必需指标':
-                raise
-    return rows
+def replay_input(rows, required, task, start=None):
+    """Score each new source sample at most once and retain invalid evaluation slots."""
+    inputs, last = [], -math.inf
+    for row in rows:
+        if 'quality' in row:
+            continue
+        if any(key not in row['values'] for key in required):
+            row['quality'] = 'missing'
+            continue
+        if task and task['template'] == 'activity' and row['values'].get('job_running') != 1:
+            row['quality'] = 'context_inactive'
+            continue
+        stamp = row.get('source_time', row['t'])
+        if stamp <= last or (start is not None and stamp < start):
+            row['quality'] = 'held_sample'
+            continue
+        last = stamp
+        inputs.append({'t': stamp, 'values': {key: row['values'][key] for key in required}})
+    return inputs
 
 
 def replay_results(rows, scored, task, model_id, step, required):
@@ -61,79 +66,189 @@ def replay_results(rows, scored, task, model_id, step, required):
     out = []
     for row in rows:
         stamp = row['t']
-        prediction = by_time.get(stamp)
+        quality = row.get('quality')
+        if quality == 'held_sample':
+            continue
+        prediction = by_time.get(row.get('source_time', stamp)) if not quality else None
         was_active = state['active']
         if prediction:
             quality = 'valid'
             result = {**prediction, 'model': model_id, 'cadence_seconds': step}
         else:
-            quality = ('missing' if any(metric not in row['values'] for metric in required)
-                       else 'reference_window_incomplete' if model_id else 'untrained')
-            if task and task.get('template') == 'activity' and row['values'].get('job_running') == 0:
-                quality = 'context_inactive'
+            quality = quality or ('missing' if any(metric not in row['values'] for metric in required)
+                                  else 'reference_window_incomplete' if model_id else 'untrained')
             result = None
         advance_detector_state(state, result, quality, stamp, confirmation, recovery)
         if state['active'] and not was_active:
-            episodes.append({'start': stamp, 'end': None})
+            episodes.append({'start': result['t'], 'end': None})
         elif was_active and not state['active']:
-            episodes[-1]['end'] = stamp
+            episodes[-1]['end'] = result['t']
         out.append({
             **(result or row), 'values': row['values'], 'quality': quality,
             'active': state['active'], 'pending': state['pending'], 'cadence_seconds': step,
+            'input_issues': row.get('input_issues', {}),
         })
-    return out, state, episodes
+    return sorted(out, key=lambda point: point['t']), state, episodes
 
 
-def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenario):
-    if source not in ('prometheus', 'sample') or mode not in ('online', 'replay'):
+def recorded_episodes(points):
+    episodes = []
+    last_id = None
+    for point in points:
+        if point.get('active'):
+            episode_id = point.get('episode_id')
+            if last_id and episode_id and last_id != episode_id and episodes[-1]['end'] is None:
+                episodes[-1]['end'] = point['t']
+            if not episodes or episodes[-1]['end'] is not None:
+                episodes.append({'start': point['t'], 'end': None})
+            last_id = episode_id
+        elif episodes and episodes[-1]['end'] is None:
+            episodes[-1]['end'] = point['t']
+    return episodes
+
+
+def summarize_confirmations(replay, episodes, labels):
+    """Event metrics for the applied confirmation policy, using explicit annotations."""
+    opening_times = [episode['start'] for episode in episodes]
+    score_times = sorted(point['t'] for point in replay if point['quality'] == 'valid')
+    fault, normal = [], []
+    for label in labels:
+        kind, start, end = label['kind'], label['start'], label['end']
+        if kind not in ('fault', 'normal_change'):
+            continue
+        openings = [opened for opened in opening_times if start <= opened < end]
+        scored = sum(start <= stamp < end for stamp in score_times)
+        record = {'start': start, 'end': end, 'scored_points': scored, 'confirmed': len(openings)}
+        if kind == 'fault':
+            record['delay_seconds'] = openings[0] - start if openings else None
+            fault.append(record)
+        else:
+            normal.append(record)
+    fault_hits = sum(bool(row['confirmed']) for row in fault)
+    normal_hits = sum(bool(row['confirmed']) for row in normal)
+    normal_days = sum(row['end'] - row['start'] for row in normal) / 86400
+    delays = [row['delay_seconds'] for row in fault if row['delay_seconds'] is not None]
+    return {
+        'confirmed_episodes': len(episodes), 'fault_windows': len(fault), 'fault_hits': fault_hits,
+        'unscored_fault_windows': sum(not row['scored_points'] for row in fault),
+        'event_recall': fault_hits / len(fault) if fault else None,
+        'normal_windows': len(normal), 'normal_alert_windows': normal_hits,
+        'normal_window_false_alarm_rate': normal_hits / len(normal) if normal else None,
+        'normal_days': normal_days,
+        'false_episodes_per_100_normal_days': 100 * sum(row['confirmed'] for row in normal) / normal_days if normal_days else None,
+        'median_detection_delay_seconds': float(np.median(delays)) if delays else None,
+        'unscored_fraction': 1 - len(score_times) / len(replay) if replay else None,
+        'fault_details': fault,
+    }
+
+
+def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenario, start=None, end=None, include_inputs=False):
+    if source not in ('prometheus', 'sample') or mode not in ('online', 'recorded', 'replay'):
         raise ValueError('数据来源或显示方式无效')
     if source == 'sample' and (not SIMULATION or mode != 'replay' or scenario not in SAMPLES):
         raise ValueError('内置样例仅用于模拟环境的回放')
-    if not 300 <= span <= 3600 or metric not in METRICS:
+    if metric not in METRICS or not 300 <= span <= 3600:
         raise ValueError('时间范围或指标无效')
+    now = time.time()
+    if start is None and end is None and mode != 'recorded':
+        end = int(now) - (4 if mode == 'replay' else 0)
+        start = end - span
+    elif (start is None or end is None or source != 'prometheus' or mode == 'online'
+          or not now - 7 * 86400 <= start < end <= now or end - start > 3 * 3600):
+        raise ValueError('历史视图支持最近 7 天内最长 3 小时的固定区间')
     entity = engine.store.get('entity', entity_id)
     if not entity:
         raise ValueError('GPU 不存在')
     task = engine.store.get('task', task_id) if task_id else None
-    if task_id and (not task or task['entity'] != entity_id or task.get('deleted')):
+    if task_id and (not task or task['entity'] != entity_id or (task.get('deleted') and mode != 'recorded')):
         raise ValueError('任务与 GPU 不匹配')
-    if task and metric not in TEMPLATES[task['template']]['targets']:
+    spec = TEMPLATES[task['template']] if task else None
+    if spec and metric not in spec['targets'] and (not include_inputs or metric not in spec['required']):
         raise ValueError('指标不属于当前任务')
     model_id = task.get('active_model') if task else None
     record = engine.store.get('model', model_id) if model_id else None
-    end = int(time.time()) - (4 if mode == 'replay' else 0)
-    start = end - span
     state, episodes = {}, []
-    required = TEMPLATES[task['template']]['required'] if model_id else [metric]
-    if mode == 'online':
-        points = engine.store.history(task_id, start, end) if model_id else []
-        if not any(metric in point['values'] for point in points):
-            points = history_with_metric(engine.source, entity_id, start, end, 10, [metric], metric)
+    observation_error = False
+    required = spec['required'] if spec and (model_id or include_inputs) else [metric]
+    show = list(dict.fromkeys([*spec['targets'], *required, metric])) if spec and include_inputs else [metric]
+    if mode in ('online', 'recorded'):
+        points = engine.store.history(task_id, start, end) if task else []
+        episodes = recorded_episodes(points)
+        step = max(2, int(points[-1].get('cadence_seconds', 2))) if points else 10
+        observations = {key: [] for key in show}
+        frames = []
+        try:
+            frames, observations = engine.source.monitor_history(entity_id, start, end, step, required, show)
+        except (ValueError, RuntimeError, OSError):
+            observation_error = True
+        for key, series in observations.items():
+            observed = {point['t']: point for point in series}
             for point in points:
-                point['cadence_seconds'] = 10
-        state = (engine.store.get('state', task_id) or {}) if task else {}
-        if task and not (engine.store.get('system', 'inference') or {'enabled': True})['enabled']:
-            state['quality'] = 'paused'
-        elif state.get('quality') == 'valid' and not engine.observation_is_fresh(state.get('last_source', 0)):
-            state['quality'] = 'inference_stale'
+                if key in point['values']:
+                    observed[point['t']] = {'t': point['t'], 'values': {key: point['values'][key]},
+                                           'cadence_seconds': point.get('cadence_seconds', step)}
+            observations[key] = [observed[t] for t in sorted(observed)]
+        if mode == 'online' and task:
+            state = engine.store.get('state', task_id) or {}
+            if not task.get('enabled') or not (engine.store.get('system', 'inference') or {'enabled': True})['enabled']:
+                state['quality'] = 'paused'
+            elif state.get('quality') == 'valid' and state.get('model_id') != model_id:
+                state['quality'] = 'model_changed'
+            elif state.get('quality') == 'valid' and not engine.observation_is_fresh(state.get('last_source', 0)):
+                state['quality'] = 'inference_stale'
     else:
         model = engine.load(model_id) if model_id else None
         step = max(2, int(getattr(model, 'cadence', 10)))
-        rows = (sample_rows(start, end, step, metric, scenario) if source == 'sample'
-                else history_with_metric(engine.source, entity_id, start, end, step, required, metric))
-        usable = [row for row in rows if all(key in row['values'] for key in required)]
-        if task and task['template'] == 'activity':
-            usable = [row for row in usable if row['values'].get('job_running') == 1]
+        if source == 'sample':
+            frames = sample_rows(start, end, step, metric, scenario)
+            observations = {key: [{'t': row['t'], 'values': {key: row['values'][key]}, 'cadence_seconds': step}
+                                  for row in frames if key in row['values']] for key in show}
+        else:
+            frames, observations = engine.source.monitor_history(entity_id, start, end, step, required, show)
+        usable = replay_input(frames, required, task, start)
         scored = engine.score(model, usable, task.get('sensitivity', 1.)) if model and usable else []
-        points, state, episodes = replay_results(rows, scored, task, model_id, step, required)
+        points, state, episodes = replay_results(frames, scored, task, model_id, step, required)
+        frames = points
+    intervals = quality_intervals(frames, step, end)
     keys = ('t', 'values', 'expected', 'bounds', 'score', 'threshold', 'anomaly', 'active',
-            'quality', 'cadence_seconds', 'model', 'pipeline_id', 'decision_config_revision', 'reference_kind')
-    points = [{key: point[key] for key in keys if key in point} for point in points]
+            'quality', 'cadence_seconds', 'model', 'pipeline_id', 'decision_config_revision',
+            'reference_kind', 'effective_task_factor', 'confirmation_samples', 'recovery_samples')
+    points = [{key: point[key] for key in keys if key in point} for point in points if start <= point['t'] <= end]
+    versions = {}
+    decisions = {}
+    for point in points:
+        used = point.get('model')
+        if used and used not in versions:
+            saved = engine.store.get('model', used) or {}
+            versions[used] = saved.get('algorithm')
+        revision = point.get('decision_config_revision')
+        if used and revision is not None:
+            decisions[(used, revision)] = {'model': used, 'revision': revision, 'factor': point.get('effective_task_factor'),
+                                          'confirmation': point.get('confirmation_samples'), 'recovery': point.get('recovery_samples')}
     return {
         'source': source, 'mode': mode, 'start': start, 'end': end, 'metric': metric,
         'model': {'id': model_id, 'algorithm': record['algorithm']} if record else None,
         'confirmation': task.get('confirmation_samples', 3) if task else None,
         'recovery': task.get('recovery_samples', 3) if task else None,
         'sensitivity': task.get('sensitivity', 1.) if task else None,
-        'points': points, 'state': state, 'episodes': episodes,
+        'points': points, 'observations': observations[metric], 'input_observations': observations if include_inputs else {},
+        'observation_error': observation_error,
+        'state': state, 'episodes': episodes, 'quality_intervals': intervals, 'versions': versions,
+        'recorded_decisions': list(decisions.values()) if mode == 'recorded' else [],
     }
+
+
+def quality_intervals(frames, step, end):
+    intervals = []
+    for frame in sorted(frames, key=lambda row: row['t']):
+        quality = frame.get('quality')
+        if not quality or quality in ('valid', 'untrained', 'held_sample') or frame['t'] >= end:
+            continue
+        issues = frame.get('input_issues', {})
+        previous = intervals[-1] if intervals else None
+        stop = min(end, frame['t'] + step)
+        if previous and previous['quality'] == quality and previous['inputs'] == issues and previous['end'] == frame['t']:
+            previous['end'] = stop
+        else:
+            intervals.append({'start': frame['t'], 'end': stop, 'quality': quality, 'inputs': issues})
+    return intervals

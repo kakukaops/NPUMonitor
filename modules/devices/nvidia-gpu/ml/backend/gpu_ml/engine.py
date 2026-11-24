@@ -15,6 +15,7 @@ from .evaluation import summarize,validate_labels
 from .settings import DATA,TEMPLATES,METRICS,SIMULATION,POLL,FRESHNESS
 from .simulation import UUIDS,CLUSTER,healthy
 from .baseline import diagnostics,reference_rows,PRIMARY_METRICS
+from .monitor_view import replay_input, replay_results, summarize_confirmations
 from .model_backends.http import HttpModelBackend,RemoteModel
 from .model_backends.training import TrainingCoordinator
 from .model_backends.services import ModelServices
@@ -327,13 +328,21 @@ class Engine:
             job=self.store.get('job',key)
             try:
                 job.update(status='running');self.store.put('job',key,job)
-                rows=self.source.history(task['entity'],start,end,step,TEMPLATES[task['template']]['required'])
-                if task['template']=='activity':rows=[r for r in rows if r['values'].get('job_running')==1]
-                if len(rows)<3:raise ValueError('回放有效样本不足')
-                started=time.perf_counter();points=self.score(model,rows)
+                required = TEMPLATES[task['template']]['required']
+                frames, _ = self.source.monitor_history(task['entity'], start, end, step, required, required[:1])
+                rows = replay_input(frames, required, task, start)
+                started=time.perf_counter()
+                points=self.score(model,rows,task.get('sensitivity',1.)) if rows else []
                 evaluation=summarize(points,rows,annotations,getattr(model,'cadence',step),time.perf_counter()-started)
+                replay, _, episodes = replay_results(frames, points, task, model_id, step, required)
+                evaluation['confirmation'] = summarize_confirmations(replay, episodes, annotations)
                 # Replay outputs remain separate from online result/incident tables.
-                self.store.put('replay',key,{'task':task_id,'model':model_id,'points':points,'evaluation':evaluation,'capabilities':capabilities_for(model),'labels':annotations,'created_at':time.time()})
+                self.store.put('replay',key,{'task':task_id,'model':model_id,'points':points,'evaluation':evaluation,
+                                             'capabilities':capabilities_for(model),'labels':annotations,'episodes':episodes,
+                                             'start':start,'end':end,'created_at':time.time(),
+                                             'decision':{'sensitivity':task.get('sensitivity',1.),
+                                                         'confirmation_samples':task.get('confirmation_samples',3),
+                                                         'recovery_samples':task.get('recovery_samples',3)}})
                 job.update(status='completed',point_count=len(points),anomaly_points=sum(p['anomaly'] for p in points),completed_at=time.time())
             except Exception as exc:job.update(status='failed',error=str(exc))
             self.store.put('job',key,job)

@@ -59,6 +59,8 @@ class Store:
             CREATE TABLE IF NOT EXISTS results(task TEXT,source_time REAL,model TEXT,payload TEXT,
               PRIMARY KEY(task,source_time,model));
             CREATE INDEX IF NOT EXISTS result_time ON results(source_time);
+        CREATE TABLE IF NOT EXISTS recovered_episode(id TEXT PRIMARY KEY,task TEXT,closed_at REAL,payload TEXT);
+        CREATE INDEX IF NOT EXISTS recovered_episode_time ON recovered_episode(closed_at);
             CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY,at REAL,actor TEXT,action TEXT,
               object_id TEXT,details TEXT);
             ''')
@@ -122,6 +124,25 @@ class Store:
                             (task,start,end or time.time()+1,limit)).fetchall()
             return list(reversed([json.loads(r['payload']) for r in rows]))
 
+    def recovered_episodes(self, start, end, limit=200, cluster=''):
+        with self.db() as db:
+            query = 'SELECT r.payload FROM recovered_episode r'
+            args = [start, end]
+            if cluster:
+                query += (" JOIN documents t ON t.kind='task' AND t.id=r.task"
+                          " JOIN documents e ON e.kind='entity' AND e.id=json_extract(t.payload,'$.entity')")
+            query += ' WHERE r.closed_at BETWEEN ? AND ?'
+            if cluster:
+                query += " AND json_extract(e.payload,'$.cluster')=?"
+                args.append(cluster)
+            rows = db.execute(query + ' ORDER BY r.closed_at DESC LIMIT ?', (*args, limit)).fetchall()
+            return [json.loads(row['payload']) for row in rows]
+
+    def recovered_episode(self, key):
+        with self.db() as db:
+            row = db.execute('SELECT payload FROM recovered_episode WHERE id=?', (key,)).fetchone()
+            return json.loads(row['payload']) if row else None
+
     def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3):
         for count in (confirmation_samples,recovery_samples):
             if isinstance(count,bool) or not isinstance(count,int) or not 1<=count<=30:raise ValueError('确认/恢复样本数须为1至30的整数')
@@ -129,9 +150,15 @@ class Store:
         with self.db() as db:
             row=db.execute("SELECT payload,revision FROM documents WHERE kind='state' AND id=?",(task,)).fetchone()
             state=json.loads(row['payload']) if row else {'id':task,'active':False,'quality':'unverified','last_source':0,'pending':0,'clear_count':0,'episode_id':None}
+            was_active = state['active']
             if advance_detector_state(state,result,quality,now,confirmation_samples,recovery_samples):
-                result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'])
+                result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'],
+                            confirmation_samples=confirmation_samples,recovery_samples=recovery_samples)
                 db.execute('INSERT OR IGNORE INTO results VALUES(?,?,?,?)',(task,result['t'],result['model'],json.dumps(result,allow_nan=False)))
+                if was_active and not state['active'] and state.get('episode_id'):
+                    episode = {**state, 'confirmation_samples': confirmation_samples, 'recovery_samples': recovery_samples}
+                    db.execute('INSERT OR IGNORE INTO recovered_episode VALUES(?,?,?,?)',
+                               (state['episode_id'], task, state['closed_at'], json.dumps(episode, allow_nan=False)))
             # A repeated held source sample never advances confirmation or recovery.
             revision=row['revision']+1 if row else 1
             db.execute("INSERT INTO documents VALUES('state',?,?,?) ON CONFLICT(kind,id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision",
@@ -157,4 +184,7 @@ class Store:
             finally:output.close()
 
     def prune(self,days=7):
-        with self.db() as db:db.execute('DELETE FROM results WHERE source_time<?',(time.time()-days*86400,))
+        cutoff = time.time() - days * 86400
+        with self.db() as db:
+            db.execute('DELETE FROM results WHERE source_time<?', (cutoff,))
+            db.execute('DELETE FROM recovered_episode WHERE closed_at<?', (cutoff,))
