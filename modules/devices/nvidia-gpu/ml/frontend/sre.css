@@ -1,4 +1,4 @@
-:root {
+:root, :host {
     color-scheme: dark;
     --bg: #0a111b;
     --rail: #0d1724;
@@ -199,4 +199,16 @@ footer { display: flex; justify-content: space-between; gap: 10px; color: var(--
     .queue { max-height: 270px; }
     .plot-main { height: 197px; }
     .detail-tabs { gap: 10px; }
+}
+
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+.embedded { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 13px; }
+.embedded .workbench { padding: 13px 15px 15px; }
+.embedded .heading { justify-content: flex-end; align-items: center; margin-bottom: 10px; }
+.embedded .heading > div:first-child { display: none; }
+.embedded .toast { right: 20px; bottom: 18px; z-index: 4; }
+@media (max-width: 620px) {
+    .embedded .workbench { padding-inline: 9px; }
+    .embedded .heading { justify-content: flex-start; }
 }

@@ -3,8 +3,9 @@ const $=id=>document.getElementById(id), API='/api/gpu-ml/v1';
 let data=null,page='baseline',selectedTask=null,selectedEntity=null,points=[],replayPoints=[],lastSeries=0,rawMode=false,refreshing=false,dialogSubmit=null;
 const baselinePreviewCache=new Map(),baselinePreviewBusy=new Set();
 const PRIMARY=['gpu_temp','memory_temp','power','util','mem_util'];
-const names={baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'在线检测',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
+const names={replay:'异常概览',baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'在线检测',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
 const pageDescriptions={
+ replay:'查看节点和 GPU 的趋势预警、关联线索与采集缺口。',
  baseline:'对照实际观测、预测参考带与异常分数。按 GPU 和指标选择已训练模型，或从历史数据训练新版本。',
  scenarios:'配置可解释的 DCGM 场景，或训练多指标联合模型，从分数与贡献指标定位偏离。',
  overview:'按集群浏览已接入的 GPU、实时指标与任务状态。',
@@ -26,7 +27,49 @@ function toast(text){$('toast').textContent=text;$('toast').hidden=false;setTime
 async function api(path,options={}){const r=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});let result;try{result=await r.json();}catch{throw Error('服务响应无效');}if(r.status===401){$('loginOverlay').hidden=false;throw Error('请登录后继续');}if(!r.ok)throw Error(typeof result.detail==='string'?result.detail:JSON.stringify(result.detail));return result;}
 async function action(fn){try{await fn();await refresh(true);}catch(e){toast(e.message);}}
 function roleAccess(){const writer=data&&data.role!=='viewer',admin=data&&data.role==='admin';document.querySelectorAll('.write').forEach(b=>b.disabled=!writer);document.querySelectorAll('.admin').forEach(b=>b.disabled=!admin);}
-function choosePage(next){page=next;document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!=='page-'+next);document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===next));$('pageName').textContent=names[next];$('title').textContent=names[next];$('subtitle').textContent=pageDescriptions[next];if(data){render();if(next==='detection')loadSeries();if(next==='health')loadAudit();}}
+const replayViews={replay:'all',baseline:'trend',scenarios:'joint'};
+const replayHashes={replay:'#replay',baseline:'#trend-replay',scenarios:'#joint-replay'};
+let replayMode=false;
+
+function updatePageVisibility(){
+ const available=Boolean(data?.simulation);
+ const active=available&&(page==='replay'||replayMode);
+ const visible=active?'replay':page==='replay'?'baseline':page;
+ document.querySelectorAll('.page').forEach(panel=>panel.hidden=panel.id!=='page-'+visible);
+ $('replayNav').hidden=!available;
+ $('replaySwitch').hidden=!available||!replayViews[page]||page==='replay';
+ $('liveScope').hidden=active;
+ $('liveControls').hidden=active;
+ if(available&&replayViews[page]){
+  $('liveMode').setAttribute?.('aria-pressed',String(!active));
+  $('replayMode').setAttribute?.('aria-pressed',String(active));
+ }
+ if(active) $('integratedReplay').setAttribute('view',replayViews[page]);
+}
+
+function choosePage(next, showReplay=false){
+ page=next;
+ replayMode=showReplay;
+ document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===next));
+ $('pageName').textContent=names[next];
+ $('title').textContent=names[next];
+ $('subtitle').textContent=pageDescriptions[next];
+ const hash=replayHashes[next];
+ const showing=next==='replay'||showReplay;
+ const existing=window.location?.hash;
+ if(showing&&hash&&existing!==hash)window.history?.replaceState(null,'',hash);
+ if(!showing&&Object.values(replayHashes).includes(existing))window.history?.replaceState(null,'',window.location.pathname+window.location.search);
+ if(data){render();if(next==='detection')loadSeries();if(next==='health')loadAudit();}
+ else updatePageVisibility();
+}
+
+function openReplayFromLocation(){
+ const target=Object.keys(replayHashes).find(key=>replayHashes[key]===window.location?.hash);
+ if(!target||!data?.simulation)return false;
+ choosePage(target,true);
+ return true;
+}
+
 function tasksFor(entity){return data.tasks.filter(t=>!entity||t.entity===entity);}
 function stateFor(task){return data.states.find(s=>s.id===task.id);}
 function filteredEntities(){return data.entities.filter(e=>!$('cluster').value||e.cluster===$('cluster').value);}
@@ -34,7 +77,7 @@ function currentTask(){return data?.tasks.find(t=>t.id===selectedTask);}
 function decision(s,t){if(t.deleted)return ['已退役','gray'];if(!t.enabled)return ['已暂停','gray'];if(!s||s.quality!=='valid')return [(s?.active?'异常保持 · ':'')+(statusNames[s?.quality]||s?.quality||'等待数据'),'gray'];if(s.active)return [t.notification_mode==='evidence'?'行为线索 · 仅证据':'持续异常','red'];if(s.pending)return ['疑似异常',''];return [t.scenario_id?'未发现本场景偏离':'正常','green'];}
 function options(select,rows,value,label){const previous=select.value;select.replaceChildren(...rows.map(r=>{const n=el('option',label(r));n.value=value(r);return n;}));if(rows.some(r=>value(r)===previous))select.value=previous;}
 function render(){if(!data)return;
-const previewLink=$('srePreviewLink');if(previewLink)previewLink.hidden=!data.simulation;
+updatePageVisibility();
  const selectedCluster=$('cluster').value;options($('cluster'),[{cluster:'',name:'全部集群'},...Array.from(new Set(data.entities.map(e=>e.cluster))).map(cluster=>({cluster,name:cluster}))],r=>r.cluster,r=>r.name);$('cluster').value=selectedCluster;
  const entities=filteredEntities(),tasks=data.tasks.filter(t=>entities.some(e=>e.id===t.entity));
  $('countGPU').textContent=entities.length;$('countTasks').textContent=tasks.filter(t=>t.enabled&&t.active_model).length;$('countAlerts').textContent=tasks.filter(t=>stateFor(t)?.active).length;$('countUnknown').textContent=tasks.filter(t=>t.enabled&&stateFor(t)?.quality!=='valid').length;
@@ -136,6 +179,9 @@ $('feedbackSave').onclick=()=>action(async()=>{await api('/feedback',{method:'PO
 $('sync').onclick=()=>action(async()=>{const r=await api('/integrations/nightingale/sync',{method:'POST'});toast('已同步 '+r.length+' 条夜莺受管规则，仅使用本地测试通知出口');});
 $('inference').onclick=()=>action(async()=>{await api('/system/inference',{method:'POST',body:JSON.stringify({enabled:!data.inference.enabled})});toast('推理控制已更新');});
 $('backup').onclick=()=>action(async()=>{const result=await api('/backups',{method:'POST'});const a=el('a');a.href=result.download;a.download='gpu-ml-backup.tar.gz';a.click();toast('已备份监控配置、快照与旧本地制品；外部模型权重需在模型平台另行备份，服务凭据需单独恢复');});
-$('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask())drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline')renderBaselines();else loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data)return;if(page==='detection')drawCharts();else if(page==='baseline')renderBaselines();});
-async function refresh(force=false){if(refreshing)return;refreshing=true;try{data=await api('/state');$('loginOverlay').hidden=true;render();if(page==='detection'&&(force||Date.now()-lastSeries>3500))await loadSeries();if(page==='health'&&force)await loadAudit();}catch(e){if(e.message!=='请登录后继续'){$('error').textContent='无法连接监控服务：'+e.message;$('error').hidden=false;$('connection').textContent='● 连接中断';}}finally{refreshing=false;}}
+$('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask())drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline')renderBaselines();else loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode||page==='replay')return;if(page==='detection')drawCharts();else if(page==='baseline')renderBaselines();});
+async function refresh(force=false){if(refreshing)return;refreshing=true;try{const first=!data;data=await api('/state');$('loginOverlay').hidden=true;if(!first||!openReplayFromLocation())render();if(page==='detection'&&(force||Date.now()-lastSeries>3500))await loadSeries();if(page==='health'&&force)await loadAudit();}catch(e){if(e.message!=='请登录后继续'){$('error').textContent='无法连接监控服务：'+e.message;$('error').hidden=false;$('connection').textContent='● 连接中断';}}finally{refreshing=false;}}
+$('liveMode').onclick=()=>choosePage(page);
+$('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
+window.addEventListener('hashchange',openReplayFromLocation);
 refresh();setInterval(refresh,4000);

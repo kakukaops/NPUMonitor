@@ -25,6 +25,13 @@ vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'baseline');assert.equal(nodes.get('baselineCards').children.length,5);
+assert.equal(nodes.get('replayNav').hidden,false);
+assert.equal(nodes.get('replaySwitch').hidden,false);
+run('data.simulation=false;render()');
+assert.equal(nodes.get('replayNav').hidden,true);
+assert.equal(nodes.get('replaySwitch').hidden,true);
+run('data.simulation=true;render()');
+
 for(const metric of primary){assert.ok(nodes.has('baseline-chart-'+metric));assert.ok(nodes.get('baseline-caption-'+metric).textContent.includes('2 点'));}
 assert.ok(chartStrokes>0,'Home page must draw actual preview curves');
 run('data.entities.unshift({...data.entities[0],id:"unconfigured|GPU-OTHER",uuid:"GPU-OTHER"});$("baselineEntity").value="";renderBaselines()');
@@ -79,7 +86,7 @@ assert.ok(nodes.get('evidence').children.some(n=>n.textContent==='历史水平�
 run("data.models[0].status='review_required';openModelChoice(data.tasks[0])");assert.equal(nodes.get('dialogTitle').textContent,'暂无可使用的基线');
 run("data.models[0].status='validated';data.models[0].backend.backend_id='other-platform';openModelChoice(data.tasks[0])");assert.equal(nodes.get('dialogTitle').textContent,'暂无可使用的基线');
 run("$('newTask').onclick()");assert.equal(nodes.get('policyMetrics').value,primary.join(','));
-const html=readFileSync(new URL('../frontend/index.html',import.meta.url),'utf8');for(const id of ['page-baseline','baselineCards','prepareBaseline','detectChoose','detectTrain','detectRuntime'])assert.ok(html.includes(`id="${id}"`));
+const html=readFileSync(new URL('../frontend/index.html',import.meta.url),'utf8');for(const id of ['page-baseline','baselineCards','prepareBaseline','detectChoose','detectTrain','detectRuntime','page-replay','integratedReplay'])assert.ok(html.includes(`id="${id}"`));
 run('data.models[0].backend.backend_id="reference-http-v1";data.model_services=[{id:"reference-http-v1",name:"参考平台",url:"http://model-platform:9470",location:"reference",state:"available",readonly:true},{id:"customer",name:"客户模型平台",url:"https://models.example.internal",location:"remote",state:"available"}]');
 assert.equal(run('modelLocation(data.models[0])'),'本机参考服务（HTTP）');
 assert.equal(run('modelLocation({...data.models[0],backend:null})'),'本地模型文件');
