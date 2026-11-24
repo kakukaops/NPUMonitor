@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id), API='/api/gpu-ml/v1';
 let data=null,page='incidents',selectedTask=null,selectedEntity=null,points=[],replayPoints=[],lastSeries=0,rawMode=false,refreshing=false,dialogSubmit=null,detailMetric=null,seriesRequest=0;
 const baselinePreviewCache=new Map(),baselinePreviewBusy=new Set();
 const PRIMARY=['gpu_temp','memory_temp','power','util','mem_util'];
-const names={incidents:'异常概览',baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'检测详情',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
+const names={incidents:'异常概览',baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'监测详情',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
 const pageDescriptions={
  incidents:'按设备查看在线检测线索、当前评分与夜莺记录。',
  baseline:'看单张 GPU 的指标曲线，以及当前模型有没有发现趋势偏离。',
@@ -70,9 +70,10 @@ function choosePage(next, showReplay=false, example=false){
  replayMode=showReplay;
  incidentExampleActive=next==='incidents'&&Boolean(example&&data?.simulation);
  document.querySelectorAll('button.nav').forEach(button=>{
-  const selected=button.dataset.page===(detectionOrigin?.page||next);
+  const selected=button.dataset.page===next;
   button.classList.toggle('active',selected);
-  if(selected)button.setAttribute('aria-current',next==='detection'?'location':'page');
+  button.classList.toggle('context-parent',next==='detection'&&button.dataset.page===detectionOrigin?.page);
+  if(selected)button.setAttribute('aria-current','page');
   else button.removeAttribute('aria-current');
  });
  $('pageTrail').textContent=(detectionSources[detectionOrigin?.page]||'监控')+' / ';
@@ -138,6 +139,16 @@ function openMonitorDetails(entity,task,metric){
  $('detectionBack').focus?.({preventScroll:true});
 }
 
+function openDetectionShortcut(){
+ if(data&&page==='baseline'&&$('baselineEntity').value){
+  const entity=$('baselineEntity').value,metric=$('baselineMetric').value;
+  const task=data.tasks.find(row=>!row.deleted&&row.entity===entity&&row.template==='uni_'+metric);
+  openMonitorDetails(entity,task,metric);
+  return;
+ }
+ choosePage('detection');
+}
+
 function monitorModelAction(task){
  if(!task)return null;
  if(!task.enabled)return btn('管理任务',async()=>choosePage('tasks'),'');
@@ -195,7 +206,7 @@ function renderGpuCards(entities){
   const bottom=el('div',undefined,'gpu-bottom');
   bottom.append(el('span',entity.cluster),el('span',tasks.length+' 个任务'));
   const preferred=tasks.find(task=>task.active_model&&task.enabled)||tasks[0];
-  const open=el('button',preferred?'查看检测详情':'查看设备曲线');
+  const open=el('button','查看监测详情');
   open.type='button';
   open.onclick=()=>openMonitorDetails(entity.id,preferred);
   card.append(values,bottom,open);
@@ -262,7 +273,7 @@ function renderAssociationTasks(){
    if(top.length)evidence.append(el('small','主要贡献 '+top.map(([key])=>metricNames[key]||key).join('、')));
   }
   const actions=el('td'),controls=el('div',undefined,'controls');
-  controls.append(btn(task.active_model?'查看曲线和证据':'查看详情',async()=>openMonitorDetails(task.entity,task,spec.targets[0]),''));
+  controls.append(btn('查看监测详情',async()=>openMonitorDetails(task.entity,task,spec.targets[0]),''));
   const next=monitorModelAction(task);
   if(next)controls.append(next);
   if(task.active_model&&task.enabled){
@@ -288,7 +299,7 @@ function renderEvidence(task,entity){const box=$('evidence');box.replaceChildren
 function pair(dl,key,value){dl.append(el('dt',key),el('dd',value&&typeof value==='object'?JSON.stringify(value,null,2):String(value??'—')));}
 function taskCell(t){const n=el('td',t.name);n.append(el('small',t.entity.split('|')[1]));return n;}
 function btn(label,fn,cls='write'){const b=el('button',label,cls);b.type='button';b.onclick=()=>action(fn);return b;}
-function renderTasks(){const rows=data.tasks.map(t=>{const tr=el('tr');tr.append(taskCell(t),el('td',data.templates[t.template].name));const status=el('td'),[name,color]=decision(stateFor(t),t);status.append(badge(name,color));tr.append(status,el('td',data.models.find(m=>m.id===t.active_model)?modelTitle(data.models.find(m=>m.id===t.active_model)):'尚未启用'));const td=el('td'),controls=el('div',undefined,'controls');controls.append(btn('检测详情',async()=>openMonitorDetails(t.entity,t),''),btn('重新学习历史基线',async()=>openTraining(t)),...((data.templates[t.template].algorithms||[]).length>=2?[btn('候选比较',async()=>openComparison(t)),btn('创建集成',async()=>openEnsemble(t))]:[]),btn('选择模型（已训练基线）',async()=>openModelChoice(t)),btn('预检',async()=>{const r=await api('/tasks/'+t.id+'/validate',{method:'POST'});toast(r.compatible_input?'必需输入当前有效；训练还需历史范围检查':'输入不可评估：'+Object.entries(r.required).filter(([k,v])=>v!=='valid').map(([k,v])=>k+' '+v).join('，'));},''),btn(t.enabled?'暂停':'启用',async()=>{await api('/tasks/'+t.id,{method:'PATCH',headers:{'If-Match':String(t.revision)},body:JSON.stringify({enabled:!t.enabled})});toast('任务已更新；夜莺受管规则将自动对账');}),btn('敏感度',async()=>openSensitivity(t)));if(t.scenario_id)controls.append(btn(t.notification_mode==='alert'?'切回仅证据':'允许通知',async()=>openAdmission(t),'admin'));controls.append(btn('退役',async()=>{await api('/tasks/'+t.id,{method:'DELETE',headers:{'If-Match':String(t.revision)}});toast('任务已退役，模型和历史保留');}));if(t.previous_model)controls.append(btn('回滚',async()=>{await api('/tasks/'+t.id+'/rollback',{method:'POST'});toast('模型已回滚，原异常状态保持');}));td.append(controls);tr.append(td);return tr;});$('taskRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'没有检测任务')]));}
+function renderTasks(){const rows=data.tasks.map(t=>{const tr=el('tr');tr.append(taskCell(t),el('td',data.templates[t.template].name));const status=el('td'),[name,color]=decision(stateFor(t),t);status.append(badge(name,color));tr.append(status,el('td',data.models.find(m=>m.id===t.active_model)?modelTitle(data.models.find(m=>m.id===t.active_model)):'尚未启用'));const td=el('td'),controls=el('div',undefined,'controls');controls.append(btn('监测详情',async()=>openMonitorDetails(t.entity,t),''),btn('重新学习历史基线',async()=>openTraining(t)),...((data.templates[t.template].algorithms||[]).length>=2?[btn('候选比较',async()=>openComparison(t)),btn('创建集成',async()=>openEnsemble(t))]:[]),btn('选择模型（已训练基线）',async()=>openModelChoice(t)),btn('预检',async()=>{const r=await api('/tasks/'+t.id+'/validate',{method:'POST'});toast(r.compatible_input?'必需输入当前有效；训练还需历史范围检查':'输入不可评估：'+Object.entries(r.required).filter(([k,v])=>v!=='valid').map(([k,v])=>k+' '+v).join('，'));},''),btn(t.enabled?'暂停':'启用',async()=>{await api('/tasks/'+t.id,{method:'PATCH',headers:{'If-Match':String(t.revision)},body:JSON.stringify({enabled:!t.enabled})});toast('任务已更新；夜莺受管规则将自动对账');}),btn('敏感度',async()=>openSensitivity(t)));if(t.scenario_id)controls.append(btn(t.notification_mode==='alert'?'切回仅证据':'允许通知',async()=>openAdmission(t),'admin'));controls.append(btn('退役',async()=>{await api('/tasks/'+t.id,{method:'DELETE',headers:{'If-Match':String(t.revision)}});toast('任务已退役，模型和历史保留');}));if(t.previous_model)controls.append(btn('回滚',async()=>{await api('/tasks/'+t.id+'/rollback',{method:'POST'});toast('模型已回滚，原异常状态保持');}));td.append(controls);tr.append(td);return tr;});$('taskRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'没有检测任务')]));}
 function renderModels(){const rows=data.models.slice().sort((a,b)=>(b.created_at||0)-(a.created_at||0)).map(m=>{const t=data.tasks.find(t=>t.id===m.task),tr=el('tr'),name=el('td',modelTitle(m));name.append(el('small','设备：'+modelDevice(m)),el('small',(m.external_registration?'登记：':'生成：')+dateTime(m.created_at)),badge(modelStatus(m),data.tasks.some(t=>t.active_model===m.id)?'green':'gray'));tr.append(name,el('td',algorithmLabel(m.algorithm)));const source=el('td');source.append(badge(modelSource(m),m.source_type==='simulated'?'simulation':'gray'),el('small','执行：'+modelLocation(m)),el('small','历史范围：'+trainingRange(m)));tr.append(source);const report=el('td',(m.report?.samples??'未记录')+' 个历史样本'),rate=m.report?.held_out_point_alert_rate;report.append(el('small',typeof rate==='number'?'测试异常点占比 '+fmt(rate*100,2)+'%（非误报率）':'验证结果未记录'));tr.append(report);const td=el('td'),controls=el('div',undefined,'controls');if(t&&!t.deleted&&compatibleModels(t).some(v=>v.id===m.id))controls.append(btn(t.active_model===m.id?'当前使用':'使用此基线',async()=>{await api('/tasks/'+t.id+'/publish',{method:'POST',body:JSON.stringify({model:m.id})});toast('已启用 '+modelTitle(m));}),btn('历史回放',async()=>openReplay(m)),btn('影子观察',async()=>{await api('/tasks/'+t.id+'/shadow',{method:'POST',body:JSON.stringify({model:m.id})});toast('已启用影子观察，不参与在线告警');}));if(m.backend&&!m.external_registration&&m.pipeline?.schema===3)controls.append(btn('调整校准 / 阈值',async()=>openPostprocess(m)));controls.append(btn('详情与验证结果',async()=>openReport(m),''));td.append(controls);tr.append(td);return tr;});$('modelRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'还没有已训练的基线。请到单指标趋势页选择指标，重新学习历史基线。')]));}
 function renderJobs(){const rows=data.jobs.slice().reverse().map(j=>{const tr=el('tr');tr.append(el('td',(j.kind==='replay'?'回放':j.kind==='comparison'?'候选比较':'训练')+' · '+short(j.id)),el('td',data.tasks.find(t=>t.id===j.task)?.name||j.task));const status=el('td');status.append(badge(statusNames[j.status]||j.status,j.status==='failed'?'red':j.status==='completed'?'green':'gray'));tr.append(status,el('td',j.error||(j.model_id?(data.models.find(m=>m.id===j.model_id)?modelTitle(data.models.find(m=>m.id===j.model_id)):'基线已生成'):j.point_count!==undefined?j.point_count+' 点 / '+j.anomaly_points+' 个异常点':'等待执行')));const td=el('td');if(j.kind==='comparison'&&j.status==='completed')td.append(btn('比较报告',async()=>openComparisonReport(await api('/comparisons/'+j.id)),''));if(j.kind==='training'&&['queued','running','pending_sync'].includes(j.status))td.append(btn('取消',async()=>api('/jobs/'+j.id+'/cancel',{method:'POST'})));if(j.kind==='replay'&&j.status==='completed')td.append(btn('查看回放',async()=>{const r=await api('/replays/'+j.id);replayPoints=r.points;$('replayPanel').hidden=false;$('replaySummary').textContent='使用基线 '+(data.models.find(m=>m.id===r.model)?modelTitle(data.models.find(m=>m.id===r.model)):'历史版本')+' · '+JSON.stringify(r.evaluation||{})+'；回放不产生在线告警。';draw('replayChart',r.points,data.templates[data.tasks.find(t=>t.id===r.task).template].targets[0],false);},''));tr.append(td);return tr;});$('jobRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'还没有训练或回放作业')]));}
 function renderEvents(){const n=data.nightingale;$('n9eStatus').textContent=n.connected?'已连接 · 实际事件':'未连接 / 未同步';const events=[...(n.events||[]),...(n.history||[]).filter(e=>e.is_recovered).slice(0,10),...(n.rule_events||[])];$('n9eEvents').replaceChildren(...(events.length?events.map(e=>{const card=el('div',undefined,'event-card');card.append(el('b',e.rule_name||e.name||('规则 '+e.rule_id)),el('div',(e.is_recovered?'恢复记录 #':'活动事件 #')+e.id+' · '+tm(e.trigger_time)+' · hash '+short(e.hash)));return card;}):[el('div',n.connected?'当前没有本模块活动告警':'请由管理员在平台页面同步夜莺规则；这里不将本地结果冒充通知。','empty')]));options($('feedbackTask'),data.tasks,t=>t.id,t=>t.name);$('feedbackList').replaceChildren(...data.feedback.slice().reverse().slice(0,20).map(f=>{const card=el('div',undefined,'event-card');card.append(el('b',f.kind+' · '+tm(f.at)),el('p',f.note||'无备注'));return card;}));}
@@ -423,7 +434,7 @@ function renderBaselineStatus(entity,metric,task){
    controls.append(btn('比较方法',async()=>openComparison(task),'primary write comparison-trigger'));
   }
  }
- controls.append(btn(task?.active_model?'查看曲线和证据':'查看原始曲线',async()=>openMonitorDetails(entity.id,task,metric),''));
+ controls.append(btn('查看监测详情',async()=>openMonitorDetails(entity.id,task,metric),''));
  box.replaceChildren(context,controls);
 }
 
@@ -564,7 +575,7 @@ $('feedbackSave').onclick=()=>action(async()=>{
 $('sync').onclick=()=>action(async()=>{const r=await api('/integrations/nightingale/sync',{method:'POST'});toast('已同步 '+r.length+' 条夜莺受管规则，仅使用本地测试通知出口');});
 $('inference').onclick=()=>action(async()=>{await api('/system/inference',{method:'POST',body:JSON.stringify({enabled:!data.inference.enabled})});toast('推理控制已更新');});
 $('backup').onclick=()=>action(async()=>{const result=await api('/backups',{method:'POST'});const a=el('a');a.href=result.download;a.download='gpu-ml-backup.tar.gz';a.click();toast('已备份监控配置、快照与旧本地制品；外部模型权重需在模型平台另行备份，服务凭据需单独恢复');});
-$('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask()&&!rawMode&&points.length)drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline'){renderBaselines();roleAccess();}else if(page==='detection')loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode)return;if(page==='detection')drawCharts();else if(page==='baseline'){renderBaselines();roleAccess();}});
+$('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask()&&!rawMode&&points.length)drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline'){renderBaselines();roleAccess();}else if(page==='detection')loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=b.dataset.page==='detection'?openDetectionShortcut:()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode)return;if(page==='detection')drawCharts();else if(page==='baseline'){renderBaselines();roleAccess();}});
 async function refresh(force=false){if(refreshing)return;refreshing=true;try{const first=!data;data=await api('/state');$('loginOverlay').hidden=true;if(!first||!openReplayFromLocation())render();if(page==='detection'&&(force||Date.now()-lastSeries>3500))await loadSeries();if(page==='health'&&force)await loadAudit();}catch(e){if(e.message!=='请登录后继续'){$('error').textContent='无法连接监控服务：'+e.message;$('error').hidden=false;$('connection').textContent='● 连接中断';}}finally{refreshing=false;}}
 $('detectionBack').onclick=()=>{
  const origin=detectionOrigin||{page:'overview',scroll:0};

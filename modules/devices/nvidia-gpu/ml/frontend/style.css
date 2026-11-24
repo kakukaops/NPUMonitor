@@ -248,3 +248,7 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 @media(max-width:650px){#page-detection .monitoring-inputs{justify-content:flex-start}}
 
 .detection-evidence.raw-only{grid-template-columns:1fr}
+
+.workspace-nav .nav-subentry{width:calc(100% - 18px);margin-left:18px;color:#b4c9d7}
+.workspace-nav .nav.context-parent{color:#e0ecee}
+@media(max-width:800px){.workspace-nav .nav-subentry{width:auto;margin-left:0}}
