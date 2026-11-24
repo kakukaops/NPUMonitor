@@ -52,11 +52,22 @@ function updatePageVisibility(){
  if(active) $('integratedReplay').setAttribute('view',replayViews[page]);
 }
 
+function setWorkspaceNav(expanded){
+ $('workspaceNav').classList.toggle('expanded',expanded);
+ $('workspaceNavToggle').setAttribute?.('aria-expanded',String(expanded));
+ $('workspaceNavToggle').textContent=expanded?'收起功能':'全部功能';
+}
 function choosePage(next, showReplay=false, example=false){
  page=next;
+ setWorkspaceNav(false);
  replayMode=showReplay;
  incidentExampleActive=next==='incidents'&&Boolean(example&&data?.simulation);
- document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===next));
+ document.querySelectorAll('button.nav').forEach(button=>{
+  const selected=button.dataset.page===next;
+  button.classList.toggle('active',selected);
+  if(selected)button.setAttribute('aria-current','page');
+  else button.removeAttribute('aria-current');
+ });
  $('pageName').textContent=names[next];
  $('title').textContent=names[next];
  $('subtitle').textContent=pageDescriptions[next];
@@ -136,6 +147,7 @@ updatePageVisibility();
  $('countTasks').textContent=enabled.length;
  $('countAlerts').textContent=enabled.filter(task=>stateFor(task)?.active).length;
  $('countUnknown').textContent=enabled.filter(task=>!data.inference.enabled||stateFor(task)?.quality!=='valid').length;
+ $('sourceMode').hidden=!data.simulation;
  $('role').textContent={admin:'管理员',operator:'操作员',viewer:'只读用户'}[data.role];$('scopeNote').textContent=data.simulation?'当前为模拟环境。实时监测读取 Prometheus，设备来源在名称旁标注。模拟样例使用独立回放。':'只读连接现有 GPU 数据源 · 未核实字段和真实 H100 准入状态单独展示，不使用模拟数据回退。';
  const sourceFresh=data.source.last_success&&Date.now()/1000-data.source.last_success<20;$('connection').textContent=sourceFresh?'● 同源数据已连接':'● 数据源待恢复';$('connection').style.color=sourceFresh?'#158c75':'#d95766';
  $('error').hidden=!data.inference.error&&data.inference.enabled;if(!$('error').hidden)$('error').textContent=!data.inference.enabled?'推理已暂停，旧异常不会被新鲜正常证据解除。':'原始数据查询失败，界面保留历史并将输入标为未知。';
@@ -208,8 +220,7 @@ function renderAssociationTasks(){
   const next=monitorModelAction(task);
   if(next)controls.append(next);
   if(task.active_model&&task.enabled){
-   controls.append(btn(task.scenario_id?'重新训练场景':'训练其他方法',async()=>openTraining(task)));
-   controls.append(btn('更换在线版本',async()=>openModelChoice(task)));
+   controls.append(btn('模型操作',async()=>openMonitoringActions(task)));
   }
   actions.append(controls);
   row.append(name,status,evidence,actions);
@@ -289,6 +300,32 @@ function compatibleModels(task){return data.models.filter(m=>m.entity===task.ent
 function modelDetails(m){const box=el('div');if(!m)return box;const summary=el('dl');pair(summary,'基线版本',modelTitle(m));pair(summary,'设备',modelDevice(m));pair(summary,'训练来源',modelSource(m));pair(summary,'执行位置',modelLocation(m));if(m.external_registration){pair(summary,'登记验证','连接、身份、输入输出与试评分通过；检测效果仍需回放/旁路验证');pair(summary,'远程版本生成时间',dateTime(m.remote_created_at));}pair(summary,'检测方法',algorithmLabel(m.algorithm));pair(summary,m.external_registration?'登记时间':'版本生成时间',dateTime(m.created_at));pair(summary,'学习的历史范围',trainingRange(m));pair(summary,'使用状态',modelStatus(m));const rate=m.report?.held_out_point_alert_rate;pair(summary,'验证结果',m.external_registration?'远程平台报告见技术详情；本系统仅核验连接与试评分':typeof rate==='number'?'程序自检'+(['validated','published'].includes(m.status)?'通过':'需复核')+'；独立测试异常点占比 '+fmt(rate*100,2)+'%（不是误报率或故障准确率）':'该历史版本未记录验证结果');box.append(summary);const technical=el('details');technical.append(el('summary','技术详情与固定参数（高级）'));const dl=el('dl');pair(dl,'内部模型ID',m.id);pair(dl,'内部算法标识',m.algorithm);pair(dl,'模型服务',m.backend?.backend_id||'历史本地模型');pair(dl,'固定采样周期',(m.capabilities?.cadence_seconds||m.report?.cadence_seconds||'未记录')+' 秒');pair(dl,'固定历史窗口',(m.pipeline?.detector?.window??m.capabilities?.history_samples??'未记录')+' 点');pair(dl,'模型参数',m.pipeline?.detector||'历史版本未记录');pair(dl,'预处理',m.pipeline?.preprocessing?.config||'历史版本未记录');pair(dl,'校准参数',m.pipeline?.calibration||'未记录');pair(dl,'阈值配置',m.pipeline?.decision||m.report?.threshold);if(m.input_diagnostics)pair(dl,'输入适用性',m.input_diagnostics);if(m.report?.test?.forecast_comparison)pair(dl,'测试段预测误差',m.report.test.forecast_comparison);technical.append(dl);box.append(technical);return box;}
 function pipelineFields(){const details=el('details');details.append(el('summary','高级设置：检测方法与训练参数'),field('预处理','trainPreprocess','select',[['identity','保持原始单位'],['robust_scale','按训练集稳健归一化']]),numberField('历史窗口点数（仅滞后回归）','trainLag',12,4,60),numberField('Ridge 正则化 alpha（仅滞后回归）','trainAlpha',1,.001,1000,'0.001'),numberField('分量校准分位数','trainComponentQ',.99,.9,.9999,'.0001'),numberField('阈值校准分位数','trainThresholdQ',.995,.9,.9999,'.0001'),numberField('初始阈值倍率（越大越保守）','trainFactor',1,.8,2,'.1'));return [details];}
 function pipelineConfig(algorithm){return {preprocessing:{kind:$('trainPreprocess').value},calibration:{component_quantile:+$('trainComponentQ').value,threshold_quantile:+$('trainThresholdQ').value},decision:{factor:+$('trainFactor').value},...(algorithm==='temporal_mad'?{detector:{window:+$('trainLag').value,alpha:+$('trainAlpha').value}}:{})};}
+function openMonitoringActions(task){
+ const model=data.models.find(row=>row.id===task.active_model);
+ const actions=el('div',undefined,'monitor-action-menu');
+ const menuItems=[
+  ['训练其他方法',task.scenario_id?'用该场景对应的方法重新训练。':'选择检测方法和参考历史，生成一个新版本。',current=>openTraining(current)],
+  ['选择在线版本','查看模型来源、算法和验证结果后启用。',current=>openModelChoice(current)],
+  ['运行参数','调整阈值倍率、异常确认与恢复点数。',current=>openSensitivity(current)],
+ ];
+ if(task.scenario_id)menuItems[0][0]='重新训练场景';
+ for(const [label,description,handler] of menuItems){
+  const row=el('div'),button=el('button',label,'write');
+  button.type='button';
+  button.onclick=()=>{
+   const current=data.tasks.find(record=>record.id===task.id);
+   if(current&&!current.deleted)handler(current);
+   else toast('当前任务已更新，请重新选择');
+  };
+  row.append(button,el('p',description));
+  actions.append(row);
+ }
+ openDialog('模型操作',[
+  el('p',model?'当前在线 '+algorithmLabel(model.algorithm)+' · '+modelTitle(model):'当前任务尚无在线版本。'),
+  actions,
+ ],async()=>{},'关闭');
+ roleAccess();
+}
 function openTraining(task){const modern=['univariate','multivariate'].includes(data.templates[task.template].kind),fixture=data.simulation&&task.scope==='simulated'&&PRIMARY.some(m=>task.template==='uni_'+m);const advanced=el('details');advanced.append(el('summary','自定义历史时间（留空使用最近窗口）'),field('起始时间','trainStart'),field('结束时间','trainEnd'));for(const w of Array.from(advanced.children).slice(1))w.children[0].type='datetime-local';const methodNote=el('p','系统默认使用适合该指标的检测方法；请选择可信正常历史。高级设置用于调整训练参数。','hint');const fields=[field('检测方法','trainAlgorithm','select',supportedAlgorithms(task)),methodNote,field('数据来源','trainSource','select',[['prometheus','Prometheus 实际采集历史'],...(fixture?[['simulation-reference','显式生成正常模拟参考（非采集历史）']]:[])]),field('历史窗口','trainWindow','select',task.scenario_id?(task.scenario_profile==='laboratory'?[['1800','最近30分钟（仅加速实验）'],['3600','最近1小时']]:data.templates[task.template].scenario.minimum_history_seconds>=604800?[['604800','最近7天'],['1209600','最近14天']]:[['86400','最近1天'],['259200','最近3天'],['604800','最近7天']]):[['1800','最近30分钟'],['3600','最近1小时'],['86400','最近1天']]),numberField('采样步长（秒；上线使用相同周期）','trainStep',task.scenario_profile==='production'?60:2,2,300),advanced,...(modern?pipelineFields():[])];openDialog('重新学习历史基线 · '+(data.templates[task.template].targets||[]).map(m=>metricNames[m]||m).join('、'),fields,async()=>{const end=$('trainEnd').value?new Date($('trainEnd').value).getTime()/1000:Math.floor(Date.now()/1000)-4,start=$('trainStart').value?new Date($('trainStart').value).getTime()/1000:end-+$('trainWindow').value;if(!Number.isFinite(start+end)||end<=start)throw Error('历史时间范围无效');await api('/training-jobs',{method:'POST',body:JSON.stringify({task:task.id,algorithm:$('trainAlgorithm').value,start,end,step:+$('trainStep').value,input_source:$('trainSource').value,...(modern?{pipeline:pipelineConfig($('trainAlgorithm').value)}:{})})});toast('正在学习新基线；完成后查看报告，再点击“选择模型（已训练基线）”启用');},'开始学习');if(modern){const update=()=>{const temporal=$('trainAlgorithm').value==='temporal_mad';$('trainLag').disabled=!temporal;$('trainAlpha').disabled=!temporal;methodNote.textContent='当前方法：'+algorithmLabel($('trainAlgorithm').value)+'。'+algorithmDescription($('trainAlgorithm').value)+' 训练后可检查结果，再决定是否启用。';};$('trainAlgorithm').value=supportedAlgorithms(task).some(([key])=>key==='temporal_mad')?'temporal_mad':supportedAlgorithms(task)[0][0];$('trainAlgorithm').onchange=update;update();}}
 function openComparisonReport(report){const fields=[el('p','所有候选使用相同快照；无自动赢家。异常点占比不等于误报率。')];for(const c of report.candidates){const dl=el('dl');pair(dl,'候选',algorithmLabel(c.algorithm));pair(dl,'状态',c.status);if(c.error)pair(dl,'错误',c.error);else{pair(dl,'版本',data.models.find(m=>m.id===c.model)?modelTitle(data.models.find(m=>m.id===c.model)):'待登记');pair(dl,'比较段',c.report.selection);pair(dl,'最终测试',c.report.test);pair(dl,'训练秒数',c.report.fit_seconds);pair(dl,'同源摘要',c.dataset_sha256);}fields.push(dl);}openDialog('候选比较报告',fields,async()=>{});}
 function openEnsemble(task){const members=data.models.filter(m=>m.entity===task.entity&&m.template===task.template&&m.backend&&!m.external_registration&&m.pipeline?.schema===3&&m.algorithm!=='ensemble_max'&&['validated','published'].includes(m.status));if(members.length<2){toast('先运行候选比较，取得同源且通过自检的模型版本');return;}const choices=members.map(m=>[m.id,modelTitle(m)+' · '+algorithmLabel(m.algorithm)+' · '+modelSource(m)]);openDialog('创建冻结成员集成',[el('p','仅支持同一数据快照和时间切分的成员，取校准分数/各自阈值的最大值；不自动发布，也不保证比单模型更好。'),field('成员一','ensembleA','select',choices),field('成员二','ensembleB','select',choices)],async()=>{const r=await api('/ensembles',{method:'POST',body:JSON.stringify({task:task.id,models:[$('ensembleA').value,$('ensembleB').value]})});toast(r.pending?'集成任务待同步，请查看作业状态':'集成版本 '+short(r.id)+' 已创建，请检查报告后发布');});$('ensembleB').value=members[1].id;}
@@ -330,11 +367,10 @@ function renderBaselineStatus(entity,metric,task){
   const next=monitorModelAction(task);
   if(next)controls.append(next);
   if(task.active_model&&task.enabled){
-   controls.append(btn('训练其他方法',async()=>openTraining(task)));
-   controls.append(btn('更换在线版本',async()=>openModelChoice(task)));
+   controls.append(btn('模型操作',async()=>openMonitoringActions(task)));
   }
   if(supportedAlgorithms(task).length>=2){
-   controls.append(btn('比较方法',async()=>openComparison(task),'write comparison-trigger'));
+   controls.append(btn('比较方法',async()=>openComparison(task),'primary write comparison-trigger'));
   }
  }
  controls.append(btn(task?.active_model?'查看曲线和证据':'查看原始曲线',async()=>openMonitorDetails(entity.id,task,metric),''));
@@ -480,6 +516,7 @@ $('inference').onclick=()=>action(async()=>{await api('/system/inference',{metho
 $('backup').onclick=()=>action(async()=>{const result=await api('/backups',{method:'POST'});const a=el('a');a.href=result.download;a.download='gpu-ml-backup.tar.gz';a.click();toast('已备份监控配置、快照与旧本地制品；外部模型权重需在模型平台另行备份，服务凭据需单独恢复');});
 $('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask()&&!rawMode&&points.length)drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline'){renderBaselines();roleAccess();}else if(page==='detection')loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode)return;if(page==='detection')drawCharts();else if(page==='baseline'){renderBaselines();roleAccess();}});
 async function refresh(force=false){if(refreshing)return;refreshing=true;try{const first=!data;data=await api('/state');$('loginOverlay').hidden=true;if(!first||!openReplayFromLocation())render();if(page==='detection'&&(force||Date.now()-lastSeries>3500))await loadSeries();if(page==='health'&&force)await loadAudit();}catch(e){if(e.message!=='请登录后继续'){$('error').textContent='无法连接监控服务：'+e.message;$('error').hidden=false;$('connection').textContent='● 连接中断';}}finally{refreshing=false;}}
+$('workspaceNavToggle').onclick=()=>setWorkspaceNav($('workspaceNavToggle').getAttribute('aria-expanded')!=='true');
 $('liveMode').onclick=()=>choosePage(page);
 $('incidentDemoMode').onclick=()=>{if(data?.simulation)choosePage('incidents',false,true);};
 $('incidentFilter').onchange=()=>{renderIncidentQueue();roleAccess();};
