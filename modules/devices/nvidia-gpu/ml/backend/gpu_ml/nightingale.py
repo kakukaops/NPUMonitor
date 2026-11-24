@@ -116,4 +116,6 @@ class Nightingale:
             self.store.put('system','nightingale_events',result);return result
         except Exception as exc:
             self.last_error=type(exc).__name__
-            return dict(self.store.get('system','nightingale_events') or {'events':[]},connected=False,error=self.last_error)
+            result=dict(self.store.get('system','nightingale_events') or {'events':[]},connected=False,error=self.last_error)
+            self.store.put('system','nightingale_events',result)
+            return result

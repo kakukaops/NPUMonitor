@@ -23,7 +23,8 @@ from .store import Store,Conflict,check_initialization
 from .source import Source
 from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
-from .sre_preview import build_preview
+from .sre_preview import build_incident_example, build_preview
+from .incident_queue import build_incident_queue
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -171,6 +172,14 @@ def sre_preview(request: Request, scenario: str = 'fleet'):
     return build_preview(scenario)
 
 
+@app.get('/api/gpu-ml/v1/incident-example')
+def incident_example(request: Request):
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    user(request)
+    return build_incident_example(time.time())
+
+
 app.mount('/assets',StaticFiles(directory=BASE/'frontend'),name='assets')
 
 
@@ -201,21 +210,27 @@ def logout(request:Request):
 @app.get('/api/gpu-ml/v1/state')
 def state(request:Request):
     role=user(request)
+    now=time.time()
     entities=STORE.list('entity')
     for entity in entities:
-        entity['fresh']=time.time()-entity['seen_at']<FRESHNESS
+        entity['fresh']=now-entity['seen_at']<FRESHNESS
         entity['quality']={k:entity['quality'].get(k,'missing') if entity['fresh'] else 'missing' for k in METRICS}
         entity['capabilities']={k:all(entity['quality'].get(m)=='valid' for m in t['required']) for k,t in TEMPLATES.items()}
     states=STORE.list('state')
     for item in states:
-        if item['quality']=='valid' and time.time()-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
-    return {'role':role,'time':time.time(),'simulation':SIMULATION,'production_admitted':False,
-            'entities':entities,'tasks':STORE.list('task'),'states':states,'models':STORE.list('model'),
+        if item['quality']=='valid' and now-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
+    tasks=STORE.list('task')
+    bindings=STORE.list('binding')
+    nightingale=STORE.get('system','nightingale_events') or {'connected':False,'events':[]}
+    inference_enabled=(STORE.get('system','inference') or {'enabled':True})['enabled']
+    incident_queue=build_incident_queue(entities,tasks,states,TEMPLATES,bindings,nightingale,now,inference_enabled)
+    return {'role':role,'time':now,'simulation':SIMULATION,'production_admitted':False,
+            'entities':entities,'tasks':tasks,'states':states,'models':STORE.list('model'),
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
-            'bindings':STORE.list('binding'),'sync_error':STORE.get('system','sync_error'),'nightingale':STORE.get('system','nightingale_events') or {'connected':False,'events':[]},
+            'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
-                'enabled':(STORE.get('system','inference') or {'enabled':True})['enabled']},
+                'enabled':inference_enabled},
             'event_aggregation':'nightingale','scenarios':SCENARIOS if SIMULATION else [],'feedback':STORE.list('feedback')[-100:],'shadow':STORE.list('shadow')}
 
 

@@ -1,11 +1,11 @@
 'use strict';
 const $=id=>document.getElementById(id), API='/api/gpu-ml/v1';
-let data=null,page='baseline',selectedTask=null,selectedEntity=null,points=[],replayPoints=[],lastSeries=0,rawMode=false,refreshing=false,dialogSubmit=null,detailMetric=null,seriesRequest=0;
+let data=null,page='incidents',selectedTask=null,selectedEntity=null,points=[],replayPoints=[],lastSeries=0,rawMode=false,refreshing=false,dialogSubmit=null,detailMetric=null,seriesRequest=0,feedbackDraft=null,detailRange=null;
 const baselinePreviewCache=new Map(),baselinePreviewBusy=new Set();
 const PRIMARY=['gpu_temp','memory_temp','power','util','mem_util'];
-const names={replay:'异常概览',baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'在线检测',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
+const names={incidents:'异常概览',baseline:'单指标趋势预警',scenarios:'多指标关联检测',overview:'GPU 总览',detection:'在线检测',tasks:'检测任务',models:'模型与训练',events:'事件与反馈',health:'平台与审计'};
 const pageDescriptions={
- replay:'查看节点和 GPU 的趋势预警、关联线索与采集缺口。',
+ incidents:'按设备查看在线检测线索、当前评分与夜莺记录。',
  baseline:'看单张 GPU 的指标曲线，以及当前模型有没有发现趋势偏离。',
  scenarios:'看一组指标是否一起偏离，检查白盒条件或黑盒模型证据。',
  overview:'按集群浏览已接入的 GPU、实时指标与任务状态。',
@@ -27,45 +27,59 @@ function toast(text){$('toast').textContent=text;$('toast').hidden=false;setTime
 async function api(path,options={}){const r=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});let result;try{result=await r.json();}catch{throw Error('服务响应无效');}if(r.status===401){$('loginOverlay').hidden=false;throw Error('请登录后继续');}if(!r.ok)throw Error(typeof result.detail==='string'?result.detail:JSON.stringify(result.detail));return result;}
 async function action(fn){try{await fn();await refresh(true);}catch(e){toast(e.message);}}
 function roleAccess(){const writer=data&&data.role!=='viewer',admin=data&&data.role==='admin';document.querySelectorAll('.write').forEach(b=>b.disabled=!writer);document.querySelectorAll('.admin').forEach(b=>b.disabled=!admin);}
-const replayViews={replay:'all',baseline:'trend',scenarios:'joint'};
-const replayHashes={replay:'#replay',baseline:'#trend-replay',scenarios:'#joint-replay'};
-let replayMode=false;
+const replayViews={incidents:'all',baseline:'trend',scenarios:'joint'};
+const replayHashes={incidents:'#replay',baseline:'#trend-replay',scenarios:'#joint-replay'};
+let replayMode=false,incidentExampleActive=false;
 
 function updatePageVisibility(){
  const available=Boolean(data?.simulation);
- const active=available&&(page==='replay'||replayMode);
- const visible=active?'replay':page==='replay'?'baseline':page;
+ const active=available&&replayMode;
+ const visible=active?'replay':page;
  document.querySelectorAll('.page').forEach(panel=>panel.hidden=panel.id!=='page-'+visible);
- $('replayNav').hidden=!available;
- $('replaySwitch').hidden=!available||!replayViews[page]||page==='replay';
- $('liveScope').hidden=active;
- $('liveControls').hidden=active;
- $('window').hidden=page==='scenarios';
+ $('replaySwitch').hidden=!available||!replayViews[page];
+ $('incidentDemoMode').hidden=!available||page!=='incidents';
+ $('liveScope').hidden=active||page==='incidents';
+ $('liveControls').hidden=active||incidentExampleActive;
+ $('window').hidden=page==='scenarios'||page==='incidents'||(page==='detection'&&Boolean(detailRange));
+ $('liveMode').textContent=page==='incidents'?'在线队列':'实时监测';
+ $('replayMode').textContent=page==='incidents'?'曲线回放':'模拟样例';
  if(available&&replayViews[page]){
-  $('liveMode').setAttribute?.('aria-pressed',String(!active));
+  $('liveMode').setAttribute?.('aria-pressed',String(!active&&!incidentExampleActive));
   $('replayMode').setAttribute?.('aria-pressed',String(active));
+  $('incidentDemoMode').setAttribute?.('aria-pressed',String(incidentExampleActive));
  }
  if(active) $('integratedReplay').setAttribute('view',replayViews[page]);
 }
 
-function choosePage(next, showReplay=false){
+function choosePage(next, showReplay=false, example=false){
  page=next;
  replayMode=showReplay;
+ incidentExampleActive=next==='incidents'&&Boolean(example&&data?.simulation);
  document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===next));
  $('pageName').textContent=names[next];
  $('title').textContent=names[next];
  $('subtitle').textContent=pageDescriptions[next];
- const hash=replayHashes[next];
- const showing=next==='replay'||showReplay;
+ const hash=showReplay?replayHashes[next]:next==='incidents'?(incidentExampleActive?'#incident-demo':'#incidents'):'';
  const existing=window.location?.hash;
- if(showing&&hash&&existing!==hash)window.history?.replaceState(null,'',hash);
- if(!showing&&Object.values(replayHashes).includes(existing))window.history?.replaceState(null,'',window.location.pathname+window.location.search);
- if(data){render();if(next==='detection')loadSeries();if(next==='health')loadAudit();}
- else updatePageVisibility();
+ if(hash&&existing!==hash)window.history?.replaceState(null,'',hash);
+ if(!hash&&[...Object.values(replayHashes),'#incidents','#incident-demo'].includes(existing))
+  window.history?.replaceState(null,'',window.location.pathname+window.location.search);
+ if(data){
+  if(next!=='detection')detailRange=null;
+  render();
+  if(next==='detection')loadSeries();
+  if(next==='health')loadAudit();
+  if(incidentExampleActive)loadIncidentExample();
+ }else updatePageVisibility();
 }
 
 function openReplayFromLocation(){
- const target=Object.keys(replayHashes).find(key=>replayHashes[key]===window.location?.hash);
+ const hash=window.location?.hash;
+ if(hash==='#incidents'||(hash==='#incident-demo'&&data?.simulation)){
+  choosePage('incidents',false,hash==='#incident-demo');
+  return true;
+ }
+ const target=Object.keys(replayHashes).find(key=>replayHashes[key]===hash);
  if(!target||!data?.simulation)return false;
  choosePage(target,true);
  return true;
@@ -90,11 +104,12 @@ function monitoredStatus(task){
  return [label==='正常'?'未发现偏离':label,color];
 }
 
-function openMonitorDetails(entity,task,metric){
+function openMonitorDetails(entity,task,metric,range=null){
  if(!entity)return;
  selectedEntity=entity;
  selectedTask=task?.id??'';
  detailMetric=metric;
+ detailRange=range;
  points=[];
  choosePage('detection');
 }
@@ -126,9 +141,11 @@ updatePageVisibility();
  const selectable=data.tasks.filter(t=>!selectedEntity||t.entity===selectedEntity);if(selectedTask!==''&&!selectable.some(t=>t.id===selectedTask)){const preferred=selectedEntity?selectable[0]:(data.tasks.find(t=>t.template==='uni_gpu_temp'&&!t.deleted)||data.tasks.find(t=>t.id==='sim-0-thermal')||data.tasks[0]);selectedTask=preferred?.id||null;if(preferred)selectedEntity=preferred.entity;}
  options($('taskSelect'),[{id:'',name:'仅原始指标',entity:'|'},...data.tasks],t=>t.id,t=>t.id?t.name+' · '+t.entity.split('|')[1]:t.name);$('taskSelect').value=selectedTask||'';
  const task=currentTask(),entity=data.entities.find(e=>e.id===(task?.entity||selectedEntity));const wanted=detailMetric||$('metricSelect').value;const metrics=task?data.templates[task.template].targets:Object.keys(metricNames).filter(k=>entity&&(entity.quality[k]==='valid'||k===wanted));options($('metricSelect'),metrics,k=>k,k=>metricNames[k]||k);if(metrics.includes(wanted))$('metricSelect').value=wanted;detailMetric=null;$('entityInfo').textContent=entity?entity.uuid+' · '+entity.cluster+' · '+(entity.source_type==='simulated'?'模拟来源':'真实未核验'):'选择GPU或检测任务';
+ $('detailRange').hidden=!detailRange;
+ if(detailRange)$('detailRangeText').textContent='线索时段 '+dateTime(detailRange.start)+' — '+dateTime(detailRange.end);
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationTasks();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationTasks();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderScenarios(){
@@ -213,14 +230,21 @@ function btn(label,fn,cls='write'){const b=el('button',label,cls);b.type='button
 function renderTasks(){const rows=data.tasks.map(t=>{const tr=el('tr');tr.append(taskCell(t),el('td',data.templates[t.template].name));const status=el('td'),[name,color]=decision(stateFor(t),t);status.append(badge(name,color));tr.append(status,el('td',data.models.find(m=>m.id===t.active_model)?modelTitle(data.models.find(m=>m.id===t.active_model)):'尚未启用'));const td=el('td'),controls=el('div',undefined,'controls');controls.append(btn('查看',async()=>{openMonitorDetails(t.entity,t);},''),btn('重新学习历史基线',async()=>openTraining(t)),...((data.templates[t.template].algorithms||[]).length>=2?[btn('候选比较',async()=>openComparison(t)),btn('创建集成',async()=>openEnsemble(t))]:[]),btn('选择模型（已训练基线）',async()=>openModelChoice(t)),btn('预检',async()=>{const r=await api('/tasks/'+t.id+'/validate',{method:'POST'});toast(r.compatible_input?'必需输入当前有效；训练还需历史范围检查':'输入不可评估：'+Object.entries(r.required).filter(([k,v])=>v!=='valid').map(([k,v])=>k+' '+v).join('，'));},''),btn(t.enabled?'暂停':'启用',async()=>{await api('/tasks/'+t.id,{method:'PATCH',headers:{'If-Match':String(t.revision)},body:JSON.stringify({enabled:!t.enabled})});toast('任务已更新；夜莺受管规则将自动对账');}),btn('敏感度',async()=>openSensitivity(t)));if(t.scenario_id)controls.append(btn(t.notification_mode==='alert'?'切回仅证据':'允许通知',async()=>openAdmission(t),'admin'));controls.append(btn('退役',async()=>{await api('/tasks/'+t.id,{method:'DELETE',headers:{'If-Match':String(t.revision)}});toast('任务已退役，模型和历史保留');}));if(t.previous_model)controls.append(btn('回滚',async()=>{await api('/tasks/'+t.id+'/rollback',{method:'POST'});toast('模型已回滚，原异常状态保持');}));td.append(controls);tr.append(td);return tr;});$('taskRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'没有检测任务')]));}
 function renderModels(){const rows=data.models.slice().sort((a,b)=>(b.created_at||0)-(a.created_at||0)).map(m=>{const t=data.tasks.find(t=>t.id===m.task),tr=el('tr'),name=el('td',modelTitle(m));name.append(el('small','设备：'+modelDevice(m)),el('small',(m.external_registration?'登记：':'生成：')+dateTime(m.created_at)),badge(modelStatus(m),data.tasks.some(t=>t.active_model===m.id)?'green':'gray'));tr.append(name,el('td',algorithmLabel(m.algorithm)));const source=el('td');source.append(badge(modelSource(m),m.source_type==='simulated'?'simulation':'gray'),el('small','执行：'+modelLocation(m)),el('small','历史范围：'+trainingRange(m)));tr.append(source);const report=el('td',(m.report?.samples??'未记录')+' 个历史样本'),rate=m.report?.held_out_point_alert_rate;report.append(el('small',typeof rate==='number'?'测试异常点占比 '+fmt(rate*100,2)+'%（非误报率）':'验证结果未记录'));tr.append(report);const td=el('td'),controls=el('div',undefined,'controls');if(t&&!t.deleted&&compatibleModels(t).some(v=>v.id===m.id))controls.append(btn(t.active_model===m.id?'当前使用':'使用此基线',async()=>{await api('/tasks/'+t.id+'/publish',{method:'POST',body:JSON.stringify({model:m.id})});toast('已启用 '+modelTitle(m));}),btn('历史回放',async()=>openReplay(m)),btn('影子观察',async()=>{await api('/tasks/'+t.id+'/shadow',{method:'POST',body:JSON.stringify({model:m.id})});toast('已启用影子观察，不参与在线告警');}));if(m.backend&&!m.external_registration&&m.pipeline?.schema===3)controls.append(btn('调整校准 / 阈值',async()=>openPostprocess(m)));controls.append(btn('详情与验证结果',async()=>openReport(m),''));td.append(controls);tr.append(td);return tr;});$('modelRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'还没有已训练的基线。请到单指标趋势页选择指标，重新学习历史基线。')]));}
 function renderJobs(){const rows=data.jobs.slice().reverse().map(j=>{const tr=el('tr');tr.append(el('td',(j.kind==='replay'?'回放':j.kind==='comparison'?'候选比较':'训练')+' · '+short(j.id)),el('td',data.tasks.find(t=>t.id===j.task)?.name||j.task));const status=el('td');status.append(badge(statusNames[j.status]||j.status,j.status==='failed'?'red':j.status==='completed'?'green':'gray'));tr.append(status,el('td',j.error||(j.model_id?(data.models.find(m=>m.id===j.model_id)?modelTitle(data.models.find(m=>m.id===j.model_id)):'基线已生成'):j.point_count!==undefined?j.point_count+' 点 / '+j.anomaly_points+' 个异常点':'等待执行')));const td=el('td');if(j.kind==='comparison'&&j.status==='completed')td.append(btn('比较报告',async()=>openComparisonReport(await api('/comparisons/'+j.id)),''));if(j.kind==='training'&&['queued','running','pending_sync'].includes(j.status))td.append(btn('取消',async()=>api('/jobs/'+j.id+'/cancel',{method:'POST'})));if(j.kind==='replay'&&j.status==='completed')td.append(btn('查看回放',async()=>{const r=await api('/replays/'+j.id);replayPoints=r.points;$('replayPanel').hidden=false;$('replaySummary').textContent='使用基线 '+(data.models.find(m=>m.id===r.model)?modelTitle(data.models.find(m=>m.id===r.model)):'历史版本')+' · '+JSON.stringify(r.evaluation||{})+'；回放不产生在线告警。';draw('replayChart',r.points,data.templates[data.tasks.find(t=>t.id===r.task).template].targets[0],false);},''));tr.append(td);return tr;});$('jobRows').replaceChildren(...(rows.length?rows:[emptyRow(5,'还没有训练或回放作业')]));}
-function renderEvents(){const n=data.nightingale;$('n9eStatus').textContent=n.connected?'已连接 · 实际事件':'未连接 / 未同步';const events=[...(n.events||[]),...(n.history||[]).filter(e=>e.is_recovered).slice(0,10),...(n.rule_events||[])];$('n9eEvents').replaceChildren(...(events.length?events.map(e=>{const card=el('div',undefined,'event-card');card.append(el('b',e.rule_name||e.name||('规则 '+e.rule_id)),el('div',(e.is_recovered?'恢复记录 #':'活动事件 #')+e.id+' · '+tm(e.trigger_time)+' · hash '+short(e.hash)));return card;}):[el('div',n.connected?'当前没有本模块活动告警':'请由管理员在平台页面同步夜莺规则；这里不将本地结果冒充通知。','empty')]));options($('feedbackTask'),data.tasks,t=>t.id,t=>t.name);$('feedbackList').replaceChildren(...data.feedback.slice().reverse().slice(0,20).map(f=>{const card=el('div',undefined,'event-card');card.append(el('b',f.kind+' · '+tm(f.at)),el('p',f.note||'无备注'));return card;}));}
+function renderFeedbackRange(){
+ const label=$('feedbackRange');
+ const current=feedbackDraft?.task===$('feedbackTask').value?feedbackDraft:null;
+ label.hidden=!current;
+ if(current)label.textContent='复核时间 '+dateTime(current.start)+' — '+dateTime(current.end);
+}
+
+function renderEvents(){const n=data.nightingale;$('n9eStatus').textContent=n.connected?'已连接 · 实际事件':'未连接 / 未同步';const events=[...(n.events||[]),...(n.history||[]).filter(e=>e.is_recovered).slice(0,10),...(n.rule_events||[])];$('n9eEvents').replaceChildren(...(events.length?events.map(e=>{const card=el('div',undefined,'event-card');card.append(el('b',e.rule_name||e.name||('规则 '+e.rule_id)),el('div',(e.is_recovered?'恢复记录 #':'活动事件 #')+e.id+' · '+tm(e.trigger_time)+' · hash '+short(e.hash)));return card;}):[el('div',n.connected?'当前没有本模块活动告警':'请由管理员在平台页面同步夜莺规则；这里不将本地结果冒充通知。','empty')]));options($('feedbackTask'),data.tasks,t=>t.id,t=>t.name);renderFeedbackRange();$('feedbackList').replaceChildren(...data.feedback.slice().reverse().slice(0,20).map(f=>{const card=el('div',undefined,'event-card');card.append(el('b',f.kind+' · '+tm(f.at)),el('p',f.note||'无备注'));return card;}));}
 function renderHealth(){const dl=$('platformInfo');dl.replaceChildren();if(data.model_backend){pair(dl,'模型平台',data.model_backend.backend_id+' · '+data.model_backend.state);pair(dl,'平台支持操作',(data.model_backend.operations||[]).join(' / '));}pair(dl,'源查询次数',data.source.queries);pair(dl,'查询失败',data.source.failures);pair(dl,'最近成功',tm(data.source.last_success));pair(dl,'最近查询耗时',data.source.duration+' 秒');pair(dl,'推理心跳',tm(data.inference.last_poll));pair(dl,'推理状态',data.inference.enabled?'运行':'已暂停');pair(dl,'夜莺受管规则',data.bindings.length);if(data.sync_error?.error)pair(dl,'同步异常',data.sync_error.error+' · '+tm(data.sync_error.at));pair(dl,'实际运行范围',data.simulation?'模拟预览 / 真实输入仅作发现':'真实输入未完成硬件准入');pair(dl,'未覆盖范围','MIG实例、真实H100准入与生产规模验证');$('inference').textContent=data.inference.enabled?'暂停推理':'恢复推理';}
 function emptyRow(cols,text){const tr=el('tr'),td=el('td',text,'empty');td.colSpan=cols;tr.append(td);return tr;}
 async function loadAudit(){if(data?.role!=='admin'){$('auditList').textContent='管理员可查看审计记录';return;}try{const rows=await api('/audit');$('auditList').replaceChildren(...rows.map(a=>{const row=el('div',undefined,'audit-row');row.append(el('span',tm(a.at)),el('b',a.actor),el('span',a.action),el('span',short(a.object_id)));return row;}));}catch(e){toast(e.message);}}
 async function loadSeries(){
  const request=++seriesRequest;
  const task=currentTask(),entity=task?.entity||selectedEntity,metric=$('metricSelect').value||'gpu_temp';
- const end=Date.now()/1000,start=end-+$('window').value;
+ const end=detailRange?.end??Date.now()/1000,start=detailRange?.start??end-+$('window').value;
  try{
   let result=task?await api('/series/'+task.id+'?start='+start+'&end='+end):{points:[]};
   if(request!==seriesRequest||page!=='detection')return;
@@ -435,13 +459,24 @@ function openPolicy(kind='univariate',selectedDevice=''){
 
 $('newTask').onclick=()=>openPolicy();
 $('newJointTask').onclick=()=>openPolicy('multivariate',$('associationEntity').value||filteredEntities()[0]?.id);
-$('feedbackSave').onclick=()=>action(async()=>{await api('/feedback',{method:'POST',body:JSON.stringify({task:$('feedbackTask').value,kind:$('feedbackKind').value,note:$('feedbackNote').value,start:Date.now()/1000-+$('window').value,end:Date.now()/1000})});$('feedbackNote').value='';toast('反馈已保存');});
+$('feedbackTask').onchange=()=>{feedbackDraft=null;renderFeedbackRange();};
+$('feedbackSave').onclick=()=>action(async()=>{
+ const task=$('feedbackTask').value;
+ const now=Date.now()/1000,range=feedbackDraft?.task===task?feedbackDraft:{start:now-+$('window').value,end:now};
+ await api('/feedback',{method:'POST',body:JSON.stringify({task,kind:$('feedbackKind').value,note:$('feedbackNote').value,start:range.start,end:range.end})});
+ feedbackDraft=null;
+ $('feedbackNote').value='';
+ toast('反馈已保存');
+});
 $('sync').onclick=()=>action(async()=>{const r=await api('/integrations/nightingale/sync',{method:'POST'});toast('已同步 '+r.length+' 条夜莺受管规则，仅使用本地测试通知出口');});
 $('inference').onclick=()=>action(async()=>{await api('/system/inference',{method:'POST',body:JSON.stringify({enabled:!data.inference.enabled})});toast('推理控制已更新');});
 $('backup').onclick=()=>action(async()=>{const result=await api('/backups',{method:'POST'});const a=el('a');a.href=result.download;a.download='gpu-ml-backup.tar.gz';a.click();toast('已备份监控配置、快照与旧本地制品；外部模型权重需在模型平台另行备份，服务凭据需单独恢复');});
-$('taskSelect').onchange=()=>{selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask()&&!rawMode&&points.length)drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline'){renderBaselines();roleAccess();}else if(page==='detection')loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode||page==='replay')return;if(page==='detection')drawCharts();else if(page==='baseline'){renderBaselines();roleAccess();}});
+$('returnLive').onclick=()=>{detailRange=null;points=[];render();loadSeries();};
+$('taskSelect').onchange=()=>{detailRange=null;selectedTask=$('taskSelect').value;if(currentTask())selectedEntity=currentTask().entity;points=[];render();loadSeries();};$('metricSelect').onchange=()=>{if(currentTask()&&!rawMode&&points.length)drawCharts();else loadSeries();};$('window').onchange=()=>{lastSeries=0;if(page==='baseline'){renderBaselines();roleAccess();}else if(page==='detection')loadSeries();};$('cluster').onchange=render;$('refresh').onclick=()=>refresh(true);document.querySelectorAll('button.nav').forEach(b=>b.onclick=()=>choosePage(b.dataset.page));window.addEventListener('resize',()=>{if(!data||replayMode)return;if(page==='detection')drawCharts();else if(page==='baseline'){renderBaselines();roleAccess();}});
 async function refresh(force=false){if(refreshing)return;refreshing=true;try{const first=!data;data=await api('/state');$('loginOverlay').hidden=true;if(!first||!openReplayFromLocation())render();if(page==='detection'&&(force||Date.now()-lastSeries>3500))await loadSeries();if(page==='health'&&force)await loadAudit();}catch(e){if(e.message!=='请登录后继续'){$('error').textContent='无法连接监控服务：'+e.message;$('error').hidden=false;$('connection').textContent='● 连接中断';}}finally{refreshing=false;}}
 $('liveMode').onclick=()=>choosePage(page);
+$('incidentDemoMode').onclick=()=>{if(data?.simulation)choosePage('incidents',false,true);};
+$('incidentFilter').onchange=()=>{renderIncidentQueue();roleAccess();};
 $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
 refresh();setInterval(refresh,4000);

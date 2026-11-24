@@ -38,13 +38,15 @@ class Source(PrometheusClient):
             if entity:
                 key=(entity,labels.get('source_metric'),tuple(sorted((k,v) for k,v in labels.items() if k not in ('__name__','source_metric'))))
                 time_map[key]=float(row['value'][1])
-        entities={}
+        entities={};nodes={}
         for row in values:
             labels=row['metric'];eid=self.identity(labels);name=labels.get('__name__');key=BY_NAME.get(name)
             if not eid or not key:continue
             entity=entities.setdefault(eid,{'id':eid,'cluster':eid.split('|',1)[0],'uuid':labels['UUID'],
                 'name':labels.get('modelName','unverified'),'source_type':'simulated' if labels.get('simulated')=='true' else 'real_unverified',
                 'values':{},'times':{},'quality':{},'seen_at':time.time()})
+            for label in ('Hostname','hostname','node'):
+                if labels.get(label):nodes.setdefault(eid,set()).add(labels[label])
             signature=(eid,name,tuple(sorted((k,v) for k,v in labels.items() if k not in ('__name__','source_metric'))))
             stamp=time_map.get(signature)
             value=float(row['value'][1]);spec=METRICS[key]
@@ -56,6 +58,8 @@ class Source(PrometheusClient):
             entity['quality'][key]=quality
             if quality=='valid':entity['values'][key]=value;entity['times'][key]=stamp
             else:entity['values'].pop(key,None);entity['times'].pop(key,None)
+        for eid,candidates in nodes.items():
+            if len(candidates)==1:entities[eid]['node']=next(iter(candidates))
         return entities
 
     def history(self,entity,start,end,step=2,required=None):

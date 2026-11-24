@@ -173,3 +173,55 @@ def build_preview(scenario):
         'metrics': {key: {'name': METRICS[key]['name'], 'unit': UNITS[key]} for key in FEATURES},
         'devices': [replay(kind) for kind in SCENARIOS[scenario]],
     }
+
+
+def build_incident_example(now):
+    """Synthetic online-state examples for the incident queue, without mutating the store."""
+    from .incident_queue import build_incident_queue
+
+    cluster = '示例集群'
+    entities = [
+        {'id': f'{cluster}|GPU-QUEUE-EXAMPLE-{i}', 'cluster': cluster, 'uuid': f'GPU-QUEUE-EXAMPLE-{i}',
+         'node': 'train-example-01' if i < 2 else 'infer-example-02', 'source_type': 'simulated',
+         'fresh': i != 2, 'quality': {key: 'missing' if i == 2 else 'valid' for key in FEATURES}}
+        for i in range(4)
+    ]
+    templates = {
+        'trend': {'kind': 'univariate', 'targets': ['gpu_temp'], 'required': ['gpu_temp'], 'name': 'GPU 温度趋势'},
+        'joint': {'kind': 'multivariate', 'targets': ['util', 'power', 'sm_clock'],
+                  'required': ['util', 'power', 'sm_clock'], 'name': '功耗与时钟联合偏离'},
+        'scene': {'kind': 'multivariate', 'targets': ['power', 'sm_clock'],
+                  'required': ['util', 'power', 'sm_clock'], 'name': '负载条件下时钟变化'},
+    }
+    tasks = [
+        {'id': key, 'entity': entities[index]['id'], 'template': template, 'enabled': True, 'active_model': 'example',
+         'notification_mode': policy}
+        for key, index, template, policy in (
+            ('trend', 0, 'trend', 'alert'), ('joint', 0, 'joint', 'evidence'), ('pending', 1, 'trend', 'alert'),
+            ('held', 2, 'scene', 'alert'), ('recovered', 3, 'joint', 'alert'),
+        )
+    ]
+    tasks[3]['scenario_id'] = 'power_clock_example'
+    end = int(now)
+    states = [
+        {'id': 'trend', 'active': True, 'opened_at': end - 11 * 60, 'pending': 4, 'score': 1.81,
+         'threshold': 1.12, 'reason_metric': 'gpu_temp', 'contributions': {'gpu_temp': 1.81}},
+        {'id': 'joint', 'active': True, 'opened_at': end - 9 * 60, 'pending': 3, 'score': 2.22,
+         'threshold': 1.03, 'reason_metric': 'sm_clock', 'contributions': {'sm_clock': 2.22, 'power': 1.6}},
+        {'id': 'pending', 'active': False, 'pending': 2, 'score': 1.22, 'threshold': 1.12,
+         'reason_metric': 'gpu_temp'},
+        {'id': 'held', 'active': True, 'opened_at': end - 6 * 60},
+        {'id': 'recovered', 'active': False, 'opened_at': end - 50 * 60, 'closed_at': end - 25 * 60,
+         'reason': 'fresh_normal_confirmed', 'clear_count': 3},
+    ]
+    for state in states:
+        state.update(last_source=end - 2, quality='valid', model_id='example')
+    states[3].update(last_source=end - 130, quality='missing')
+    bindings = [{'id': key, 'rule_id': i} for i, key in enumerate(('trend', 'held', 'recovered'), 100)]
+    nightingale = {
+        'connected': True, 'checked_at': end - 4,
+        'events': [{'id': 412, 'rule_id': 100, 'trigger_time': end - 11 * 60 + 8, 'hash': 'example-a'}],
+        'history': [{'id': 410, 'rule_id': 102, 'trigger_time': end - 49 * 60,
+                     'hash': 'example-b', 'is_recovered': True}],
+    }
+    return build_incident_queue(entities, tasks, states, templates, bindings, nightingale, now)

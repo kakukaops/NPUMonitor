@@ -22,9 +22,13 @@ const document={createElement:t=>new Element(t),getElementById:id=>{if(!nodes.ha
 document.getElementById('window').value='900';
 const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,devicePixelRatio:1,window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async(url,options={})=>{calls.push({url,...options});return {ok:true,status:200,json:async()=>url.endsWith('/state')?fixture:url.includes('/model-services/')&&url.includes('/models?task=')?{models:[{model_ref:'catalog-m',deployment_ref:'catalog-d',algorithm:'temporal_mad',created_at:now}],excluded:1}:url.includes('/series/')?{points:[{t:now-2,values:Object.fromEntries(primary.map(m=>[m,50])),expected:Object.fromEntries(primary.map(m=>[m,49])),bounds:Object.fromEntries(primary.map(m=>[m,[45,55]])),score:0,threshold:1,anomaly:false},{t:now,values:Object.fromEntries(primary.map(m=>[m,51])),expected:Object.fromEntries(primary.map(m=>[m,50])),bounds:Object.fromEntries(primary.map(m=>[m,[46,56]])),score:0,threshold:1,anomaly:false}]}:{points:[],tasks,jobs:[],created:[],skipped:[]}};}};
 vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
+run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
-assert.equal(run('page'),'baseline');assert.equal(nodes.get('baselineCards').children.length,5);
+assert.equal(run('page'),'incidents');
+run("choosePage('baseline')");
+await new Promise(r=>setImmediate(r));
+assert.equal(nodes.get('baselineCards').children.length,5);
 assert.equal(nodes.get('countUnknown').textContent,0);
 run('data.tasks.push({...data.tasks[0],id:"untrained-task",active_model:null});render()');
 assert.equal(nodes.get('countTasks').textContent,5);
@@ -36,10 +40,8 @@ run('$("baselineMetric").value="power";$("baselineMetric").onchange()');
 assert.ok(nodes.get('baselineCards').children[2].className.includes('selected-metric'));
 run('$("baselineMetric").value="gpu_temp";$("baselineMetric").onchange()');
 
-assert.equal(nodes.get('replayNav').hidden,false);
 assert.equal(nodes.get('replaySwitch').hidden,false);
 run('data.simulation=false;render()');
-assert.equal(nodes.get('replayNav').hidden,true);
 assert.equal(nodes.get('replaySwitch').hidden,true);
 run('data.simulation=true;render()');
 
