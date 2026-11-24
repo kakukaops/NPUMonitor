@@ -107,6 +107,23 @@ def recorded_episodes(points):
     return episodes
 
 
+def association_snapshot(points, episodes):
+    """Explain one historical decision without inventing per-feature attribution."""
+    scored = [point for point in points if math.isfinite(point.get('score', math.nan))
+              and math.isfinite(point.get('threshold', math.nan)) and point['threshold'] > 0]
+    if not scored:
+        return None
+    event = episodes[-1] if episodes else None
+    event_points = [point for point in scored if event and point.get('anomaly')
+                    and point['t'] >= event['start'] and (event['end'] is None or point['t'] < event['end'])]
+    candidates = event_points or [point for point in scored if point.get('anomaly')]
+    point = max(candidates, key=lambda row: row['score'] / row['threshold']) if candidates else scored[-1]
+    keys = ('t', 'model', 'score', 'threshold', 'values', 'expected', 'contributions',
+            'joint_distance_score', 'evidence', 'reference_kind')
+    return {**{key: point[key] for key in keys if key in point},
+            'selection': 'confirmed_peak' if event_points else 'candidate_peak' if candidates else 'latest'}
+
+
 def summarize_confirmations(replay, episodes, labels):
     """Event metrics for the applied confirmation policy, using explicit annotations."""
     opening_times = [episode['start'] for episode in episodes]
@@ -210,10 +227,12 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
         points, state, episodes = replay_results(frames, scored, task, model_id, step, required)
         frames = points
     intervals = quality_intervals(frames, step, end)
+    points = [point for point in points if start <= point['t'] <= end]
+    evidence_snapshot = association_snapshot(points, episodes) if include_inputs else None
     keys = ('t', 'values', 'expected', 'bounds', 'score', 'threshold', 'anomaly', 'active',
             'quality', 'cadence_seconds', 'model', 'pipeline_id', 'decision_config_revision',
             'reference_kind', 'effective_task_factor', 'confirmation_samples', 'recovery_samples')
-    points = [{key: point[key] for key in keys if key in point} for point in points if start <= point['t'] <= end]
+    points = [{key: point[key] for key in keys if key in point} for point in points]
     versions = {}
     decisions = {}
     for point in points:
@@ -234,6 +253,7 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
         'points': points, 'observations': observations[metric], 'input_observations': observations if include_inputs else {},
         'observation_error': observation_error,
         'state': state, 'episodes': episodes, 'quality_intervals': intervals, 'versions': versions,
+        'association_evidence': evidence_snapshot,
         'recorded_decisions': list(decisions.values()) if mode == 'recorded' else [],
     }
 

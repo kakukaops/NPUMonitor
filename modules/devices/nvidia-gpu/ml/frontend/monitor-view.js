@@ -17,9 +17,7 @@ function selectMonitorSample(section){
 }
 
 function selectAssociationMonitor(task){
- if(monitorPrefs.scenarios.task!==task.id)monitorPrefs.scenarios.metric='all';
- monitorPrefs.scenarios.task=task.id;
- renderMonitorView();
+ chooseAssociationView(associationFamily(task),task);
  $('monitorView').scrollIntoView({block:'nearest'});
 }
 
@@ -32,7 +30,7 @@ function monitorContext(section,pref){
  const selected=$('associationEntity').value;
  const ids=new Set(filteredEntities().map(entity=>entity.id));
  const tasks=data.tasks.filter(task=>!task.deleted&&ids.has(task.entity)&&(!selected||task.entity===selected)
-  &&isAssociationTask(task));
+  &&isAssociationTask(task)&&associationFamily(task)===associationView);
  monitorOptions($('monitorTask'),tasks.map(task=>{
   const spec=data.templates[task.template];
   const device=data.entities.find(row=>row.id===task.entity);
@@ -59,7 +57,7 @@ function monitorContext(section,pref){
 
 function renderMonitorView(force=false){
  const pref=monitorPrefs[page];
- if(!data||!pref||replayMode)return;
+ if(!data||!pref||replayMode||(page==='scenarios'&&associationView==='compare'))return;
  if(!data.simulation)pref.source='prometheus';
  const slot=$(page==='baseline'?'baselineMonitorSlot':'associationMonitorSlot');
  const panel=$('monitorView');
@@ -92,7 +90,9 @@ function renderMonitorView(force=false){
  if(!device||!metric){
   monitorShown=null;
   clearMonitorView();
-  $('monitorViewStatus').textContent=page==='scenarios'?'选择有任务的 GPU，或新建关联任务。':'请选择 GPU 和指标。';
+  $('monitorViewStatus').textContent=page==='scenarios'
+   ?(associationView==='white'?'此范围还没有白盒任务。可从场景目录选择关系。':'此范围还没有黑盒任务。')
+   :'请选择 GPU 和指标。';
   return;
  }
  const query=new URLSearchParams({entity,metric,task:task?.id||'',source:pref.source,mode,span:pref.span,scenario:pref.scenario});
@@ -126,6 +126,7 @@ function clearMonitorView(){
  $('monitorViewTip').hidden=true;
  $('monitorViewLegend').replaceChildren();
  $('monitorViewEvidence').replaceChildren();
+ renderAssociationEvidence(null);
 }
 
 function monitorPlot(result,metric=result.metric){
@@ -222,7 +223,7 @@ function monitorVersionSummary(result){
 
 function paintMonitorView(){
  const view=monitorShown;
- if(!view||view.section!==page||replayMode)return;
+ if(!view||view.section!==page||replayMode||(page==='scenarios'&&associationView==='compare'))return;
  if(!view.result){
   if(view.error)$('monitorViewStatus').textContent='曲线读取失败 · '+view.error;
   return;
@@ -271,6 +272,7 @@ function paintMonitorView(){
  if(scored.length)evidence.push(badge(scored.length+' 个有效分数'));
  if(result.mode==='replay'&&result.model)evidence.push(badge(markers.length+' 段确认异常',markers.length?'red':'gray'));
  $('monitorViewEvidence').replaceChildren(...evidence);
+ renderAssociationEvidence(result);
  const graph={range,shaded:markers,quality,independent:true};
  if(view.allInputs)drawMonitorInputs($('monitorInputCharts'),result,graph);
  else if(valueVisible)draw('monitorValueChart',rows,key,false,{...graph,tooltip:$('monitorViewTip'),markAnomalies:view.section!=='scenarios'});

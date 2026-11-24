@@ -133,6 +133,7 @@
     <div class="chart monitor-view-chart" id="monitorValueBox" hidden><canvas id="monitorValueChart" role="img" aria-label="观测与模型参考"></canvas><div class="tooltip" id="monitorViewTip" hidden></div></div>
     <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
     <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
+    <div id="associationEvidence" class="association-evidence" hidden></div>
     <div class="monitor-input-charts" id="monitorInputCharts" aria-label="按同一时间轴展示全部输入指标" hidden></div>
   </section>
 </div>
@@ -148,9 +149,15 @@
 </details>
 </section>
 <section id="page-scenarios" class="page" hidden>
+<div class="association-tabs" role="group" aria-label="多指标关联视图">
+  <button type="button" id="associationWhite" aria-pressed="false">白盒场景</button>
+  <button type="button" id="associationBlack" aria-pressed="true">黑盒模型</button>
+  <button type="button" id="associationCompare" aria-pressed="false">同窗对照</button>
+</div>
+<div id="associationWorkbench">
 <div class="panel monitoring-panel">
   <div class="panel-heading">
-    <div><h2>监测对象</h2><p class="association-overview"><span id="associationSummary"></span><button type="button" id="associationListShortcut" class="text-button">查看任务列表</button></p></div>
+    <div><h2>监测对象</h2><p class="association-overview"><span id="associationSummary"></span><button type="button" id="associationListShortcut" class="text-button">查看任务列表</button><button type="button" id="associationCatalogShortcut" class="text-button" hidden>场景目录</button></p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
       <button id="newAssociation" class="write" type="button">新建关联任务</button>
@@ -159,6 +166,12 @@
   <div id="associationStatus" class="monitor-focus" hidden></div>
 </div>
 <div id="associationMonitorSlot"></div>
+<section class="panel" id="associationScenarios" hidden>
+  <div class="panel-heading"><div><h2>白盒场景目录</h2><p>选择已知关系建任务。条件基线须先学习正常历史。</p></div></div>
+  <div id="scenarioCards" class="gpu-grid"></div>
+  <details class="workspace-fold"><summary>当前未覆盖场景</summary><div id="scenarioUnavailable"></div></details>
+</section>
+
 <details class="panel workspace-fold" id="associationTasks">
   <summary>关联任务列表</summary>
   <div class="table-scroll"><table class="association-table">
@@ -166,18 +179,43 @@
     <tbody id="associationRows"></tbody>
   </table></div>
 </details>
-<details class="panel workspace-fold">
-  <summary>关联方法与适用条件</summary>
-  <div class="panel-heading"><div><h2>白盒场景</h2><p>查看已知指标关系和所需的 DCGM 输入。新任务默认只记录证据。</p></div><button id="newScenario" class="write" type="button">添加白盒场景</button></div>
-  <div id="scenarioCards" class="gpu-grid"></div>
-  <div class="panel-heading" id="blackBoxPanel"><div><h2>黑盒模型</h2><p>从正常历史学习多指标行为，用联合分数衡量偏离。</p></div><button id="newJointTask" class="write" type="button">添加黑盒任务</button></div>
+<details class="panel workspace-fold" id="blackBoxPanel">
+  <summary>黑盒方法</summary>
   <div class="model-routes">
     <div><strong>逐点 PCA</strong><p>按同一时点的指标组合评分。</p></div>
     <div><strong>窗口 PCA</strong><p>按连续 5 点的联合变化评分。</p></div>
     <div><strong>Isolation Forest</strong><p>筛查历史中少见的指标组合。</p></div>
   </div>
-  <h2>当前未覆盖场景</h2><div id="scenarioUnavailable"></div>
 </details>
+</div>
+<div id="associationStudy" hidden>
+  <section class="panel" id="associationSampleStudy" hidden>
+    <div class="panel-heading">
+      <div><h2>同一批曲线上的方法对照</h2><p>模拟样例 · 每种方法使用自己的阈值，连续 3 点确认。</p></div>
+      <label>样例 <select id="associationCase" aria-label="同窗对照样例">
+        <option value="joint">轻微联合失配</option>
+        <option value="rule">功耗与时钟失配</option>
+        <option value="drift">单指标温度偏移</option>
+        <option value="normal">正常对照</option>
+        <option value="gap">采集缺口</option>
+      </select></label>
+    </div>
+    <div id="associationCaseContents" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <div class="panel-heading"><div><h2>公开 DCGM 配对实验</h2><p>GWDG v2 · 21 个真实轨迹窗口 · 对同一后段施加配对人工扰动</p></div></div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>扰动（20 分钟）</th><th>条件输入</th><th>新检出 / 21</th><th>全程可评分 / 21</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="2">温度 +4 °C</td><td>GPU 与显存活动</td><td>15</td><td>19</td></tr>
+        <tr><td>GPU 与显存活动 + 功耗</td><td>16</td><td>19</td></tr>
+        <tr><td rowspan="2">温度 +4 °C、功耗 +40 W</td><td>GPU 与显存活动</td><td>15</td><td>19</td></tr>
+        <tr><td>GPU 与显存活动 + 功耗</td><td>5</td><td>8</td></tr>
+      </tbody>
+    </table></div>
+    <p class="caption">加功耗条件时，同步变化的触发减少，可评分覆盖也下降。原始配对窗口两种方法均未触发。这里衡量对已知扰动的响应，尚未测得真实故障召回率或误报率。</p>
+  </section>
+</div>
 </section>
 <section id="page-overview" class="page" hidden><div class="section-heading"><h2>GPU 设备</h2><span class="muted">从已发现的设备进入监测详情</span></div><div id="gpuCards" class="gpu-grid"></div><div class="panel"><h2>监控覆盖与边界</h2><div class="coverage"><div><b>单指标时序</b><p>按GPU与指标维护独立检测配置，批量创建并训练。</p></div><div><b>机器学习</b><p>可选多指标联合行为检测，学习所选指标组的正常分布。</p></div><div><b>数据质量</b><p>唯一性、源时间、字段有效性与缺失分别检查。</p></div></div></div></section>
 <section id="page-detection" class="page" hidden>
@@ -208,4 +246,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

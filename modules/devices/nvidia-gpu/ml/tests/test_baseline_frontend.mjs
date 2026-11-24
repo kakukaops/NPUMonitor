@@ -24,6 +24,7 @@ const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Pr
 vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));

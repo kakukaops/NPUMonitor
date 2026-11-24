@@ -2,12 +2,23 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gpu_ml.monitor_view import replay_input, replay_results, sample_rows, summarize_confirmations
+from gpu_ml.monitor_view import association_snapshot, replay_input, replay_results, sample_rows, summarize_confirmations
 from gpu_ml.source import Source
 from gpu_ml.store import Store
 
 
 class MonitorViewTests(unittest.TestCase):
+    def test_evidence_uses_confirmed_point_and_preserves_available_attribution(self):
+        points = [{'t': 2, 'score': 9, 'threshold': 1, 'anomaly': True, 'values': {'power': 320}},
+                  {'t': 4, 'score': 1.5, 'threshold': 1, 'anomaly': True, 'values': {'power': 290},
+                   'contributions': {'power': 1.5}},
+                  {'t': 6, 'score': .3, 'threshold': 1, 'values': {'power': 250}}]
+        report = association_snapshot(points, [{'start': 4, 'end': 6}])
+        self.assertEqual((report['t'], report['selection']), (4, 'confirmed_peak'))
+        self.assertEqual(report['contributions'], {'power': 1.5})
+        self.assertEqual(association_snapshot(points, [])['selection'], 'candidate_peak')
+        self.assertIsNone(association_snapshot([], []))
+
     def test_replay_and_store_use_identical_confirmation_and_gap_rules(self):
         task = {'id': 'detector', 'confirmation_samples': 2, 'recovery_samples': 2}
         stamps = [100, 102, 104, 106, 108, 110, 112, 120, 122]

@@ -88,7 +88,8 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  $('subtitle').textContent=showReplay?'用模拟曲线查看模型的评分过程。':incidentExampleActive?'在样例中练习查看证据和复核。':pageDescriptions[next]||'';
  $('subtitle').hidden=!$('subtitle').textContent;
  const hash=showReplay?replayHashes[next]:incidentExampleActive?'#incident-demo':
-  next==='incidents'&&$('incidentFilter').value==='history'?'#incident-history':liveHashes[next];
+  next==='incidents'&&$('incidentFilter').value==='history'?'#incident-history':
+   next==='scenarios'?associationHashes[associationView]:liveHashes[next];
  const existing=window.location?.hash;
  if(updateUrl&&hash&&window.history){
   const context=next==='detection'?{origin:detectionOrigin,entity:selectedEntity,task:selectedTask,metric:detailMetric||$('metricSelect').value}:null;
@@ -116,6 +117,12 @@ function openReplayFromLocation(){
  if(hash==='#incident-history'){
   $('incidentFilter').value='history';
   choosePage('incidents',false,false,false);
+  return true;
+ }
+ const association=Object.keys(associationHashes).find(key=>associationHashes[key]===hash);
+ if(association){
+  setAssociationView(association);
+  choosePage('scenarios',false,false,false);
   return true;
  }
  const live=hash?Object.keys(liveHashes).find(key=>liveHashes[key]===hash):'incidents';
@@ -257,7 +264,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationTasks();renderMonitorView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -300,13 +307,15 @@ function renderScenarios(){
   const tasks=data.tasks.filter(task=>task.scenario_id===id&&!task.deleted&&entityIds.has(task.entity));
   const ready=entities.filter(entity=>scene.required.every(key=>entity.quality[key]==='valid')).length;
   card.append(el('h3',scene.name),el('p',scene.description),
-   el('p','输入 '+scene.required.map(key=>metricNames[key]||key).join('、'),'muted'),
+   el('p','条件 '+scene.features.map(key=>metricNames[key]||key).join('、')+' · 校验显存时钟范围','muted'),
+   el('p','判断 '+scene.targets.map((key,index)=>(metricNames[key]||key)+' '+({high:'偏高',low:'偏低',both:'偏离'}[scene.directions[index]])).join('、')),
    el('p','当前字段齐备 '+ready+' 张 · 训练需满足历史覆盖'),
    el('p','已配置 '+tasks.length+' 项 · 仅记录证据 '+tasks.filter(task=>task.notification_mode==='evidence').length+' 项'));
-  if(tasks.length)card.append(btn('查看曲线',async()=>{
+  if(tasks.length)card.append(uiButton('查看曲线',()=>{
    const task=tasks.find(row=>row.active_model)||tasks[0];
    selectAssociationMonitor(task);
-  },''));
+  }));
+  else if(ready)card.append(uiButton('配置此场景',()=>openScenarioCreate(selected,id),'write'));
   return card;
  });
  $('scenarioCards').replaceChildren(...cards);
@@ -317,7 +326,8 @@ function renderAssociationTasks(){
  const entities=filteredEntities(),byEntity=new Map(entities.map(entity=>[entity.id,entity]));
  const select=$('associationEntity');
  options(select,[{id:'',uuid:'全部 GPU'},...entities],entity=>entity.id,entity=>entity.id?deviceLabel(entity):entity.uuid);
- const tasks=data.tasks.filter(task=>!task.deleted&&byEntity.has(task.entity)&&(!select.value||select.value===task.entity)&&isAssociationTask(task));
+ const tasks=data.tasks.filter(task=>!task.deleted&&byEntity.has(task.entity)&&(!select.value||select.value===task.entity)
+  &&isAssociationTask(task)&&associationFamily(task)===associationView);
  const active=new Set(tasks.filter(task=>stateFor(task)?.active).map(task=>task.id));
  tasks.sort((a,b)=>Number(active.has(b.id))-Number(active.has(a.id)));
  const evaluated=tasks.filter(task=>data.inference.enabled&&task.enabled&&task.active_model&&stateFor(task)?.quality==='valid').length;
@@ -384,7 +394,7 @@ function renderAssociationStatus(task,entity,metric){
  box.replaceChildren(context,actions);
 }
 
-function openScenarioCreate(entity=''){const catalog=data.dcgm_scenarios;if(!catalog)return;openDialog('添加白盒场景',[el('p','不生成上层指标；仅对字段满足且参考历史充分的场景训练。默认仅记录证据，不自动通知。'),field('GPU范围','scenarioEntity','select',[['all','当前筛选GPU'],...(data.simulation?[['simulated','仅显式模拟GPU']]:[]),...filteredEntities().map(e=>[e.id,e.uuid])]),field('场景','scenarioChoice','select',[['all','全部四类'],...Object.entries(catalog.scenarios).map(([k,v])=>[k,v.name])]),field('参考数据要求','scenarioProfile','select',[['production','生产参考：关系≥1天；漂移≥7天、趋势6小时'],...(data.simulation?[['laboratory','仅模拟：参考≥30分钟、加速趋势1分钟']]:[])])],async()=>{const selection=$('scenarioEntity').value;const entities=selection==='all'?filteredEntities():selection==='simulated'?filteredEntities().filter(e=>e.source_type==='simulated'):data.entities.filter(e=>e.id===selection);const scenes=$('scenarioChoice').value==='all'?Object.keys(catalog.scenarios):[$('scenarioChoice').value];const r=await api('/scenario-policies',{method:'POST',body:JSON.stringify({entities:entities.map(e=>e.id),scenarios:scenes,profile:$('scenarioProfile').value})});selectCreatedAssociation(r.created);toast('已创建 '+r.created.length+' 项 · 跳过 '+r.skipped.length+' 项');});if(entity)$('scenarioEntity').value=entity;}
+function openScenarioCreate(entity='',scenario=''){const catalog=data.dcgm_scenarios;if(!catalog)return;openDialog('添加白盒场景',[el('p','不生成上层指标；仅对字段满足且参考历史充分的场景训练。默认仅记录证据，不自动通知。'),field('GPU范围','scenarioEntity','select',[['all','当前筛选GPU'],...(data.simulation?[['simulated','仅显式模拟GPU']]:[]),...filteredEntities().map(e=>[e.id,e.uuid])]),field('场景','scenarioChoice','select',[['all','全部四类'],...Object.entries(catalog.scenarios).map(([k,v])=>[k,v.name])]),field('参考数据要求','scenarioProfile','select',[['production','生产参考：关系≥1天；漂移≥7天、趋势6小时'],...(data.simulation?[['laboratory','仅模拟：参考≥30分钟、加速趋势1分钟']]:[])])],async()=>{const selection=$('scenarioEntity').value;const entities=selection==='all'?filteredEntities():selection==='simulated'?filteredEntities().filter(e=>e.source_type==='simulated'):data.entities.filter(e=>e.id===selection);const scenes=$('scenarioChoice').value==='all'?Object.keys(catalog.scenarios):[$('scenarioChoice').value];const r=await api('/scenario-policies',{method:'POST',body:JSON.stringify({entities:entities.map(e=>e.id),scenarios:scenes,profile:$('scenarioProfile').value})});selectCreatedAssociation(r.created);toast('已创建 '+r.created.length+' 项 · 跳过 '+r.skipped.length+' 项');});if(entity)$('scenarioEntity').value=entity;if(scenario)$('scenarioChoice').value=scenario;}
 function openAdmission(task){if(task.notification_mode==='alert'){return api('/tasks/'+task.id+'/admission',{method:'POST',body:JSON.stringify({mode:'evidence'})}).then(()=>toast('已切回仅证据，受管通知规则将禁用'));}openDialog('允许场景通知',[el('p','这是人工通知授权，不是硬件诊断或生产效果认证。请登记核验依据、负责人和处置动作。'),field('核验记录/工单','admissionRef'),field('负责人','admissionOwner'),field('处置动作','admissionAction')],async()=>{await api('/tasks/'+task.id+'/admission',{method:'POST',body:JSON.stringify({mode:'alert',evidence_ref:$('admissionRef').value,owner:$('admissionOwner').value,action:$('admissionAction').value})});toast('已登记通知授权，仍以夜莺实际事件为准');});}
 function renderEvidence(task,entity){const box=$('evidence');box.replaceChildren();if(!task){pair(box,'检测任务','仅查看原始指标；选择或创建任务后查看模型证据');return;}const s=stateFor(task),[name]=decision(s,task);pair(box,'状态',name);pair(box,'异常分数',s?fmt(s.score,3)+' / '+fmt(s.threshold,3):'—');if(s?.raw_score!==undefined)pair(box,'原始分数',s.raw_score===null?'旧制品未保留':fmt(s.raw_score,3));if(s?.calibrator_id)pair(box,'校准版本',short(s.calibrator_id));if(s?.decision_id)pair(box,'判定版本',short(s.decision_id));pair(box,'源样本时间',tm(s?.last_source));pair(box,'检测类型',data.templates[task.template].kind||'legacy');pair(box,'窗口/参考',(()=>{const c=s?.capabilities||data.models.find(m=>m.id===task.active_model)?.capabilities;return c?(c.reference_kind==='none'?'仅评分，无参考线':c.reference_kind==='joint_reconstruction'?'联合重构参考，非预测':c.reference_kind==='causal_forecast'?'过去'+c.history_samples+'个源样本 → 当前点预测':'条件基线'):'等待模型能力声明';})());pair(box,'当前基线',data.models.find(m=>m.id===task.active_model)?modelTitle(data.models.find(m=>m.id===task.active_model)):'尚未启用');pair(box,'关联夜莺规则',data.bindings.find(b=>b.id===task.id)?.rule_id||'尚未同步');if(s?.contributions)pair(box,'贡献指标',Object.entries(s.contributions).map(([k,v])=>k+' '+fmt(v,2)).join(' / '));if(s?.joint_distance_score!==undefined)pair(box,'联合距离分量',fmt(s.joint_distance_score,3));pair(box,'确认策略',(task.confirmation_samples||3)+'个新鲜异常样本 / '+(task.recovery_samples||3)+'个新鲜正常样本');if(s?.calibrated_components){
  const metric=data.templates[task.template].targets[0], components=s.calibrated_components;
@@ -617,7 +627,7 @@ function drawCharts(){const key=$('metricSelect').value||'gpu_temp',hasScore=!ra
  $('detectionEvidence').classList.toggle('raw-only',!hasScore);
  $('detectionAnomalyLegend').hidden=!hasScore;
  draw('metricChart',points,key,false);if(hasScore)draw('scoreChart',points,key,true);const last=points.at(-1),kind=referenceKind(last);$('scoreBadge').textContent=last?fmt(last.score,3)+' / '+fmt(last.threshold,3):'等待有效样本';$('referenceLegend').hidden=rawMode||!points.some(p=>Number.isFinite(p.expected?.[key])&&referenceKind(p)!=='none');$('bandLegend').hidden=rawMode||!points.some(p=>p.bounds?.[key]);$('referenceLabel').textContent=kind==='none'?'历史版本模型参考':kind==='joint_reconstruction'?'联合重构参考':kind==='causal_forecast'?'当前点预测':'条件基线参考';$('chartCaption').textContent=last&&rawMode?'既有 Prometheus 原始指标；当前没有有效在线模型结果，不产生ML评分。':last?(kind==='none'?'当前检测器仅输出分数，没有预测/重构参考线；时窗内旧版本参考按历史结果展示。':kind==='joint_reconstruction'?'灰线为联合重构参考，不是预测。':kind==='causal_forecast'?'灰线由此前源样本预测当前点；参考带宽度固定。校准分数及检测阈值见下图。':'旧版条件基线参考。')+(last.scenario?(last.scenario.profile==='laboratory'?' 加速实验；不是长期退化证据。':' DCGM行为线索；无法排除环境与配置变化。'):'')+' '+points.length+' 点 · 版本 '+short(last.model)+' · 分数经过校准，非故障概率。':'尚无有效在线结果；缺失和不适用状态不会补造曲线。';}
-function draw(target,rows,key,score,{range,marker,tooltip,overlays=[],yRange,flatThreshold,shaded=[],quality=[],independent=false,probe,markAnomalies=true}={}){const canvas=typeof target==='string'?$(target):target;const box=canvas.getBoundingClientRect();if(box.width<1)return;const dpr=devicePixelRatio||1;canvas.width=box.width*dpr;canvas.height=box.height*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const w=box.width,h=box.height,L=48,R=16,T=14,B=28,W=w-L-R,H=h-T-B;ctx.font='10px system-ui';ctx.textBaseline='middle';const valid=rows.filter(p=>score?Number.isFinite(p.score):Number.isFinite(p.values[key])||(independent&&Number.isFinite(p.expected?.[key])));if(!valid.length){ctx.textAlign='center';ctx.fillStyle='#8a97ab';ctx.fillText('等待有效数据 / 选择已训练任务',w/2,h/2);return;}let values=valid.flatMap(p=>score?[p.score,p.threshold]:[p.values[key],p.expected?.[key],...(p.bounds?.[key]||[])]).filter(Number.isFinite);if(!score)for(const overlay of overlays){for(const value of overlay.values.values())if(Number.isFinite(value))values.push(value);}let min=Math.min(...values),max=Math.max(...values),pad=(max-min)*.15||1;min=yRange?.min??Math.max(0,min-pad);max=yRange?.max??max+pad;const start=range?.start??Math.min(valid[0].t,valid.at(-1).t-60),end=range?.end??Math.max(valid.at(-1).t,start+60),x=t=>L+(t-start)/(end-start)*W,y=v=>T+H-(v-min)/(max-min)*H;ctx.fillStyle='#e7ad8c55';for(const episode of shaded){
+function draw(target,rows,key,score,{range,marker,tooltip,overlays=[],yRange,flatThreshold,shaded=[],quality=[],independent=false,probe,markAnomalies=true,axisLabel}={}){const canvas=typeof target==='string'?$(target):target;const box=canvas.getBoundingClientRect();if(box.width<1)return;const dpr=devicePixelRatio||1;canvas.width=box.width*dpr;canvas.height=box.height*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const w=box.width,h=box.height,L=48,R=16,T=14,B=28,W=w-L-R,H=h-T-B;ctx.font='10px system-ui';ctx.textBaseline='middle';const valid=rows.filter(p=>score?Number.isFinite(p.score):Number.isFinite(p.values[key])||(independent&&Number.isFinite(p.expected?.[key])));if(!valid.length){ctx.textAlign='center';ctx.fillStyle='#8a97ab';ctx.fillText('等待有效数据 / 选择已训练任务',w/2,h/2);return;}let values=valid.flatMap(p=>score?[p.score,p.threshold]:[p.values[key],p.expected?.[key],...(p.bounds?.[key]||[])]).filter(Number.isFinite);if(!score)for(const overlay of overlays){for(const value of overlay.values.values())if(Number.isFinite(value))values.push(value);}let min=Math.min(...values),max=Math.max(...values),pad=(max-min)*.15||1;min=yRange?.min??Math.max(0,min-pad);max=yRange?.max??max+pad;const start=range?.start??Math.min(valid[0].t,valid.at(-1).t-60),end=range?.end??Math.max(valid.at(-1).t,start+60),x=t=>L+(t-start)/(end-start)*W,y=v=>T+H-(v-min)/(max-min)*H;ctx.fillStyle='#e7ad8c55';for(const episode of shaded){
  const left=Math.max(start,episode.start),right=Math.min(end,episode.end??end);
  if(right>left)ctx.fillRect(x(left),T,x(right)-x(left),H);
 }
@@ -625,7 +635,7 @@ ctx.fillStyle='#a286c6';for(const interval of quality){
  const left=Math.max(start,interval.start),right=Math.min(end,interval.end);
  if(right>left)ctx.fillRect(x(left),T,Math.max(1,x(right)-x(left)),4);
 }
-ctx.fillStyle='#8592a6';for(let i=0;i<5;i++){const v=min+(max-min)*i/4;ctx.strokeStyle='#edf1f6';ctx.beginPath();ctx.moveTo(L,y(v));ctx.lineTo(w-R,y(v));ctx.stroke();ctx.textAlign='right';ctx.fillText(score?v.toFixed(2):v.toFixed(0),L-8,y(v));}for(let i=0;i<5;i++){ctx.textAlign=i===0?'left':i===4?'right':'center';const t=start+(end-start)*i/4;ctx.fillText(tm(t),x(t),h-10);}if(Number.isFinite(marker)&&marker>=start&&marker<=end){ctx.fillStyle='#bf8739';ctx.fillRect(x(marker),T,1,H);}
+ctx.fillStyle='#8592a6';for(let i=0;i<5;i++){const v=min+(max-min)*i/4;ctx.strokeStyle='#edf1f6';ctx.beginPath();ctx.moveTo(L,y(v));ctx.lineTo(w-R,y(v));ctx.stroke();ctx.textAlign='right';ctx.fillText(axisLabel?axisLabel(v):score?v.toFixed(2):v.toFixed(0),L-8,y(v));}for(let i=0;i<5;i++){ctx.textAlign=i===0?'left':i===4?'right':'center';const t=start+(end-start)*i/4;ctx.fillText(tm(t),x(t),h-10);}if(Number.isFinite(marker)&&marker>=start&&marker<=end){ctx.fillStyle='#bf8739';ctx.fillRect(x(marker),T,1,H);}
 const gap=Math.max(15,(valid.at(-1).cadence_seconds||valid.at(-1).capabilities?.cadence_seconds||2)*1.5);function line(fn,color,dash=[],raw=false){ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.beginPath();let last=null;for(const p of valid){const val=fn(p);if(!Number.isFinite(val)){if(!independent)last=null;continue;}if(!last||p.t-last.t>gap||(!raw&&(p.model!==last.model||p.pipeline_id!==last.pipeline_id||p.decision_config_revision!==last.decision_config_revision||quality.some(interval=>interval.start>last.t&&interval.start<=p.t))))ctx.moveTo(x(p.t),y(val));else ctx.lineTo(x(p.t),y(val));last=p;}ctx.stroke();ctx.setLineDash([]);}if(!score){ctx.fillStyle='#3568e816';for(let i=1;i<valid.length;i++){const a=valid[i-1],b=valid[i];if(b.t-a.t>gap||a.pipeline_id!==b.pipeline_id||a.model!==b.model||!a.bounds?.[key]||!b.bounds?.[key])continue;ctx.beginPath();ctx.moveTo(x(a.t),y(a.bounds[key][0]));ctx.lineTo(x(a.t),y(a.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][0]));ctx.closePath();ctx.fill();}line(p=>p.expected?.[key],'#96a5bc',[4,3]);for(const overlay of overlays)line(p=>overlay.values.get(p.t),overlay.color,[4,3]);line(p=>p.values[key],'#3568e8',[],independent);}else{
  if(Number.isFinite(flatThreshold)){
   ctx.beginPath();ctx.setLineDash([5,4]);ctx.strokeStyle='#d95766';ctx.moveTo(L,y(flatThreshold));ctx.lineTo(w-R,y(flatThreshold));ctx.stroke();ctx.setLineDash([]);
@@ -920,7 +930,6 @@ window.addEventListener('keydown',event=>{
 });
 $('loginForm').onsubmit=async e=>{e.preventDefault();try{await api('/session',{method:'POST',body:JSON.stringify({role:$('loginRole').value})});$('loginError').textContent='';$('loginOverlay').hidden=true;await refresh(true);}catch(err){$('loginError').textContent=err.message;}};
 $('logout').onclick=async()=>{await api('/session',{method:'DELETE'});data=null;$('loginOverlay').hidden=false;};
-$('newScenario').onclick=()=>openScenarioCreate($('associationEntity').value);
 $('associationListShortcut').onclick=()=>{
  const list=$('associationTasks');
  list.open=true;
@@ -929,17 +938,8 @@ $('associationListShortcut').onclick=()=>{
 };
 $('newAssociation').onclick=()=>{
  const gpu=$('associationEntity').value;
- const choices=el('div',undefined,'monitor-action-menu');
- for(const [label,description,callback] of [
-  ['白盒场景','检查已知的指标关系，例如负载相近时温度偏移。',()=>openScenarioCreate(gpu)],
-  ['黑盒模型','按所选指标的正常历史学习联合行为。',()=>openPolicy('multivariate',gpu||filteredEntities()[0]?.id)],
- ]){
-  const row=el('div');
-  row.append(uiButton(label,callback,'write'),el('p',description));
-  choices.append(row);
- }
- openDialog('新建关联任务',[choices],async()=>{},'关闭');
- roleAccess();
+ if(associationView==='white')openScenarioCreate(gpu);
+ else openPolicy('multivariate',gpu||filteredEntities()[0]?.id);
 };
 function policyMetricPicker(choices){
  const box=el('fieldset',undefined,'metric-fields'),grid=el('div',undefined,'metric-options');
@@ -996,13 +996,12 @@ function selectCreatedAssociation(tasks){
  const task=tasks.find(isAssociationTask);
  if(!task)return;
  $('associationEntity').value=task.entity;
- monitorPrefs.scenarios.task=task.id;
+ chooseAssociationView(associationFamily(task),task);
  monitorPrefs.scenarios.metric='all';
 }
 
 $('newTask').onclick=()=>openPolicy();
 $('taskTypeFilter').onchange=$('taskSearch').oninput=()=>{renderTasks();roleAccess();};
-$('newJointTask').onclick=()=>openPolicy('multivariate',$('associationEntity').value||filteredEntities()[0]?.id);
 $('feedbackSave').onclick=()=>action(async()=>{
  const task=$('feedbackTask').value;
  if(!task)throw Error('请先选择检测任务');
@@ -1074,4 +1073,5 @@ $('incidentFilter').onchange=()=>{
 $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
 bindMonitorView();
+bindAssociationView();
 refresh();setInterval(refresh,4000);
