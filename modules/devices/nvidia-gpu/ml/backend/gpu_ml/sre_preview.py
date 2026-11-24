@@ -224,4 +224,36 @@ def build_incident_example(now):
         'history': [{'id': 410, 'rule_id': 102, 'trigger_time': end - 49 * 60,
                      'hash': 'example-b', 'is_recovered': True}],
     }
-    return build_incident_queue(entities, tasks, states, templates, bindings, nightingale, now)
+    queue = build_incident_queue(entities, tasks, states, templates, bindings, nightingale, now)
+    queue['traces'] = {
+        signal['id']: incident_example_trace(signal, end)
+        for group in queue['groups'] for signal in group['members']
+    }
+    return queue
+
+
+def incident_example_trace(signal, now):
+    """Synthetic curves aligned to the queue example's device and episode times."""
+    start = int(signal['start'])
+    last = int(min((signal['end'] or now) + 120, now, signal['last_sample']))
+    cadence = 10
+    times = np.arange(start - 120, last + 1, cadence)
+    if times[-1] < last:
+        times = np.r_[times, last]
+    baseline = healthy((times - start) * .36)
+    onset = start - cadence * (signal['confirmation'] - 1 if signal['phase'] != 'pending' else signal['pending'] - 1)
+    active = (times >= onset) & (times < ((signal['end'] or now) - (20 if signal['end'] else 0)))
+    threshold = signal['threshold'] or 1.08
+    scores = np.where(active, signal['score'] or 1.7, .48 + .15 * np.sin((times-start)/45))
+    shifts = {'gpu_temp': 9, 'power': 48, 'sm_clock': -165, 'util': 4}
+    points = []
+    for i, stamp in enumerate(times):
+        reference = {key: round(float(baseline[key][i]), 2) for key in signal['metrics']}
+        values = {key: round(value + (shifts[key] if active[i] else 0), 2) for key, value in reference.items()}
+        points.append({
+            't': int(stamp), 'values': values, 'expected': reference,
+            'bounds': {key: [value - 2, value + 2] for key, value in reference.items()} if signal['family'] == 'univariate' else {},
+            'score': round(float(scores[i]), 3), 'threshold': threshold, 'anomaly': bool(scores[i] > threshold),
+            'cadence_seconds': cadence, 'model': 'incident-example',
+        })
+    return points

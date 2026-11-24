@@ -20,6 +20,10 @@ class IncidentQueueTests(unittest.TestCase):
         self.assertIsNone(held['members'][0]['score'])
         self.assertTrue(held['members'][0]['missing'])
         self.assertEqual(grouped['members'][0]['notification']['event_id'], 412)
+        self.assertEqual(queue['traces']['held'][-1]['t'], held['members'][0]['last_sample'])
+        self.assertEqual(queue['traces']['pending'][-1]['score'], pending['members'][0]['score'])
+        self.assertTrue(any(row['anomaly'] for row in queue['traces']['recovered']))
+        self.assertFalse(queue['traces']['recovered'][-1]['anomaly'])
 
     def test_disjoint_episodes_on_one_card_remain_separate(self):
         rows = [
