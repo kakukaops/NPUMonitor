@@ -118,3 +118,11 @@
 .incident-runtime{margin-top:8px}
 .incident-member>.notice{margin:7px 0 0}
 @media(min-width:821px){.incident-queue{position:sticky;top:12px}}
+
+.comparison-panel{scroll-margin:14px}
+.comparison-trigger{border-color:#9ebbe7;color:#28599b}
+.comparison-partition{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#536780}
+.comparison-panel .legend{margin-top:10px}
+.comparison-panel .comparison-observation{height:205px;margin:4px 0 10px}
+.comparison-panel .comparison-score{height:110px;margin:2px 0 8px}
+.comparison-panel>div>strong{font-size:11px}

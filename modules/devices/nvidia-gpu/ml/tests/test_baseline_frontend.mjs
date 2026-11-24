@@ -23,6 +23,7 @@ document.getElementById('window').value='900';
 const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,devicePixelRatio:1,window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async(url,options={})=>{calls.push({url,...options});return {ok:true,status:200,json:async()=>url.endsWith('/state')?fixture:url.includes('/model-services/')&&url.includes('/models?task=')?{models:[{model_ref:'catalog-m',deployment_ref:'catalog-d',algorithm:'temporal_mad',created_at:now}],excluded:1}:url.includes('/series/')?{points:[{t:now-2,values:Object.fromEntries(primary.map(m=>[m,50])),expected:Object.fromEntries(primary.map(m=>[m,49])),bounds:Object.fromEntries(primary.map(m=>[m,[45,55]])),score:0,threshold:1,anomaly:false},{t:now,values:Object.fromEntries(primary.map(m=>[m,51])),expected:Object.fromEntries(primary.map(m=>[m,50])),bounds:Object.fromEntries(primary.map(m=>[m,[46,56]])),score:0,threshold:1,anomaly:false}]}:{points:[],tasks,jobs:[],created:[],skipped:[]}};}};
 vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'incidents');
@@ -83,8 +84,9 @@ await run('dialogSubmit()');assert.equal(JSON.parse(calls.at(-1).body).model,'mo
 run('openTraining(data.tasks[0])');
 assert.equal(nodes.get('dialogTitle').textContent,'重新学习历史基线 · GPU 温度');
 const findParent=(root,node)=>root.children.find(c=>c.children.includes(node))||root.children.map(c=>findParent(c,node)).find(Boolean);
-const advancedMethod=findParent(nodes.get('dialogBody'),nodes.get('trainAlgorithm').children.length?findParent(nodes.get('dialogBody'),nodes.get('trainAlgorithm')):null);
-assert.equal(advancedMethod.tagName,'details');assert.ok(!advancedMethod.open);
+assert.ok(nodes.get('dialogBody').children[0].children.includes(nodes.get('trainAlgorithm')));
+const advancedParameters=findParent(nodes.get('dialogBody'),findParent(nodes.get('dialogBody'),nodes.get('trainLag')));
+assert.equal(advancedParameters.tagName,'details');assert.ok(!advancedParameters.open);
 assert.equal(nodes.get('trainAlgorithm').value,'temporal_mad');
 assert.equal(nodes.get('trainAlgorithm').children[0].textContent,'动态基线检测（推荐）');
 assert.equal(nodes.get('trainSource').value,'prometheus');assert.equal(nodes.get('trainAlpha').value,'1');
@@ -121,4 +123,4 @@ run('openModelChoice(data.tasks[0])');assert.ok(nodes.get('dialogBody').children
 run('data.tasks=[];renderBaselines()');
 for(const card of nodes.get('baselineCards').children)assert.ok(card.children.some(n=>n.className==='controls'&&n.children.some(b=>b.textContent==='选择模型（已训练基线）')));
 run('$("baselineChooseModel").onclick()');assert.equal(nodes.get('dialogTitle').textContent,'当前指标尚未配置');
-console.log('PASS: fixed model entry, above-chart card controls, unconfigured empty state; readable baseline names, version ordering, source labels, training windows, collapsed method choice, empty state, five drawn preview curves and trained-GPU default; 5 metric cards; model filtering/publish; history source, window/alpha/calibration; runtime revision; decision evidence. Browser visual QA not run.');
+console.log('PASS: fixed model entry, above-chart card controls, unconfigured empty state; readable baseline names, version ordering, source labels, training windows, visible method choice with collapsed tuning parameters, empty state, five drawn preview curves and trained-GPU default; 5 metric cards; model filtering/publish; history source, window/alpha/calibration; runtime revision; decision evidence. Browser visual QA not run.');

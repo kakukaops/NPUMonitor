@@ -21,6 +21,7 @@ const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Pr
  window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async url=>({ok:true,status:200,json:async()=>url.endsWith('/state')?fixture.state:url.includes('/series/')?fixture.series:url.endsWith('/audit')?[]:{points:fixture.series.points}})};
 vm.createContext(sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'),sandbox);
 await new Promise(resolve=>setImmediate(resolve));
 for(const name of [...(fixture.state.dcgm_scenarios?['scenarios']:[]),'overview','detection','tasks','models','events','health']){

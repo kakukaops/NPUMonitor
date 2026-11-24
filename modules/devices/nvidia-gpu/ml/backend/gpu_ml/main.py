@@ -448,14 +448,14 @@ async def ensemble(request:Request):
 @app.post('/api/gpu-ml/v1/comparisons')
 async def comparison(request:Request):
     actor=user(request,'operator');body=await request.json()
-    result=ENGINE.queue_comparison(required_body_value(body,'task'),body.get('algorithms'),float(body['start']),float(body['end']),int(body.get('step',2)),body.get('pipeline'),body.get('labels'))
+    result=ENGINE.queue_comparison(required_body_value(body,'task'),body.get('algorithms'),float(body['start']),float(body['end']),int(body.get('step',2)),body.get('pipeline'),body.get('labels'),body.get('input_source','prometheus'))
     STORE.audit(actor,'comparison_create',result['id']);return result
 
 @app.get('/api/gpu-ml/v1/comparisons/{key}')
 def comparison_detail(key:str,request:Request):
     user(request);result=STORE.get('comparison',key)
     if result is None:raise HTTPException(404,'比较尚未完成')
-    return result
+    return {**result,'trace':STORE.get('comparison_trace',key)}
 
 @app.post('/api/gpu-ml/v1/tasks/{key}/publish')
 async def publish(key:str,request:Request):

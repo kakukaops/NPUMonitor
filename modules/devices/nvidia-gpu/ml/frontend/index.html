@@ -61,6 +61,7 @@
     <p class="caption">模拟演示基线使用生成的 1 小时正常参考数据。训练完成后可选择模型启用。</p>
   </details>
 </div>
+<section class="panel comparison-panel" id="baselineComparison" aria-label="单指标同源比较" hidden></section>
 <div id="baselineCards" class="gpu-grid"></div>
 <details class="panel">
   <summary>单指标方法说明</summary>
@@ -102,4 +103,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer>GPU ML · 独立系统 / 同源数据 / 夜莺统一告警 <span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/incidents.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

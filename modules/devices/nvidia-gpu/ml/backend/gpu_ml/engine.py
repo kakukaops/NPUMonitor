@@ -61,13 +61,16 @@ class Engine:
         if publish:self.publish(task_id,version,'system')
         return version
 
+    @staticmethod
+    def validate_training_source(task,input_source):
+        if input_source not in ('prometheus','simulation-reference'):raise ValueError('未知训练数据来源')
+        if input_source=='simulation-reference' and (not SIMULATION or task['scope']!='simulated' or task['template'] not in ['uni_'+m for m in PRIMARY_METRICS]):
+            raise ValueError('参考数据仅用于显式模拟GPU的首批单指标任务')
     def queue_training(self,task_id,algorithm,start,end,step=2,config=None,labels=None,input_source="prometheus"):
         task=self.store.get('task',task_id)
         if not task or task.get('deleted'):raise ValueError('任务不存在或已退役')
         build_pipeline(task['template'],algorithm,config)
-        if input_source not in ('prometheus','simulation-reference'):raise ValueError('未知训练数据来源')
-        if input_source=='simulation-reference' and (not SIMULATION or task['scope']!='simulated' or task['template'] not in ['uni_'+m for m in PRIMARY_METRICS]):
-            raise ValueError('参考数据仅用于显式模拟GPU的首批单指标任务')
+        self.validate_training_source(task,input_source)
         if isinstance(step,bool) or not isinstance(step,int):raise ValueError('采样步长须为整数秒')
         if not math.isfinite(start+end) or end<=start or end>time.time()+2:raise ValueError('训练时间范围无效')
         if step<2 or (end-start)/step>12000 or end-start>86400*31:raise ValueError('训练窗口或采样点数超过配额')
@@ -172,17 +175,18 @@ class Engine:
         if len({r['platform_id'] for r in refs})!=1 or len({r['dataset_sha256'] for r in records})!=1 or len({json.dumps(r['report'].get('partitions'),sort_keys=True) for r in records})!=1:raise ValueError('成员必须来自同一模型平台、快照和时间切分')
         return self.training.operation(member_ids[0],'ensemble',{'models':[r['model_ref'] for r in refs],'factor':factor})
 
-    def queue_comparison(self,task_id,algorithms,start,end,step=2,config=None,labels=None):
+    def queue_comparison(self,task_id,algorithms,start,end,step=2,config=None,labels=None,input_source="prometheus"):
         task=self.store.get('task',task_id)
         if not task or task.get('deleted'):raise ValueError('任务不存在或已退役')
         if not isinstance(algorithms,list) or not 2<=len(algorithms)<=3 or len(set(algorithms))!=len(algorithms):raise ValueError('请选择2至3个不同候选算法')
+        self.validate_training_source(task,input_source)
         for algorithm in algorithms:
             model=build_pipeline(task['template'],algorithm,config)
             if not isinstance(model,DetectionPipeline):raise ValueError('候选比较仅支持新流水线检测器')
         if not 2<=step or not 0<end-start<=86400*31 or (end-start)/step>12000 or (end-start)/step<240 or end>time.time()+2:raise ValueError('比较时间范围或步长无效')
         if any(j['task']==task_id and j['status'] in ('queued','running','pending_sync') for j in self.store.list('job')):raise ValueError('该任务已有活动作业')
         key=uuid.uuid4().hex
-        self.store.put('job',key,{'task':task_id,'kind':'comparison','status':'queued','algorithms':algorithms,'start':start,'end':end,'step':step,'pipeline_config':config or {},'labels':validate_labels(labels or [],start,end),'created_at':time.time()})
+        self.store.put('job',key,{'task':task_id,'kind':'comparison','status':'queued','algorithms':algorithms,'start':start,'end':end,'step':step,'input_source':input_source,'pipeline_config':config or {},'labels':validate_labels(labels or [],start,end),'created_at':time.time()})
         self.futures[key]=self.executor.submit(self._comparison,key)
         return self.store.get('job',key)
 
@@ -191,17 +195,61 @@ class Engine:
         try:
             job.update(status='running');self.store.put('job',key,job)
             rows=self.read_job_rows(job);candidates=[]
+            task=self.store.get('task',job['task'])
+            spec=TEMPLATES[task['template']]
+            source=job.get('input_source','prometheus')
+            provenance='simulation-reference' if source=='simulation-reference' else 'prometheus-history'
+            parts={}
+            if spec.get('kind')=='univariate':
+                metric=spec['targets'][0]
+                # Same independent partitions as DetectionPipeline.fit.
+                a,b=int(len(rows)*.8),int(len(rows)*.9)
+                parts={name:{'rows':part,'observations':[[row['t'],row['values'][metric]] for row in part],'candidates':{}}
+                       for name,part in (('selection',rows[a:b]),('test',rows[b:]))}
             for algorithm in job['algorithms']:
                 try:
-                    ident=self.train_now(job['task'],rows,'prometheus-history',algorithm,config=job['pipeline_config'],labels=job['labels'])
+                    ident=self.train_now(job['task'],rows,provenance,algorithm,config=job['pipeline_config'],labels=job['labels'])
                     record=self.store.get('model',ident)
-                    candidates.append({'algorithm':algorithm,'model':ident,'status':record['status'],'dataset_sha256':record['dataset_sha256'],'report':record['report']})
-                except Exception as exc:candidates.append({'algorithm':algorithm,'status':'failed','error':str(exc)})
+                    candidate={'algorithm':algorithm,'model':ident,'status':record['status'],
+                               'dataset_sha256':record['dataset_sha256'],'report':record['report']}
+                except Exception as exc:
+                    candidates.append({'algorithm':algorithm,'status':'failed','error':str(exc)})
+                    continue
+                if parts:
+                    try:
+                        model=self.load(ident)
+                        traces={name:self.score(model,part['rows']) for name,part in parts.items()}
+                        for name,points in traces.items():
+                            parts[name]['candidates'][algorithm]=[
+                                {'t':point['t'],'expected':point.get('expected',{}).get(metric),
+                                 'score':point['score'],'threshold':point['threshold'],'anomaly':point['anomaly']}
+                                for point in points
+                            ]
+                    except Exception as exc:
+                        candidate['trace_error']=str(exc)
+                candidates.append(candidate)
+            if parts:
+                for part in parts.values():
+                    part.pop('rows')
+                    stamps=[{p['t'] for p in trace} for trace in part['candidates'].values()]
+                    common=set.intersection(*stamps) if len(stamps)>=2 else set()
+                    part['common_points']=len(common)
+                    part['common_metrics']={}
+                    observed=dict(part['observations'])
+                    for algorithm,points in part['candidates'].items():
+                        matched=[p for p in points if p['t'] in common]
+                        errors=[abs(observed[p['t']]-p['expected']) for p in matched if p['expected'] is not None]
+                        part['common_metrics'][algorithm]={
+                            'point_alert_rate':sum(p['anomaly'] for p in matched)/len(matched) if matched else None,
+                            'mae':sum(errors)/len(errors) if errors else None,
+                        }
+                self.store.put('comparison_trace',key,{'metric':metric,'parts':parts,'created_at':time.time()})
             self.store.put('comparison',key,{'task':job['task'],'candidates':candidates,'automatic_winner':None,
                 'selection_policy':'manual review of selection partition; final test is not a selector; no label-free best-model claim',
+                'input_source':source,'start':job['start'],'end':job['end'],
                 'created_at':time.time(),'online_model_unchanged':True})
             job.update(status='completed',candidate_count=len(candidates),completed_at=time.time())
-        except Exception as exc:job.update(status='failed',error=str(exc),completed_at=time.time())
+        except Exception as exc:job.update(status='failed',error=str(exc))
         self.store.put('job',key,job)
 
     def observation_is_fresh(self,stamp):
