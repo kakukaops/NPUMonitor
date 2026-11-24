@@ -25,6 +25,17 @@ vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'baseline');assert.equal(nodes.get('baselineCards').children.length,5);
+assert.equal(nodes.get('countUnknown').textContent,0);
+run('data.tasks.push({...data.tasks[0],id:"untrained-task",active_model:null});render()');
+assert.equal(nodes.get('countTasks').textContent,5);
+assert.equal(nodes.get('countUnknown').textContent,0,'Untrained tasks are distinct from unavailable live scoring');
+run('data.tasks.pop();data.states[0].quality="missing";render()');
+assert.equal(nodes.get('countUnknown').textContent,1);
+run('data.states[0].quality="valid";render()');
+run('$("baselineMetric").value="power";$("baselineMetric").onchange()');
+assert.ok(nodes.get('baselineCards').children[2].className.includes('selected-metric'));
+run('$("baselineMetric").value="gpu_temp";$("baselineMetric").onchange()');
+
 assert.equal(nodes.get('replayNav').hidden,false);
 assert.equal(nodes.get('replaySwitch').hidden,false);
 run('data.simulation=false;render()');

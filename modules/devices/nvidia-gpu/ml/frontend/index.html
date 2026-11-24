@@ -1,25 +1,67 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPU 监控 · 机器学习</title><link rel="stylesheet" href="/assets/style.css"></head>
 <body><aside class="sidebar"><div class="brand"><span class="brand-icon">G</span><div>GPU 监控<small>ML OBSERVATORY</small></div></div><div class="nav-label">监控工作台</div><nav><button class="nav" id="replayNav" data-page="replay" hidden>◫ 异常概览 <small>回放</small></button><button class="nav active" data-page="baseline">⌁ 单指标趋势</button><button class="nav" data-page="scenarios">◇ 多指标关联</button><button class="nav" data-page="overview">◈ GPU 总览</button><button class="nav" data-page="detection">⌁ 在线检测</button><button class="nav" data-page="tasks">⊞ 检测任务</button><button class="nav" data-page="models">▧ 模型与训练</button><button class="nav" data-page="events">◎ 事件与反馈</button><button class="nav" data-page="health">◷ 平台与审计</button><a class="nav preview-link" href="/methods">◈ 方法与基准</a></nav><div class="sidebar-bottom"><span class="led"></span> 夜莺 + 既有 Prometheus<br><small>单指标 / 多指标 · 夜莺告警处理</small></div></aside>
 <div class="main"><header><div><span class="breadcrumb">监控 / </span><strong id="pageName">单指标趋势预警</strong></div><div class="header-actions"><span id="connection" class="muted">等待连接</span><span class="badge" id="role">未登录</span><button id="logout" class="text-button">退出</button></div></header>
-<main><div class="title-row"><div><span class="eyebrow">GPU MACHINE LEARNING</span><h1 id="title">单指标趋势预警</h1><p id="subtitle">对照实际观测、预测参考带与异常分数。按 GPU 和指标选择已训练模型，或从历史数据训练新版本。</p></div><div class="controls" id="liveControls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">↻ 刷新</button></div></div>
+<main><div class="title-row"><div><span class="eyebrow">GPU MACHINE LEARNING</span><h1 id="title">单指标趋势预警</h1><p id="subtitle">看单张 GPU 的指标曲线，以及当前模型有没有发现趋势偏离。</p></div><div class="controls" id="liveControls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">↻ 刷新</button></div></div>
 <div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
-<div class="stats"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>正在监测的任务</span><strong id="countTasks">—</strong><small>独立版本与有效输入</small></div><div class="stat"><span>已确认 ML 异常</span><strong id="countAlerts">—</strong><small>持久保持 · 有效证据恢复</small></div><div class="stat"><span>输入未知 / 不可评估</span><strong id="countUnknown">—</strong><small>缺数不代表健康</small></div></div>
+<div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
 </div>
 <div class="replay-switch" id="replaySwitch" hidden aria-label="数据视图">
-<button type="button" id="liveMode" aria-pressed="true">实时监测与配置</button>
-<button type="button" id="replayMode" aria-pressed="false">模拟回放</button>
+<button type="button" id="liveMode" aria-pressed="true">实时监测</button>
+<button type="button" id="replayMode" aria-pressed="false">模拟样例</button>
 </div>
 <section id="page-replay" class="page" hidden>
 <gpu-replay-panel id="integratedReplay"><p class="notice">正在加载模拟回放…</p></gpu-replay-panel>
 <p class="replay-standalone"><a id="srePreviewLink" class="panel-link" href="/sre">独立打开回放 ↗</a></p>
 </section>
-<section id="page-baseline" class="page"><div class="panel"><div class="panel-heading"><div><h2>实时曲线与模型基线</h2><p class="muted">GPU/HBM温度、实际功耗、GPU利用率、显存控制器活动。每张GPU、每个指标独立训练。下方直接展示实际曲线与动态参考，可放大查看异常详情。</p></div><button id="prepareBaseline" class="primary write">准备模拟演示基线</button></div><p class="hint">模拟演示先生成明确标记的1小时正常参考数据，经独立模型平台训练，完成后手动“选择模型（已训练基线）”启用。它不是Prometheus已采集的历史，也不会填入在线曲线。实际在线观测仍来自Prometheus。</p><div class="controls"><label>演示GPU <select id="baselineEntity" aria-label="动态基线GPU"></select></label><label>指标 <select id="baselineMetric" aria-label="选择模型的指标"></select></label><button id="baselineChooseModel" class="primary write">选择模型（已训练基线）</button><button id="importRemoteModel" class="write">登记远程已有模型</button><button id="baselineTrainModel" class="write">重新学习历史基线</button><button id="createBaseline" class="write">配置首批5项（不训练）</button></div><p class="caption">两种路径：①选择模型（已训练基线）：查看设备、来源与验证结果后启用；②重新学习历史基线：选择可信历史，使用默认方法生成新版本，再查看结果启用。高低变化只代表行为偏离，不等于硬件故障。</p></div><div class="model-routes trend-routes" aria-label="单指标方法">
-<div><strong>滞后回归</strong><p>学习历史连续观测，检测预测残差和水平偏移。</p></div>
-<div><strong>滚动中位数预测</strong><p>用前 5 个连续采样点预测当前点，检查残差。</p></div>
-<div><strong>历史水平偏离</strong><p>对比训练期正常水平，输出异常分数。</p></div>
-</div><div id="baselineCards" class="gpu-grid"></div></section>
-<section id="page-scenarios" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>白盒场景与条件关系</h2><p class="muted">当前只有 DCGM 指标。无作业、吞吐、环境温度或变更信息，不推断卡坏或剩余寿命。</p></div><div class="controls"><a class="panel-link" href="#blackBoxPanel">查看黑盒模型 ↓</a><button id="newScenario" class="primary write">＋ 配置白盒场景</button></div></div><p>新场景默认仅记录证据；需管理员登记依据、负责人和处置动作后才能允许夜莺通知。生产参考历史与加速模拟实验严格分开。</p></div><div id="scenarioCards" class="gpu-grid"></div>
-<div class="panel" id="blackBoxPanel"><div class="panel-heading"><div><h2>黑盒联合检测</h2><p>从同一 GPU 的 DCGM 指标中选择输入，使用正常历史训练，在在线检测中查看偏离分数与可用的指标贡献。</p></div><button id="newJointTask" class="primary write" type="button">＋ 配置联合检测</button></div>
+<section id="page-baseline" class="page">
+<div class="panel monitoring-panel">
+  <div class="panel-heading">
+    <div><h2>查看 GPU 指标</h2><p>选择 GPU 和指标，查看最近观测、趋势状态与下一步操作。</p></div>
+    <div class="controls monitoring-inputs">
+      <label>GPU <select id="baselineEntity" aria-label="动态基线GPU"></select></label>
+      <label>指标 <select id="baselineMetric" aria-label="选择模型的指标"></select></label>
+    </div>
+  </div>
+  <div id="baselineStatus" class="monitor-focus" aria-live="off"></div>
+  <details class="monitor-tools">
+    <summary>基线管理与批量配置</summary>
+    <div class="controls">
+      <button id="baselineChooseModel" class="write">选择模型（已训练基线）</button>
+      <button id="baselineTrainModel" class="write">重新学习历史基线</button>
+      <button id="importRemoteModel" class="write">登记远程已有模型</button>
+      <button id="createBaseline" class="write">配置首批 5 项指标</button>
+      <button id="prepareBaseline" class="write">准备模拟演示基线</button>
+    </div>
+    <p class="caption">模拟演示基线使用生成的 1 小时正常参考数据。训练完成后可选择模型启用。</p>
+  </details>
+</div>
+<div id="baselineCards" class="gpu-grid"></div>
+<details class="panel">
+  <summary>单指标方法说明</summary>
+  <div class="model-routes trend-routes">
+    <div><strong>滞后回归</strong><p>学习历史连续观测，检测预测残差和水平偏移。</p></div>
+    <div><strong>滚动中位数预测</strong><p>用前 5 个连续采样点预测当前点，检查残差。</p></div>
+    <div><strong>历史水平偏离</strong><p>对比训练期正常水平，输出异常分数。</p></div>
+  </div>
+</details>
+</section>
+<section id="page-scenarios" class="page" hidden>
+<div class="panel monitoring-panel">
+  <div class="panel-heading">
+    <div><h2>已配置的关联监测</h2><p id="associationSummary">查看当前 GPU 的关联任务、输入质量和检测证据。</p></div>
+    <div class="controls monitoring-inputs">
+      <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
+      <button id="newScenario" class="write" type="button">＋ 白盒场景</button>
+      <button id="newJointTask" class="write" type="button">＋ 黑盒任务</button>
+    </div>
+  </div>
+  <div class="table-scroll"><table class="association-table">
+    <thead><tr><th>任务与设备</th><th>检测状态</th><th>当前证据</th><th>操作</th></tr></thead>
+    <tbody id="associationRows"></tbody>
+  </table></div>
+</div>
+<div class="panel"><div class="panel-heading"><div><h2>白盒场景与条件关系</h2><p class="muted">当前只有 DCGM 指标。无作业、吞吐、环境温度或变更信息，不推断卡坏或剩余寿命。</p></div><a class="panel-link" href="#blackBoxPanel">查看黑盒模型 ↓</a></div><p>新场景默认仅记录证据；需管理员登记依据、负责人和处置动作后才能允许夜莺通知。生产参考历史与加速模拟实验严格分开。</p></div><div id="scenarioCards" class="gpu-grid"></div>
+<div class="panel" id="blackBoxPanel"><div class="panel-heading"><div><h2>黑盒联合检测</h2><p>从同一 GPU 的 DCGM 指标中选择输入，使用正常历史训练，在在线检测中查看偏离分数与可用的指标贡献。</p></div></div>
 <div class="model-routes">
 <div><strong>逐点 PCA</strong><p>学习同一时点的指标组合与重构参考。</p></div>
 <div><strong>窗口 PCA</strong><p>对连续 5 点的联合行为评分，按指标展示重构偏离。</p></div>

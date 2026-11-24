@@ -34,3 +34,37 @@
 .replay-switch button:hover{color:#244678}
 #replayNav small{margin-left:5px;color:#9ce3d5;font-size:10px}
 .replay-standalone{margin:8px 0;text-align:right;font-size:11px}
+
+.monitoring-panel .panel-heading{align-items:flex-start;flex-wrap:wrap;margin-bottom:13px}
+.monitoring-inputs label{display:flex;gap:8px;align-items:center;color:var(--muted)}
+.monitoring-inputs select{max-width:min(39vw,280px)}
+.monitor-focus{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding:12px 14px;background:#f7faff;border:1px solid #dce8f8;border-radius:8px}
+.monitor-context{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.monitor-context strong{font-size:16px}
+.monitor-focus p{font-size:12px;margin-top:4px}
+.monitor-tools{margin-top:10px}
+.monitor-tools .controls,.panel details .controls{margin-top:9px}
+.monitor-tools summary,.page>details>summary{cursor:pointer;color:#375374;font-weight:600}
+.monitor-tools p{margin-top:6px}
+.trend-routes{margin-top:10px;margin-bottom:0}
+#baselineCards>.selected-metric{grid-column:1/-1;order:-1;cursor:default;border-color:#b9cfee}
+#baselineCards>.selected-metric .baseline-preview{height:255px}
+#baselineCards>.selected-metric .controls{margin:10px 0}
+.association-table td{padding:10px}
+.association-table th:last-child{min-width:160px}
+.association-table .controls{flex-wrap:wrap}
+.association-table .controls button{min-height:28px}
+.association-table .row-detail{color:#536780}
+.metric-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px;margin-top:7px}
+.metric-options label{display:flex;align-items:center;gap:6px;margin:0}
+.metric-options input{width:auto;margin:0}
+.metric-fields{border:1px solid var(--line);border-radius:7px;margin:12px 0;padding:6px 10px 10px}
+.metric-fields legend{color:#536780}
+@media(max-width:650px){
+ .monitoring-inputs select{max-width:52vw}
+ #baselineCards>.selected-metric .baseline-preview{height:205px}
+}
+
+#liveScope .stats{margin-bottom:16px}
+#liveScope .stat{padding:10px 14px}
+#liveScope .stat strong{line-height:1.3;font-size:24px}
