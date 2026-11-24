@@ -4,16 +4,12 @@ const monitorPrefs={
  baseline:{source:'prometheus',mode:'online',span:'900',scenario:'drift'},
  scenarios:{source:'prometheus',mode:'online',span:'900',scenario:'relation'},
 };
-const monitorOptionKeys=new WeakMap();
 const inputChartGrids=new WeakMap();
 let monitorShown=null;
+let monitorEditingSection=null;
 
 function monitorOptions(select,rows){
- const key=JSON.stringify(rows);
- if(monitorOptionKeys.get(select)!==key){
-  options(select,rows,row=>row[0],row=>row[1]);
-  monitorOptionKeys.set(select,key);
- }
+ options(select,rows,row=>row[0],row=>row[1]);
 }
 
 function selectMonitorSample(section){
@@ -36,16 +32,20 @@ function monitorContext(section,pref){
  const selected=$('associationEntity').value;
  const ids=new Set(filteredEntities().map(entity=>entity.id));
  const tasks=data.tasks.filter(task=>!task.deleted&&ids.has(task.entity)&&(!selected||task.entity===selected)
-  &&(task.scenario_id||data.templates[task.template].kind==='multivariate'));
+  &&isAssociationTask(task));
  monitorOptions($('monitorTask'),tasks.map(task=>{
   const spec=data.templates[task.template];
   const device=data.entities.find(row=>row.id===task.entity);
-  const inputs=spec.targets.map(key=>metricNames[key]||key).join('、');
-  return [task.id,device.uuid+' · '+(task.scenario_id?spec.name:inputs)];
+  const model=data.models.find(row=>row.id===task.active_model);
+  const inputs=spec.targets.slice(0,2).map(key=>metricNames[key]||key).join('、');
+  const summary=task.scenario_id?spec.name:
+   spec.required.length+' 项 · '+inputs+(spec.targets.length>2?'等':'')+' · '+(model?algorithmLabel(model.algorithm):'未启用模型');
+  return [task.id,selected?summary:summary+' · '+(device.node||device.uuid)];
  }));
  const task=tasks.find(item=>item.id===pref.task)||tasks.find(item=>item.active_model&&item.enabled)||tasks[0];
  if(!task){monitorOptions($('monitorMetric'),[]);return {};}
  $('monitorTask').value=task.id;
+ $('monitorTask').title=taskDisplayName(task);
  const spec=data.templates[task.template];
  const targets=Array.from(new Set([...spec.targets,...spec.required]));
  const selectedMetric=pref.task===task.id&&targets.includes(pref.metric)?pref.metric:'all';
@@ -67,10 +67,20 @@ function renderMonitorView(force=false){
  const {entity,task,metric,allInputs,inputCount}=monitorContext(page,pref);
  const device=data.entities.find(row=>row.id===entity);
  const isSample=pref.source==='sample',mode=isSample?'replay':pref.mode;
- monitorOptions($('monitorSource'),[['prometheus','Prometheus 采集'],...(data.simulation?[['sample','内置样例']]:[])]);
+ const canChooseDates=!isSample&&mode==='replay';
+ const range=canChooseDates?pref.range:null;
+ monitorOptions($('monitorSource'),[['prometheus','采集数据'],...(data.simulation?[['sample','内置样例']]:[])]);
  $('monitorSource').value=pref.source;
+ $('monitorSource').closest?.('label')?.toggleAttribute?.('hidden',!data.simulation);
  $('monitorMode').value=mode;
  $('monitorMode').disabled=isSample;
+ $('monitorModeControl').hidden=isSample;
+ $('monitorSpanControl').hidden=Boolean(range);
+ $('monitorUseRecent').hidden=!range;
+ $('monitorDatesToggle').hidden=!canChooseDates;
+ $('monitorDatesToggle').textContent=range?'更改时段':'指定时段';
+ $('monitorDates').hidden=!canChooseDates||monitorEditingSection!==page;
+ $('monitorDatesToggle').setAttribute?.('aria-expanded',String(!$('monitorDates').hidden));
  $('monitorSpan').value=pref.span;
  $('monitorScenario').value=pref.scenario;
  $('monitorScenarioControl').hidden=!isSample;
@@ -78,14 +88,16 @@ function renderMonitorView(force=false){
  $('monitorMetricControl').hidden=page!=='scenarios';
  $('monitorRefresh').disabled=!device;
  $('monitorViewIdentity').textContent=device?deviceLabel(device)+' · '+(allInputs?'全部 '+inputCount+' 项输入':(metricNames[metric]||metric)):'';
+ if(page==='scenarios')renderAssociationStatus(task,device,allInputs?'all':metric);
  if(!device||!metric){
   monitorShown=null;
   clearMonitorView();
-  $('monitorViewStatus').textContent=page==='scenarios'?'配置或选择一个关联任务后，即可查看曲线。':'请选择 GPU 和指标。';
+  $('monitorViewStatus').textContent=page==='scenarios'?'选择有任务的 GPU，或新建关联任务。':'请选择 GPU 和指标。';
   return;
  }
  const query=new URLSearchParams({entity,metric,task:task?.id||'',source:pref.source,mode,span:pref.span,scenario:pref.scenario});
  if(page==='scenarios')query.set('include_inputs','true');
+ if(range){query.set('start',range.start);query.set('end',range.end);}
  const key=page+'|'+String(allInputs)+'|'+query.toString()+'|'+(task?.active_model||'')+'|'+(task?.revision||'');
  if(monitorShown?.key!==key){
   monitorShown={key,section:page,allInputs,busy:false,result:null,checked:0};
@@ -226,14 +238,13 @@ function paintMonitorView(){
  $('monitorInputCharts').hidden=!view.allInputs;
  $('monitorScoreBox').hidden=!scored.length;
  const range={start:result.start,end:result.end};
- const source=result.source==='sample'?'内置样例':'Prometheus 采集';
- const execution=result.mode==='replay'?'离线回放 · 结果留在当前视图':'在线监测';
- $('monitorViewStatus').textContent=(view.error?'更新失败，保留上次结果 · '+view.error+' · ':'')+source+' · '+execution+' · '+dateTime(range.start)+' — '+dateTime(range.end);
+ const origin=result.source==='sample'?'内置样例 · 离线回放':result.mode==='replay'?'采集数据 · 历史回放':'采集数据 · 实时';
+ $('monitorViewStatus').textContent=(view.error?'更新失败，保留上次结果 · '+view.error+' · ':'')+origin+' · '+dateTime(range.start)+' — '+dateTime(range.end);
  const traceLegend=[];
  if(valueVisible)traceLegend.push(['blue','实际观测']);
  if(reference)traceLegend.push(['gray','模型参考']);
  if(rows.some(row=>keys.some(metric=>row.bounds?.[metric])))traceLegend.push(['band','参考带']);
- if(scored.length)traceLegend.push(['red',view.section==='scenarios'?'联合异常点 / 门槛':'异常点 / 门槛']);
+ if(scored.length)traceLegend.push(['red',view.section==='scenarios'?'联合异常点 / 阈值':'异常点 / 阈值']);
  if(markers.length)traceLegend.push(['is-episode','持续确认区间']);
  if(quality.length)traceLegend.push(['is-quality','无有效评分的时段']);
  $('monitorViewLegend').replaceChildren(...traceLegend.map(([style,label])=>{
@@ -248,7 +259,7 @@ function paintMonitorView(){
  if(state.active)evidence.push(badge(state.quality==='valid'?'当前已确认异常':'已有异常保持','red'));
  else if(state.quality==='valid'&&state.pending)evidence.push(badge('待确认 '+state.pending+' / '+result.confirmation+' 点'));
  if(state.quality==='valid'&&Number.isFinite(state.score)){
-  evidence.push(badge('最近分数 '+fmt(state.score,2)+' / 门槛 '+fmt(state.threshold,2)));
+  evidence.push(badge('最近分数 '+fmt(state.score,2)+' / 阈值 '+fmt(state.threshold,2)));
   const contributors=Object.entries(state.contributions||{}).sort((a,b)=>b[1]-a[1]).slice(0,2);
   if(contributors.length)evidence.push(badge('主要贡献 '+contributors.map(([key])=>metricNames[key]||key).join('、')));
  }
@@ -274,11 +285,46 @@ function bindMonitorView(){
   $(id).onchange=event=>{
    const pref=monitorPrefs[page];
    if(!pref)return;
+   if(key==='task'&&pref.task!==event.target.value)pref.metric='all';
+   if(key==='mode'||key==='source')monitorEditingSection=null;
    pref[key]=event.target.value;
    if(key==='span')$('window').value=pref.span;
    renderMonitorView();
+   roleAccess();
   };
  }
  $('monitorRefresh').onclick=()=>renderMonitorView(true);
+ $('monitorDatesToggle').onclick=()=>{
+  const pref=monitorPrefs[page];
+  if(!pref)return;
+  monitorEditingSection=monitorEditingSection===page?null:page;
+  if(monitorEditingSection){
+   const end=pref.range?.end||Math.floor(Date.now()/1000)-4;
+   $('monitorFrom').value=localDateTimeInput(pref.range?.start||end-Number(pref.span));
+   $('monitorTo').value=localDateTimeInput(end);
+   $('monitorDateError').textContent='';
+  }
+  renderMonitorView();
+  if(monitorEditingSection)$('monitorFrom').focus?.();
+ };
+ $('monitorDates').onsubmit=event=>{
+  event.preventDefault();
+  const pref=monitorPrefs[page];
+  const start=new Date($('monitorFrom').value).getTime()/1000,end=new Date($('monitorTo').value).getTime()/1000;
+  const now=Date.now()/1000;
+  if(!(now-7*86400<=start&&start<end&&end<=now&&end-start<=3*3600)){
+   $('monitorDateError').textContent='请选择近 7 天内、最长 3 小时的时段。';
+   return;
+  }
+  pref.range={start,end};
+  monitorEditingSection=null;
+  renderMonitorView();
+  $('monitorDatesToggle').focus?.();
+ };
+ $('monitorUseRecent').onclick=()=>{
+  monitorPrefs[page].range=null;
+  monitorEditingSection=null;
+  renderMonitorView();
+ };
  window.addEventListener('resize',()=>{if(monitorPrefs[page])paintMonitorView();});
 }

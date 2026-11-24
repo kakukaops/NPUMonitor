@@ -1,11 +1,17 @@
 'use strict';
 
-const incidentPhaseLabels={confirmed:'已确认异常',pending:'待持续确认',recovered:'已恢复'};
-const incidentFamilyLabels={univariate:'单指标趋势',multivariate:'黑盒关联',scenario:'白盒关联',legacy:'历史模型'};
+const incidentPhaseLabels={confirmed:'已确认',pending:'待确认',recovered:'已恢复'};
+const incidentFamilyLabels={univariate:'单指标趋势',multivariate:'黑盒模型',scenario:'白盒场景',legacy:'历史模型'};
 let incidentExample=null,incidentExampleError='',incidentExampleLoading=false,incidentPanel=null;
+let incidentCurrentFilter='all';
 let coverageFilter='';
 const coverageButtons=new Map();
 const recoveredQueues=new Map();
+
+function switchIncidentQueue(archived){
+ $('incidentFilter').value=archived?'history':incidentCurrentFilter;
+ choosePage('incidents');
+}
 
 function incidentHistory(cluster){
  let entry=recoveredQueues.get(cluster);
@@ -60,7 +66,7 @@ function incidentQuality(member){
  if(member.quality==='valid'){
   return member.phase==='recovered'
    ?'最近采样 '+tm(member.last_sample)
-   :'分数 '+fmt(member.score,2)+' / 门槛 '+fmt(member.threshold,2)+' · '+tm(member.last_sample);
+   :'分数 '+fmt(member.score,2)+' / 阈值 '+fmt(member.threshold,2)+' · '+tm(member.last_sample);
  }
  const reason=member.quality==='model_changed'?'模型版本已切换':(statusNames[member.quality]||member.quality);
  return reason+(member.last_sample?' · 上次有效采样 '+tm(member.last_sample):'');
@@ -90,7 +96,7 @@ function incidentSeriesRange(member,now){
 }
 
 function incidentFeedback(card,getRange,example){
- const fold=el('details',undefined,'incident-review'),form=el('form'),kindLabel=el('label','复核结论'),noteLabel=el('label','备注');
+ const fold=el('details',undefined,'incident-review'),form=el('form'),kindLabel=el('label','结论'),noteLabel=el('label','备注');
  const kind=el('select'),note=el('textarea'),save=el('button',example?'记录示例复核':'保存复核','primary');
  options(kind,Array.from($('feedbackKind').options),option=>option.value,option=>option.textContent);
  kind.value='unconfirmed';
@@ -116,7 +122,7 @@ function incidentFeedback(card,getRange,example){
  };
  updateRange();
  form.append(scope,kindLabel,noteLabel,save,message);
- fold.append(el('summary','填写复核'),past,form);
+ fold.append(el('summary','复核记录'),past,form);
  form.onsubmit=async event=>{
   event.preventDefault();
   if(save.disabled||(!example&&data.role==='viewer'))return;
@@ -170,15 +176,15 @@ function buildIncidentCharts(card,group,queue,example){
  metricBox.append(valueChart,tooltip);
  const scoreBox=el('div',undefined,'chart incident-score'),scoreChart=el('canvas');
  scoreChart.setAttribute('role','img');
- scoreChart.setAttribute('aria-label','异常分数和门槛');
+ scoreChart.setAttribute('aria-label','异常分数和阈值');
  scoreBox.append(scoreChart);
  const message=el('p','正在读取曲线…','caption'),notification=el('p',undefined,'incident-notification');
- body.append(bar,rangeLabel,legend,inputCharts,metricBox,scoreBox,message,notification);
+ body.append(bar,rangeLabel,legend,metricBox,scoreBox,inputCharts,message,notification);
  const range=incidentSeriesRange(card.member,queue.at);
  let result=null,plottedRange=range,request=0,loaded=false,reading=false;
  const review=incidentFeedback(card,()=>plottedRange,example);
  body.append(review.fold);
- const runtime=el('button','运行参数','write incident-runtime');
+ const runtime=el('button','确认与阈值','write incident-runtime');
  runtime.type='button';
  runtime.onclick=()=>{
   const task=data.tasks.find(row=>row.id===card.member.id);
@@ -231,7 +237,7 @@ function buildIncidentCharts(card,group,queue,example){
   const shown=all?inputs:[key];
   if(points.some(point=>shown.some(field=>Number.isFinite(point.expected?.[field]))))lines.push(['gray','模型参考']);
   if(points.some(point=>shown.some(field=>point.bounds?.[field])))lines.push(['band','参考带']);
-  if(hasScore)lines.push(['red',multi?'联合异常点 / 门槛':'异常点 / 门槛']);
+  if(hasScore)lines.push(['red',multi?'联合异常点 / 阈值':'异常点 / 阈值']);
   if(episodes.length)lines.push(['is-episode','持续确认区间']);
   if(quality.length)lines.push(['is-quality','输入缺失或不可评分']);
   const marker=card.member.start;
@@ -326,7 +332,7 @@ function renderIncidentMember(member,group,queue,example,expand){
  archived.hidden=true;
  const fold=el('details',undefined,'incident-fold');
  heading.append(title,phase);
- fold.append(el('summary','曲线与复核'));
+ fold.append(el('summary','查看曲线与复核'));
  article.append(heading,fields,context,archived,fold);
  const card={member,at:queue.at,article,archived,fold,charts:null};
  fold.ontoggle=()=>{
@@ -343,7 +349,8 @@ function renderIncidentMember(member,group,queue,example,expand){
   card.member=row;
   card.at=at;
   archived.hidden=true;
-  title.textContent=(incidentFamilyLabels[row.family]||'检测任务')+' · '+row.name;
+  const task=data.tasks.find(item=>item.id===row.id);
+  title.textContent=(incidentFamilyLabels[row.family]||'检测任务')+' · '+(task?taskDisplayName(task):row.name);
   phase.textContent=incidentPhaseLabels[row.phase];
   phase.className='badge '+(row.phase==='confirmed'?'red':row.phase==='recovered'?'green':'');
   const progress=row.phase==='pending'?row.pending+' / '+row.confirmation+' 个异常点'
@@ -435,6 +442,7 @@ function renderDeviceCoverage(devices,cluster){
   else if(device.scored<device.enabled)groups.unavailable.push(device);
   else if(!device.signals)groups.normal.push(device);
  }
+ $('coverageSummary').textContent=groups.uncovered.length+' 张未启用 · '+groups.unavailable.length+' 张存在评分缺口';
  for(const [key,label] of Object.entries({
   normal:'有评分且正常',signals:'有检测线索',uncovered:'未启用检测',unavailable:'有任务不可评分',
  })){
@@ -475,12 +483,22 @@ function renderIncidentQueue(selectedId){
  if(!data||page!=='incidents'||replayMode)return;
  const example=incidentExampleActive,online=example?incidentExample:data.incident_queue;
  const source=$('incidentSource'),list=$('incidentList'),detail=$('incidentDetail');
+ const layout=$('incidentLayout'),filterInput=$('incidentFilter');
+ if(example&&filterInput.value==='history')filterInput.value='all';
+ const filter=filterInput.value||'all',archived=filter==='history';
+ $('incidentViews').hidden=example;
+ $('incidentCurrent').setAttribute('aria-pressed',String(!archived));
+ $('incidentArchive').setAttribute('aria-pressed',String(archived));
+ $('incidentSummary').hidden=archived;
+ filterInput.hidden=archived;
  if(!online){
   renderDeviceCoverage(null);
   source.textContent=incidentExampleError?'样例读取失败 · '+incidentExampleError:'正在读取异常队列…';
   $('incidentCount').textContent='';
   list.replaceChildren(...(incidentExampleError?[btn('重新读取',loadIncidentExample,'')]:[]));
   incidentPanel=null;
+  detail.hidden=true;
+  layout.classList.toggle('no-selection',true);
   detail.replaceChildren(el('p','等待队列数据'));
   for(const key of ['Confirmed','Pending','Held','Recovered'])$('incident'+key).textContent='—';
   return;
@@ -491,19 +509,17 @@ function renderIncidentQueue(selectedId){
  const coverage=cluster?(Object.hasOwn(online.coverage,cluster)?[online.coverage[cluster]]:[]):Object.values(online.coverage);
  const enabled=coverage.reduce((total,item)=>total+item.enabled,0);
  const scored=coverage.reduce((total,item)=>total+item.scored,0);
- source.textContent=(example?'模拟值班样例 · 含示例夜莺记录':'在线检测 · 数据来源见设备标注')
-  +' · '+scored+' / '+enabled+' 项已启用任务当前有有效评分'
-  +' · '+(online.nightingale_connected?'夜莺最近同步 '+tm(online.nightingale_checked_at):'夜莺尚无新鲜同步记录');
+ source.textContent=(example?'样例数据':'在线检测')
+  +' · '+scored+' / '+enabled+' 项任务有评分'
+  +' · '+(online.nightingale_connected?'夜莺已同步 '+tm(online.nightingale_checked_at):'夜莺未同步');
  $('incidentConfirmed').textContent=all.filter(group=>group.phase==='confirmed').length;
  $('incidentPending').textContent=all.filter(group=>group.phase==='pending').length;
  $('incidentHeld').textContent=all.filter(group=>group.held>0).length;
  $('incidentRecovered').textContent=all.filter(group=>group.phase==='recovered').length;
- const filterInput=$('incidentFilter');
- if(example&&filterInput.value==='history')filterInput.value='all';
- const filter=filterInput.value||'all';
- const archive=filter==='history'?incidentHistory(cluster):null;
+ const archive=archived?incidentHistory(cluster):null;
  const queue=archive?.queue||online;
- const groups=archive?(archive.queue?.groups||[]):all.filter(group=>filter==='all'||(filter==='held'?group.held>0:filter===group.phase));
+ const groups=archive?(archive.queue?.groups||[]):all.filter(group=>filter==='all'
+  ?example||group.phase!=='recovered':filter==='held'?group.held>0:filter===group.phase);
  const scope=(example?'example':'online')+'/'+cluster+'/'+filter;
  const previous=incidentPanel?.scope===scope?incidentPanel.group:null;
  const selection=groups.find(group=>group.id===selectedId)
@@ -511,7 +527,7 @@ function renderIncidentQueue(selectedId){
   ||(previous&&groups.find(group=>sameIncident(group,previous)))
   ||previous||(example&&groups.find(group=>group.members.length>1))||groups[0];
  const matched=groups.includes(selection);
- $('incidentCount').textContent=groups.length+' 条设备时间组'+(queue.truncated?' · 仅显示最新 200 条恢复记录':'');
+ $('incidentCount').textContent=(archive?'近 7 天 · ':'')+groups.length+' 条记录'+(queue.truncated?' · 显示最新 200 条':'');
  const focused=document.activeElement?.dataset?.group;
  list.replaceChildren(...(groups.length?groups.map(group=>{
   const button=el('button',undefined,'incident-row');
@@ -525,9 +541,13 @@ function renderIncidentQueue(selectedId){
   button.onclick=()=>{renderIncidentQueue(group.id);roleAccess();};
   return button;
  }):[el('p',archive?(archive.error?'归档读取失败 · '+archive.error:
-  archive.busy?'正在读取恢复归档…':'本版本启用归档以来暂无符合条件的恢复记录。'):
-  !enabled?'当前范围暂无已启用模型的检测任务。可前往单指标趋势或多指标关联。':'当前筛选范围没有相应状态的线索。','empty')]));
+  archive.busy?'正在读取归档…':'近 7 天暂无已归档的恢复记录。'):
+  !enabled?'当前范围还没有启用检测。':filter==='all'?
+   (scored<enabled?'暂无异常记录，部分任务暂不可评分。':'当前没有待处理异常。'):
+   '当前筛选下没有匹配记录。','empty')]));
  if(focused)Array.from(list.children).find(button=>button.dataset.group===focused)?.focus({preventScroll:true});
+ detail.hidden=!selection;
+ layout.classList.toggle('no-selection',!selection);
  if(!selection){
   incidentPanel=null;
   detail.replaceChildren(el('h2','设备证据'),el('p',enabled?'选择队列中的一条线索查看证据。':'启用任务的模型后，检测结果会出现在这里。'));

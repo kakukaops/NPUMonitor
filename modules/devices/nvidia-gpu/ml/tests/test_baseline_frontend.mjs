@@ -54,14 +54,14 @@ assert.equal(nodes.get('baselineEntity').value,entity,'Default must prefer a GPU
 run('data.entities.shift()');
 
 run('openModelChoice(data.tasks[0])');assert.equal(nodes.get('chooseModel').children.length,1);
-assert.equal(nodes.get('dialogTitle').textContent,'选择模型（已训练基线）');
+assert.equal(nodes.get('dialogTitle').textContent,'切换模型');
 assert.ok(nodes.get('baselineChooseModel').onclick);assert.ok(nodes.get('baselineTrainModel').onclick);
 run('$("baselineMetric").value="gpu_temp";$("baselineChooseModel").onclick()');
-assert.equal(nodes.get('dialogTitle').textContent,'选择模型（已训练基线）');
+assert.equal(nodes.get('dialogTitle').textContent,'切换模型');
 for(const card of nodes.get('baselineCards').children){
  const controls=card.children.find(n=>n.className==='controls');
  const chart=card.children.find(n=>n.className==='chart baseline-preview');
- assert.ok(controls.children.some(n=>n.textContent==='选择模型（已训练基线）'));
+ assert.ok(controls.children.some(n=>n.textContent==='切换模型'));
  assert.ok(card.children.indexOf(controls)<card.children.indexOf(chart),'Model choice must precede chart');
 }
 
@@ -83,7 +83,7 @@ run('data.models.reverse();data.models.pop()');
 
 await run('dialogSubmit()');assert.equal(JSON.parse(calls.at(-1).body).model,'model-0');
 run('openTraining(data.tasks[0])');
-assert.equal(nodes.get('dialogTitle').textContent,'重新学习历史基线 · GPU 温度');
+assert.equal(nodes.get('dialogTitle').textContent,'训练模型 · GPU 温度');
 const findParent=(root,node)=>root.children.find(c=>c.children.includes(node))||root.children.map(c=>findParent(c,node)).find(Boolean);
 assert.ok(nodes.get('dialogBody').children[0].children.includes(nodes.get('trainAlgorithm')));
 const advancedParameters=findParent(nodes.get('dialogBody'),findParent(nodes.get('dialogBody'),nodes.get('trainLag')));
@@ -120,8 +120,8 @@ run('$("remoteImportService").value="customer";$("remoteModelRef").value="custom
 await run('dialogSubmit()');body=JSON.parse(calls.at(-1).body);
 assert.equal(body.service_id,'customer');assert.equal(body.model_ref,'customer-m1');assert.equal(body.deployment_ref,'customer-d1');
 assert.ok(calls.at(-1).url.endsWith('/remote-models/register'));
-run('openModelChoice(data.tasks[0])');assert.ok(nodes.get('dialogBody').children.some(n=>n.textContent==='登记远程已有模型（无需重新训练）'));
+run('openModelChoice(data.tasks[0])');assert.ok(nodes.get('dialogBody').children.some(n=>n.textContent==='导入远程模型（无需重新训练）'));
 run('data.tasks=[];renderBaselines()');
-for(const card of nodes.get('baselineCards').children)assert.ok(card.children.some(n=>n.className==='controls'&&n.children.some(b=>b.textContent==='选择模型（已训练基线）')));
+for(const card of nodes.get('baselineCards').children)assert.ok(card.children.some(n=>n.className==='controls'&&n.children.some(b=>b.textContent==='切换模型')));
 run('$("baselineChooseModel").onclick()');assert.equal(nodes.get('dialogTitle').textContent,'当前指标尚未配置');
 console.log('PASS: fixed model entry, above-chart card controls, unconfigured empty state; readable baseline names, version ordering, source labels, training windows, visible method choice with collapsed tuning parameters, empty state, five drawn preview curves and trained-GPU default; 5 metric cards; model filtering/publish; history source, window/alpha/calibration; runtime revision; decision evidence. Browser visual QA not run.');

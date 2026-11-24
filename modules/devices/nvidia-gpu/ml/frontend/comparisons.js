@@ -16,9 +16,9 @@ function openComparison(task){
   label.append(input,el('span',name));grid.append(label);
   return input;
  });
- choices.append(el('legend','参与比较的方法'),grid);
+ choices.append(el('legend','参与对比的方法'),grid);
  const simulated=data.simulation&&task.scope==='simulated'&&PRIMARY.some(metric=>task.template==='uni_'+metric);
- openDialog('比较方法 · '+(spec.kind==='univariate'?(metricNames[spec.targets[0]]||task.name):task.name),[
+ openDialog('对比方法 · '+(spec.kind==='univariate'?(metricNames[spec.targets[0]]||task.name):task.name),[
   el('p','使用当前任务的同一份数据，按时间分开训练、校准、候选比较和最终测试。'),
   choices,
   field('历史窗口','compareWindow','select',comparisonWindows),
@@ -150,10 +150,10 @@ function showBaselineComparison(view,report){
  const observations=el('div',undefined,'chart comparison-observation'),valueCanvas=el('canvas');
  valueCanvas.setAttribute('aria-label','同一段实际观测与各方法预测曲线');
  observations.append(valueCanvas);box.append(legend,observations);
- box.append(el('p','下方共用时间轴和分数刻度。分数除以各自门槛，红色虚线为 1，红点为越界采样。','caption'));
+ box.append(el('p','下方共用时间轴和分数刻度。分数除以各自阈值，红色虚线为 1，红点为越界采样。','caption'));
  const plots=series.map(({label,points})=>{
   const chart=el('div',undefined,'chart comparison-score'),canvas=el('canvas');
-  canvas.setAttribute('aria-label',label+'分数相对于门槛');
+  canvas.setAttribute('aria-label',label+'分数相对于阈值');
   chart.append(canvas);box.append(el('strong',label),chart);
   return {canvas,points};
  });
