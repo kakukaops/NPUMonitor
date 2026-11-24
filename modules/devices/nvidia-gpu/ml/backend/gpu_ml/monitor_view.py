@@ -107,21 +107,30 @@ def recorded_episodes(points):
     return episodes
 
 
-def association_snapshot(points, episodes):
+def association_snapshot(points, episodes, online_state=None):
     """Explain one historical decision without inventing per-feature attribution."""
     scored = [point for point in points if math.isfinite(point.get('score', math.nan))
               and math.isfinite(point.get('threshold', math.nan)) and point['threshold'] > 0]
     if not scored:
         return None
+    if online_state is not None:
+        point = scored[-1]
+        current = (online_state.get('quality') == 'valid' and point['t'] == online_state.get('last_source')
+                   and point.get('model') == online_state.get('model_id'))
+        selection = 'current' if current else 'last_valid'
+        return evidence_snapshot(point, selection)
     event = episodes[-1] if episodes else None
     event_points = [point for point in scored if event and point.get('anomaly')
                     and point['t'] >= event['start'] and (event['end'] is None or point['t'] < event['end'])]
     candidates = event_points or [point for point in scored if point.get('anomaly')]
     point = max(candidates, key=lambda row: row['score'] / row['threshold']) if candidates else scored[-1]
+    return evidence_snapshot(point, 'confirmed_peak' if event_points else 'candidate_peak' if candidates else 'latest')
+
+
+def evidence_snapshot(point, selection):
     keys = ('t', 'model', 'score', 'threshold', 'values', 'expected', 'contributions',
             'joint_distance_score', 'evidence', 'reference_kind')
-    return {**{key: point[key] for key in keys if key in point},
-            'selection': 'confirmed_peak' if event_points else 'candidate_peak' if candidates else 'latest'}
+    return {**{key: point[key] for key in keys if key in point}, 'selection': selection}
 
 
 def summarize_confirmations(replay, episodes, labels):
@@ -228,7 +237,7 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
         frames = points
     intervals = quality_intervals(frames, step, end)
     points = [point for point in points if start <= point['t'] <= end]
-    evidence_snapshot = association_snapshot(points, episodes) if include_inputs else None
+    snapshot = association_snapshot(points, episodes, state if mode == 'online' else None) if include_inputs else None
     keys = ('t', 'values', 'expected', 'bounds', 'score', 'threshold', 'anomaly', 'active',
             'quality', 'cadence_seconds', 'model', 'pipeline_id', 'decision_config_revision',
             'reference_kind', 'effective_task_factor', 'confirmation_samples', 'recovery_samples')
@@ -253,7 +262,7 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
         'points': points, 'observations': observations[metric], 'input_observations': observations if include_inputs else {},
         'observation_error': observation_error,
         'state': state, 'episodes': episodes, 'quality_intervals': intervals, 'versions': versions,
-        'association_evidence': evidence_snapshot,
+        'association_evidence': snapshot,
         'recorded_decisions': list(decisions.values()) if mode == 'recorded' else [],
     }
 

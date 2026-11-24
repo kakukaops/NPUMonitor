@@ -17,8 +17,12 @@ function selectMonitorSample(section){
 }
 
 function selectAssociationMonitor(task){
- chooseAssociationView(associationFamily(task),task);
- $('monitorView').scrollIntoView({block:'nearest'});
+ const entity=data.entities.find(row=>row.id===task.entity);
+ if($('cluster').value&&entity?.cluster!==$('cluster').value)$('cluster').value='';
+ if($('associationEntity').value&&$('associationEntity').value!==task.entity)$('associationEntity').value='';
+ if(page!=='scenarios')monitorPrefs.scenarios.source='prometheus';
+ chooseAssociationView(matchesAssociationKind(task)?associationView:associationFamily(task),task);
+ $('associationStatus').scrollIntoView({block:'start'});
 }
 
 function monitorContext(section,pref){
@@ -27,23 +31,9 @@ function monitorContext(section,pref){
   const task=data.tasks.find(row=>!row.deleted&&row.entity===entity&&row.template==='uni_'+metric);
   return {entity,task,metric};
  }
- const selected=$('associationEntity').value;
- const ids=new Set(filteredEntities().map(entity=>entity.id));
- const tasks=data.tasks.filter(task=>!task.deleted&&ids.has(task.entity)&&(!selected||task.entity===selected)
-  &&isAssociationTask(task)&&associationFamily(task)===associationView);
- monitorOptions($('monitorTask'),tasks.map(task=>{
-  const spec=data.templates[task.template];
-  const device=data.entities.find(row=>row.id===task.entity);
-  const model=data.models.find(row=>row.id===task.active_model);
-  const inputs=spec.targets.slice(0,2).map(key=>metricNames[key]||key).join('、');
-  const summary=task.scenario_id?spec.name:
-   spec.required.length+' 项 · '+inputs+(spec.targets.length>2?'等':'')+' · '+(model?algorithmLabel(model.algorithm):'未启用模型');
-  return [task.id,selected?summary:summary+' · '+(device.node||device.uuid)];
- }));
- const task=tasks.find(item=>item.id===pref.task)||tasks.find(item=>item.active_model&&item.enabled)||tasks[0];
+ const tasks=associationTasks(filteredEntities());
+ const task=tasks.find(item=>item.id===pref.task)||tasks[0];
  if(!task){monitorOptions($('monitorMetric'),[]);return {};}
- $('monitorTask').value=task.id;
- $('monitorTask').title=taskDisplayName(task);
  const spec=data.templates[task.template];
  const targets=Array.from(new Set([...spec.targets,...spec.required]));
  const selectedMetric=pref.task===task.id&&targets.includes(pref.metric)?pref.metric:'all';
@@ -57,7 +47,7 @@ function monitorContext(section,pref){
 
 function renderMonitorView(force=false){
  const pref=monitorPrefs[page];
- if(!data||!pref||replayMode||(page==='scenarios'&&associationView==='compare'))return;
+ if(!data||!pref||replayMode)return;
  if(!data.simulation)pref.source='prometheus';
  const slot=$(page==='baseline'?'baselineMonitorSlot':'associationMonitorSlot');
  const panel=$('monitorView');
@@ -69,7 +59,7 @@ function renderMonitorView(force=false){
  const range=canChooseDates?pref.range:null;
  monitorOptions($('monitorSource'),[['prometheus','采集数据'],...(data.simulation?[['sample','内置样例']]:[])]);
  $('monitorSource').value=pref.source;
- $('monitorSource').closest?.('label')?.toggleAttribute?.('hidden',!data.simulation);
+ $('monitorSource').closest?.('label')?.toggleAttribute?.('hidden',!data.simulation||(page==='scenarios'&&!isSample));
  $('monitorMode').value=mode;
  $('monitorMode').disabled=isSample;
  $('monitorModeControl').hidden=isSample;
@@ -82,11 +72,11 @@ function renderMonitorView(force=false){
  $('monitorSpan').value=pref.span;
  $('monitorScenario').value=pref.scenario;
  $('monitorScenarioControl').hidden=!isSample;
- $('monitorTaskControl').hidden=page!=='scenarios';
  $('monitorMetricControl').hidden=page!=='scenarios';
  $('monitorRefresh').disabled=!device;
  $('monitorViewIdentity').textContent=device?deviceLabel(device)+' · '+(allInputs?'全部 '+inputCount+' 项输入':(metricNames[metric]||metric)):'';
  if(page==='scenarios')renderAssociationStatus(task,device,allInputs?'all':metric);
+ panel.hidden=page==='scenarios'&&(!device||!metric);
  if(!device||!metric){
   monitorShown=null;
   clearMonitorView();
@@ -223,7 +213,7 @@ function monitorVersionSummary(result){
 
 function paintMonitorView(){
  const view=monitorShown;
- if(!view||view.section!==page||replayMode||(page==='scenarios'&&associationView==='compare'))return;
+ if(!view||view.section!==page||replayMode)return;
  if(!view.result){
   if(view.error)$('monitorViewStatus').textContent='曲线读取失败 · '+view.error;
   return;
@@ -262,7 +252,8 @@ function paintMonitorView(){
  if(state.quality==='valid'&&Number.isFinite(state.score)){
   evidence.push(badge('最近分数 '+fmt(state.score,2)+' / 阈值 '+fmt(state.threshold,2)));
   const contributors=Object.entries(state.contributions||{}).sort((a,b)=>b[1]-a[1]).slice(0,2);
-  if(contributors.length)evidence.push(badge('主要贡献 '+contributors.map(([key])=>metricNames[key]||key).join('、')));
+  if(contributors.length&&(view.section!=='scenarios'||state.active||state.pending))
+   evidence.push(badge('主要偏离 '+contributors.map(([key])=>metricNames[key]||key).join('、')));
  }
  if(result.mode==='online'&&scored.some(row=>row.model&&row.model!==result.model?.id))
   evidence.push(badge('时段内实际版本 '+monitorVersionSummary(result),'gray'));
@@ -282,14 +273,17 @@ function paintMonitorView(){
 function bindMonitorView(){
  for(const [id,key] of [
   ['monitorSource','source'],['monitorMode','mode'],['monitorSpan','span'],['monitorScenario','scenario'],
-  ['monitorTask','task'],['monitorMetric','metric'],
+  ['monitorMetric','metric'],
  ]){
   $(id).onchange=event=>{
    const pref=monitorPrefs[page];
    if(!pref)return;
-   if(key==='task'&&pref.task!==event.target.value)pref.metric='all';
    if(key==='mode'||key==='source')monitorEditingSection=null;
    pref[key]=event.target.value;
+   if(key==='source'&&page==='scenarios'&&pref.source==='prometheus'&&window.location?.hash==='#joint-replay'){
+    chooseAssociationView(associationView);
+    return;
+   }
    if(key==='span')$('window').value=pref.span;
    renderMonitorView();
    roleAccess();

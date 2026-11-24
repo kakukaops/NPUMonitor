@@ -4,16 +4,17 @@ let data=null,page='incidents',selectedTask=null,selectedEntity=null,points=[],r
 let detailReport=null;
 const baselinePreviewCache=new Map(),baselinePreviewBusy=new Set();
 const PRIMARY=['gpu_temp','memory_temp','power','util','mem_util'];
-const names={incidents:'异常队列',baseline:'单指标趋势',scenarios:'多指标关联',overview:'GPU 设备',detection:'监测详情',tasks:'检测任务',models:'模型库',events:'通知与复核',health:'系统状态'};
+const names={incidents:'异常队列',baseline:'单指标趋势',scenarios:'多指标关联',overview:'GPU 设备',detection:'监测详情',tasks:'检测任务',models:'模型库',events:'通知与复核',health:'系统状态',study:'多指标对照实验'};
 const pageDescriptions={
  incidents:'查看当前异常，打开记录复核。',
  baseline:'选择 GPU 和指标，查看趋势、参考范围与异常分数。',
- scenarios:'同时查看同一任务的输入曲线与联合异常分数。',
+ scenarios:'按 GPU 查看已配置任务的判定、输入状态与时间曲线。',
  overview:'查看 GPU 的采集和检测覆盖。',
  tasks:'设置检测范围、模型和确认条件。',
  models:'查看模型版本、训练进度和回放评估。',
  events:'查看夜莺通知和已保存的复核。',
  health:'检查采集、推理、集成和审计。',
+ study:'回放样例和公开数据配对实验。',
 };
 const metricNames={gpu_temp:'GPU 温度',memory_temp:'HBM 温度',power:'板卡功耗',sm_clock:'SM 时钟',mem_clock:'显存时钟',util:'GPU 利用率',mem_util:'显存控制器活动',fb_used:'显存使用',gpu_limit:'GPU 运行门槛',memory_limit:'HBM 运行门槛',job_running:'作业运行标志'};
 const scenarioNames={power_spike:'功耗突增（90秒）',memory_activity_drop:'显存活动下降（90秒）',thermal_aging:'加速热漂移（手动恢复）',clock_aging:'加速时钟漂移（手动恢复）',normal:'恢复正常',temperature_spike:'温度尖峰',thermal_drift:'缓慢热漂移',power_clock:'功耗时钟关系',activity_drop:'活动下降',idle:'正常空闲',high_load:'正常高负载',missing:'数据缺失',invalid:'无效温度',duplicate:'重复采集',stale:'陈旧数据'};
@@ -28,7 +29,7 @@ async function api(path,options={}){const r=await fetch(API+path,{...options,hea
 async function action(fn){try{await fn();await refresh(true);}catch(e){toast(e.message);}}
 function roleAccess(){const writer=data&&data.role!=='viewer',admin=data&&data.role==='admin';document.querySelectorAll('.write').forEach(b=>b.disabled=!writer);document.querySelectorAll('.admin').forEach(b=>b.disabled=!admin);}
 const replayHashes={incidents:'#replay',baseline:'#trend-replay',scenarios:'#joint-replay'};
-const liveHashes={incidents:'#incidents',baseline:'#trend',scenarios:'#association',overview:'#gpus',detection:'#detection',tasks:'#tasks',models:'#models',events:'#notifications',health:'#system'};
+const liveHashes={incidents:'#incidents',baseline:'#trend',scenarios:'#association',overview:'#gpus',detection:'#detection',tasks:'#tasks',models:'#models',events:'#notifications',health:'#system',study:'#association-compare'};
 const detectionSources=new Set(['baseline','scenarios','overview','tasks']);
 let detectionOrigin=null,dialogTrigger=null;
 let replayMode=false,incidentExampleActive=false;
@@ -46,7 +47,7 @@ function updatePageVisibility(){
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
  const chartPage=Boolean(monitorPrefs[page]);
  $('cluster').hidden=!showCluster;
- $('liveControls').hidden=active||incidentExampleActive||(chartPage&&!showCluster);
+ $('liveControls').hidden=active||incidentExampleActive||page==='study'||(chartPage&&!showCluster);
  $('refresh').hidden=chartPage;
  $('window').hidden=page!=='detection';
  if(active)$('integratedReplay').setAttribute('view','all');
@@ -81,7 +82,7 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  });
  $('sampleMenu').open=false;
  const title=showReplay?'曲线样例':incidentExampleActive?'值班样例':names[next];
- $('pageTrail').textContent=(names[detectionOrigin?.page]||(['models','tasks','health'].includes(next)?'配置':'值班'))+' / ';
+ $('pageTrail').textContent=(names[detectionOrigin?.page]||(next==='study'?'方法与评测':['models','tasks','health'].includes(next)?'配置':'值班'))+' / ';
  $('pageName').textContent=title;
  if(next==='detection')$('detectionBack').textContent='← 返回 '+names[detectionOrigin.page];
  $('title').textContent=title;
@@ -121,6 +122,7 @@ function openReplayFromLocation(){
  }
  const association=Object.keys(associationHashes).find(key=>associationHashes[key]===hash);
  if(association){
+  monitorPrefs.scenarios.source='prometheus';
   setAssociationView(association);
   choosePage('scenarios',false,false,false);
   return true;
@@ -158,6 +160,7 @@ function monitoredStatus(task){
  }
  const state=stateFor(task);
  if(!data.inference.enabled)return [state?.active?'推理暂停 · 异常保持':'推理暂停','gray'];
+ if(state?.quality==='valid'&&state.model_id&&state.model_id!==task.active_model)return ['等待当前版本评分','gray'];
  const [label,color]=decision(state,task);
  return [label==='正常'?'未发现偏离':label,color];
 }
@@ -299,8 +302,7 @@ function renderGpuCards(entities){
 function renderScenarios(){
  const catalog=data.dcgm_scenarios;
  if(!catalog)return;
- const selected=$('associationEntity').value;
- const entities=filteredEntities().filter(entity=>!selected||entity.id===selected);
+ const entities=filteredEntities();
  const entityIds=new Set(entities.map(entity=>entity.id));
  const cards=Object.entries(catalog.scenarios).map(([id,scene])=>{
   const card=el('article',undefined,'gpu-card');
@@ -315,47 +317,73 @@ function renderScenarios(){
    const task=tasks.find(row=>row.active_model)||tasks[0];
    selectAssociationMonitor(task);
   }));
-  else if(ready)card.append(uiButton('配置此场景',()=>openScenarioCreate(selected,id),'write'));
+  else if(ready)card.append(uiButton('配置此场景',()=>openScenarioCreate('',id),'write'));
   return card;
  });
  $('scenarioCards').replaceChildren(...cards);
  $('scenarioUnavailable').replaceChildren(...catalog.not_available.map(row=>el('p',row.name+'：'+row.reason)));
 }
 
+function associationTasks(entities){
+ const ids=new Set(entities.map(entity=>entity.id)),selected=$('associationEntity').value;
+ const priority=task=>{
+  const state=stateFor(task);
+  if(state?.active&&task.enabled)return 0;
+  if(!task.enabled||!task.active_model)return 4;
+  if(!associationHasScore(task,state))return 1;
+  return state.pending?0:3;
+ };
+ return data.tasks.filter(task=>!task.deleted&&ids.has(task.entity)&&(!selected||selected===task.entity)
+  &&isAssociationTask(task)&&matchesAssociationKind(task)).sort((a,b)=>priority(a)-priority(b));
+}
+
+function associationHasScore(task,state){
+ return Boolean(data.inference.enabled&&task.enabled&&task.active_model&&state?.quality==='valid'
+  &&state.model_id===task.active_model&&Number.isFinite(state.score));
+}
+
 function renderAssociationTasks(){
  const entities=filteredEntities(),byEntity=new Map(entities.map(entity=>[entity.id,entity]));
  const select=$('associationEntity');
  options(select,[{id:'',uuid:'全部 GPU'},...entities],entity=>entity.id,entity=>entity.id?deviceLabel(entity):entity.uuid);
- const tasks=data.tasks.filter(task=>!task.deleted&&byEntity.has(task.entity)&&(!select.value||select.value===task.entity)
-  &&isAssociationTask(task)&&associationFamily(task)===associationView);
- const active=new Set(tasks.filter(task=>stateFor(task)?.active).map(task=>task.id));
- tasks.sort((a,b)=>Number(active.has(b.id))-Number(active.has(a.id)));
- const evaluated=tasks.filter(task=>data.inference.enabled&&task.enabled&&task.active_model&&stateFor(task)?.quality==='valid').length;
+ const tasks=associationTasks(entities),pref=monitorPrefs.scenarios;
+ if(page==='scenarios'&&!tasks.some(task=>task.id===pref.task)){
+  pref.task=tasks[0]?.id;
+  pref.metric='all';
+ }
+ const evaluated=tasks.filter(task=>associationHasScore(task,stateFor(task))).length;
  $('associationSummary').textContent=tasks.length
   ?tasks.length+' 项已配置 · '+evaluated+' 项当前有有效评分'
   :'当前范围尚无关联任务。';
- $('associationListShortcut').hidden=!tasks.length;
  const rows=tasks.map(task=>{
   const entity=byEntity.get(task.entity),spec=data.templates[task.template],state=stateFor(task);
   const model=data.models.find(row=>row.id===task.active_model);
-  const row=el('tr'),name=el('td');
-  name.append(el('strong',task.scenario_id?spec.name:'多指标联合检测'),
+  const row=el('tr',undefined,task.id===pref.task?'active-task':''),name=el('td');
+  name.append(el('strong',taskDisplayName(task)),
    el('small',deviceLabel(entity)),
-   el('small',task.scenario_id?(task.scenario_profile==='laboratory'?'白盒 · 模拟加速':'白盒 · 常规参考'):'黑盒 · '+spec.targets.map(key=>metricNames[key]||key).join('、')));
+   el('small',task.scenario_id?(task.scenario_profile==='laboratory'?'白盒场景 · 加速参考':'白盒场景'):'黑盒模型'));
   const status=el('td'),[label,color]=monitoredStatus(task);
   status.append(badge(label,color));
   if(model)status.append(el('small',algorithmLabel(model.algorithm)));
-  if(task.scenario_id)status.append(el('small',task.notification_mode==='alert'?'已允许通知':'仅记录证据'));
+  status.append(el('small',task.notification_mode==='evidence'?'仅记录证据':
+   data.bindings.some(binding=>binding.id===task.id&&binding.rule_id!=null)?'已绑定夜莺规则':'未绑定夜莺规则'));
   const evidence=el('td'),missing=spec.required.filter(key=>!entity.fresh||entity.quality[key]!=='valid');
   evidence.append(el('span',(spec.required.length-missing.length)+' / '+spec.required.length+' 项必需输入有效','row-detail'));
   if(missing.length)evidence.append(el('small','待核对 '+missing.map(key=>metricNames[key]||key).join('、')));
-  if(data.inference.enabled&&task.enabled&&task.active_model&&state?.quality==='valid'&&Number.isFinite(state.score)){
+  if(associationHasScore(task,state)){
    evidence.append(el('small','分数 '+fmt(state.score,2)+' / 阈值 '+fmt(state.threshold,2)+' · '+tm(state.last_source)));
-   const top=Object.entries(state.contributions||{}).sort((a,b)=>b[1]-a[1]).slice(0,2);
-   if(top.length)evidence.append(el('small','主要贡献 '+top.map(([key])=>metricNames[key]||key).join('、')));
+   if(state.active||state.pending){
+    const top=Object.entries(state.contributions||{}).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    if(top.length)evidence.append(el('small','主要偏离 '+top.map(([key])=>metricNames[key]||key).join('、')));
+   }
   }
+  else if(task.enabled&&task.active_model&&state?.last_source)evidence.append(el('small','上次有效评分 '+dateTime(state.last_source)));
   const actions=el('td'),controls=el('div',undefined,'controls');
-  controls.append(btn('查看曲线',async()=>selectAssociationMonitor(task),''),btn('管理任务',async()=>openTaskActions(task),'write'));
+  const curve=uiButton('查看曲线',()=>selectAssociationMonitor(task));
+  curve.setAttribute('aria-pressed',String(task.id===pref.task));
+  controls.append(curve);
+  const incident=incidentForTask(task.id);
+  if(incident)controls.append(uiButton('异常记录',()=>openTaskIncident(incident,task.id)));
   actions.append(controls);
   row.append(name,status,evidence,actions);
   return row;
@@ -384,12 +412,14 @@ function renderAssociationStatus(task,entity,metric){
  if(box.hidden)return;
  const [label,color]=monitoredStatus(task),model=data.models.find(row=>row.id===task.active_model);
  const context=el('div'),title=el('div',undefined,'monitor-context');
- title.append(el('strong',task.scenario_id?'白盒场景':'黑盒模型'),badge('实时 · '+label,color));
+ title.append(el('strong','所选任务'),badge('实时 · '+label,color));
  if(model)title.append(el('span',algorithmLabel(model.algorithm),'muted'));
- context.append(title);
+ context.append(title,el('p',taskDisplayName(task)+' · '+entity.uuid,'caption'));
  const actions=el('div',undefined,'controls'),next=monitorModelAction(task);
  if(next)actions.append(next);
  if(task.active_model&&task.enabled)actions.append(uiButton('模型设置',()=>openMonitoringActions(task),'write'));
+ const incident=incidentForTask(task.id);
+ if(incident)actions.append(uiButton('打开异常记录',()=>openTaskIncident(incident,task.id)));
  actions.append(uiButton('查看详情',()=>openMonitorDetails(entity.id,task,metric)));
  box.replaceChildren(context,actions);
 }
@@ -930,16 +960,16 @@ window.addEventListener('keydown',event=>{
 });
 $('loginForm').onsubmit=async e=>{e.preventDefault();try{await api('/session',{method:'POST',body:JSON.stringify({role:$('loginRole').value})});$('loginError').textContent='';$('loginOverlay').hidden=true;await refresh(true);}catch(err){$('loginError').textContent=err.message;}};
 $('logout').onclick=async()=>{await api('/session',{method:'DELETE'});data=null;$('loginOverlay').hidden=false;};
-$('associationListShortcut').onclick=()=>{
- const list=$('associationTasks');
- list.open=true;
- list.scrollIntoView({block:'start'});
- list.querySelector('summary').focus({preventScroll:true});
-};
 $('newAssociation').onclick=()=>{
  const gpu=$('associationEntity').value;
  if(associationView==='white')openScenarioCreate(gpu);
- else openPolicy('multivariate',gpu||filteredEntities()[0]?.id);
+ else if(associationView==='black'||!data.dcgm_scenarios)openPolicy('multivariate',gpu||filteredEntities()[0]?.id);
+ else {
+  const choices=el('div',undefined,'controls');
+  choices.append(uiButton('白盒场景',()=>openScenarioCreate(gpu),'write'),
+   uiButton('黑盒模型',()=>openPolicy('multivariate',gpu||filteredEntities()[0]?.id),'write'));
+  openDialog('新建关联任务',[choices],async()=>{},'关闭');
+ }
 };
 function policyMetricPicker(choices){
  const box=el('fieldset',undefined,'metric-fields'),grid=el('div',undefined,'metric-options');
@@ -995,9 +1025,9 @@ function selectCreatedAssociation(tasks){
  if(page!=='scenarios')return;
  const task=tasks.find(isAssociationTask);
  if(!task)return;
+ if(!data.tasks.some(row=>row.id===task.id))data.tasks.push(task);
  $('associationEntity').value=task.entity;
- chooseAssociationView(associationFamily(task),task);
- monitorPrefs.scenarios.metric='all';
+ chooseAssociationView(matchesAssociationKind(task)?associationView:associationFamily(task),task);
 }
 
 $('newTask').onclick=()=>openPolicy();
@@ -1044,6 +1074,7 @@ document.querySelectorAll('button.nav').forEach(button=>{
  button.onclick=()=>{
   if(button.dataset.page==='detection')openDetectionShortcut();
   else if(button.dataset.page==='incidents')switchIncidentQueue(false);
+  else if(button.dataset.page==='scenarios'){monitorPrefs.scenarios.source='prometheus';chooseAssociationView('all');}
   else choosePage(button.dataset.page);
  };
 });

@@ -1,20 +1,19 @@
 'use strict';
 
-let associationView='black';
-const associationHashes={black:'#association',white:'#association-white',compare:'#association-compare'};
-const associationSelections=new Map();
+let associationView='all';
+const associationHashes={all:'#association',white:'#association-white',black:'#association-black'};
 const associationCases=new Map();
 let paintedAssociationCase=null;
 
 function associationFamily(task){return task.scenario_id?'white':'black';}
 
+function matchesAssociationKind(task,kind=associationView){
+ return kind==='all'||associationFamily(task)===kind;
+}
+
 function setAssociationView(view,task){
  const pref=monitorPrefs.scenarios;
- if(associationView!==view){
-  if(associationView!=='compare')associationSelections.set(associationView,{task:pref.task,metric:pref.metric});
-  associationView=view;
-  if(view!=='compare')Object.assign(pref,associationSelections.get(view)||{task:null,metric:'all'});
- }
+ associationView=view;
  if(task&&pref.task!==task.id){pref.task=task.id;pref.metric='all';}
 }
 
@@ -24,41 +23,41 @@ function chooseAssociationView(view,task){
 }
 
 function renderAssociationView(){
- const compare=associationView==='compare';
- for(const [id,view] of [['associationWhite','white'],['associationBlack','black'],['associationCompare','compare']]){
-  $(id).setAttribute?.('aria-pressed',String(associationView===view));
- }
- $('associationWorkbench').hidden=compare;
- $('associationStudy').hidden=!compare;
- $('associationScenarios').hidden=associationView!=='white';
- $('associationCatalogShortcut').hidden=associationView!=='white';
- $('blackBoxPanel').hidden=associationView!=='black';
+ $('associationKind').value=associationView;
  $('associationSampleStudy').hidden=!data.simulation;
- $('newAssociation').textContent=associationView==='white'?'添加白盒场景':'添加黑盒任务';
- if(page==='scenarios'&&compare&&data.simulation)loadAssociationCase();
+ $('associationReplayLink').hidden=!data.simulation;
+ if(page==='study'&&data.simulation)loadAssociationCase();
 }
 
 function renderAssociationEvidence(report){
- const box=$('associationEvidence');
+ const box=$('associationEvidence'),content=$('associationEvidenceBody');
  const point=page==='scenarios'?report?.association_evidence:null;
  box.hidden=!point;
- if(!point){box.replaceChildren();return;}
- const title=el('h3','判定依据'),selection={
-  confirmed_peak:'最近确认区间内峰值',candidate_peak:'区间内越线峰值',latest:'最近有效评分',
+ if(!point){content.replaceChildren();return;}
+ const selection={
+  current:'当前评分',last_valid:'上次有效评分',confirmed_peak:'最近确认区间内峰值',
+  candidate_peak:'区间内越线峰值',latest:'时段内最近评分',
  }[point.selection];
+ const active=Boolean(report.state?.active||report.state?.pending);
+ const key=point.selection+'|'+active;
+ if(box.dataset?.scope!==key){
+  box.open=Boolean(active||point.selection==='confirmed_peak')&&point.selection!=='last_valid';
+  if(box.dataset)box.dataset.scope=key;
+ }
+ $('associationEvidenceTitle').textContent=selection+'依据';
  const version=point.model?' · 版本 '+short(point.model):'';
  const caption=el('p',selection+' · '+dateTime(point.t)+' · 分数 '+fmt(point.score,3)+' / 阈值 '+fmt(point.threshold,3)+version,'caption');
  const contributions=point.contributions||{},expected=point.expected||{};
  const keys=Array.from(new Set([...Object.keys(expected),...Object.keys(contributions)]))
   .sort((a,b)=>(contributions[b]||0)-(contributions[a]||0));
- box.replaceChildren(title,caption);
+ content.replaceChildren(caption);
  if(!keys.length){
-  box.append(el('p','此版本只提供联合分数，暂无指标级贡献。','caption'));
+  content.append(el('p','此版本只提供联合分数，暂无指标级贡献。','caption'));
   return;
  }
  if(point.reference_kind==='conditional_baseline'){
   const context=Object.entries(point.values).filter(([key,value])=>!(key in expected)&&Number.isFinite(value));
-  if(context.length)box.append(el('p','该时点条件 · '+context.map(([key,value])=>
+  if(context.length)content.append(el('p','该时点条件 · '+context.map(([key,value])=>
    (metricNames[key]||key)+' '+fmt(value)+(data.metrics[key]?.unit?' '+data.metrics[key].unit:'')).join(' · '),'caption'));
  }
  const table=el('table'),head=el('thead'),header=el('tr'),body=el('tbody');
@@ -72,11 +71,11 @@ function renderAssociationEvidence(report){
    el('td',value(observed-reference)),el('td',fmt(contributions[key],3)));
   body.append(row);
  }
- const wrapper=el('div',undefined,'table-scroll');wrapper.append(table);box.append(wrapper);
+ const wrapper=el('div',undefined,'table-scroll');wrapper.append(table);content.append(wrapper);
  const note=point.reference_kind==='conditional_baseline'
   ?'参考值来自该卡在可比较负载与显存时钟下的历史关系。阈值应用于校准分数，超出参考工况时暂停评分。'
   :'联合重构给出参考值。校准贡献用于定位偏离指标，各分量取最大值做判定。';
- box.append(el('p',note+(Number.isFinite(point.joint_distance_score)?' 联合距离分量 '+fmt(point.joint_distance_score,3)+'。':''),'caption'));
+ content.append(el('p',note+(Number.isFinite(point.joint_distance_score)?' 联合距离分量 '+fmt(point.joint_distance_score,3)+'。':''),'caption'));
 }
 
 const caseOnset={joint:36,rule:36,drift:35,gap:39,normal:null};
@@ -202,7 +201,7 @@ async function loadAssociationCase(){
    associationCases.set(kind,api('/sre-preview?scenario='+scenario));
   }
   const payload=await associationCases.get(kind);
-  if(page==='scenarios'&&associationView==='compare'&&$('associationCase').value===kind)showAssociationCase(payload,kind);
+  if(page==='study'&&$('associationCase').value===kind)showAssociationCase(payload,kind);
  }catch(error){
   associationCases.delete(kind);
   if($('associationCase').value===kind)box.textContent='读取失败 · '+error.message;
@@ -210,12 +209,9 @@ async function loadAssociationCase(){
 }
 
 function bindAssociationView(){
- for(const [id,view] of [['associationWhite','white'],['associationBlack','black'],['associationCompare','compare']]){
-  $(id).onclick=()=>chooseAssociationView(view);
- }
+ $('associationKind').onchange=event=>chooseAssociationView(event.target.value);
  $('associationCase').onchange=loadAssociationCase;
- $('associationCatalogShortcut').onclick=()=>$('associationScenarios').scrollIntoView({block:'start'});
  window.addEventListener('resize',()=>{
-  if(page==='scenarios'&&associationView==='compare')paintedAssociationCase?.paint();
+  if(page==='study')paintedAssociationCase?.paint();
  });
 }

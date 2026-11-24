@@ -109,7 +109,6 @@
       <button type="button" id="monitorRefresh">刷新曲线</button>
     </div>
     <div class="controls monitoring-inputs monitor-view-controls">
-      <label id="monitorTaskControl" hidden>任务 <select id="monitorTask" aria-label="关联监测任务"></select></label>
       <label id="monitorMetricControl" hidden>显示指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
       <label>数据来源 <select id="monitorSource" aria-label="数据来源"></select></label>
       <label id="monitorModeControl">查看方式 <select id="monitorMode" aria-label="查看方式"><option value="online">实时</option><option value="replay">历史回放</option></select></label>
@@ -133,7 +132,7 @@
     <div class="chart monitor-view-chart" id="monitorValueBox" hidden><canvas id="monitorValueChart" role="img" aria-label="观测与模型参考"></canvas><div class="tooltip" id="monitorViewTip" hidden></div></div>
     <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
     <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
-    <div id="associationEvidence" class="association-evidence" hidden></div>
+    <details id="associationEvidence" class="association-evidence" hidden><summary id="associationEvidenceTitle">评分依据</summary><div id="associationEvidenceBody"></div></details>
     <div class="monitor-input-charts" id="monitorInputCharts" aria-label="按同一时间轴展示全部输入指标" hidden></div>
   </section>
 </div>
@@ -149,46 +148,29 @@
 </details>
 </section>
 <section id="page-scenarios" class="page" hidden>
-<div class="association-tabs" role="group" aria-label="多指标关联视图">
-  <button type="button" id="associationWhite" aria-pressed="false">白盒场景</button>
-  <button type="button" id="associationBlack" aria-pressed="true">黑盒模型</button>
-  <button type="button" id="associationCompare" aria-pressed="false">同窗对照</button>
-</div>
-<div id="associationWorkbench">
-<div class="panel monitoring-panel">
+<div class="panel monitoring-panel" id="associationTasks">
   <div class="panel-heading">
-    <div><h2>监测对象</h2><p class="association-overview"><span id="associationSummary"></span><button type="button" id="associationListShortcut" class="text-button">查看任务列表</button><button type="button" id="associationCatalogShortcut" class="text-button" hidden>场景目录</button></p></div>
+    <div><h2>关联任务</h2><p id="associationSummary"></p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
+      <label>类型 <select id="associationKind" aria-label="关联任务类型">
+        <option value="all">全部类型</option>
+        <option value="white">白盒场景</option>
+        <option value="black">黑盒模型</option>
+      </select></label>
       <button id="newAssociation" class="write" type="button">新建关联任务</button>
     </div>
   </div>
-  <div id="associationStatus" class="monitor-focus" hidden></div>
-</div>
-<div id="associationMonitorSlot"></div>
-<section class="panel" id="associationScenarios" hidden>
-  <div class="panel-heading"><div><h2>白盒场景目录</h2><p>选择已知关系建任务。条件基线须先学习正常历史。</p></div></div>
-  <div id="scenarioCards" class="gpu-grid"></div>
-  <details class="workspace-fold"><summary>当前未覆盖场景</summary><div id="scenarioUnavailable"></div></details>
-</section>
-
-<details class="panel workspace-fold" id="associationTasks">
-  <summary>关联任务列表</summary>
   <div class="table-scroll"><table class="association-table">
-    <thead><tr><th>检测任务</th><th>在线状态</th><th>输入与分数</th><th>操作</th></tr></thead>
+    <thead><tr><th>任务与 GPU</th><th>当前判定</th><th>数据与评分</th><th>操作</th></tr></thead>
     <tbody id="associationRows"></tbody>
   </table></div>
-</details>
-<details class="panel workspace-fold" id="blackBoxPanel">
-  <summary>黑盒方法</summary>
-  <div class="model-routes">
-    <div><strong>逐点 PCA</strong><p>按同一时点的指标组合评分。</p></div>
-    <div><strong>窗口 PCA</strong><p>按连续 5 点的联合变化评分。</p></div>
-    <div><strong>Isolation Forest</strong><p>筛查历史中少见的指标组合。</p></div>
-  </div>
-</details>
 </div>
-<div id="associationStudy" hidden>
+<div class="panel monitor-focus association-selection" id="associationStatus" hidden></div>
+<div id="associationMonitorSlot"></div>
+</section>
+<section id="page-study" class="page" hidden>
+  <div class="detail-path"><a class="panel-link" href="/methods">← 返回方法与评测</a><a class="panel-link" id="associationReplayLink" href="/#joint-replay" hidden>用工作台模型回放模拟数据</a></div>
   <section class="panel" id="associationSampleStudy" hidden>
     <div class="panel-heading">
       <div><h2>同一批曲线上的方法对照</h2><p>模拟样例 · 每种方法使用自己的阈值，连续 3 点确认。</p></div>
@@ -215,7 +197,6 @@
     </table></div>
     <p class="caption">加功耗条件时，同步变化的触发减少，可评分覆盖也下降。原始配对窗口两种方法均未触发。这里衡量对已知扰动的响应，尚未测得真实故障召回率或误报率。</p>
   </section>
-</div>
 </section>
 <section id="page-overview" class="page" hidden><div class="section-heading"><h2>GPU 设备</h2><span class="muted">从已发现的设备进入监测详情</span></div><div id="gpuCards" class="gpu-grid"></div><div class="panel"><h2>监控覆盖与边界</h2><div class="coverage"><div><b>单指标时序</b><p>按GPU与指标维护独立检测配置，批量创建并训练。</p></div><div><b>机器学习</b><p>可选多指标联合行为检测，学习所选指标组的正常分布。</p></div><div><b>数据质量</b><p>唯一性、源时间、字段有效性与缺失分别检查。</p></div></div></div></section>
 <section id="page-detection" class="page" hidden>
@@ -227,7 +208,22 @@
     <select id="taskTypeFilter" aria-label="检测任务类型"><option value="all">全部类型</option><option value="univariate">单指标趋势</option><option value="multivariate">黑盒模型</option><option value="scenario">白盒场景</option></select>
   </div><button class="primary write" id="newTask">新建检测任务</button></div>
   <div class="table-scroll"><table><thead><tr><th>检测任务</th><th>类型</th><th>在线状态</th><th>在线模型</th><th>操作</th></tr></thead><tbody id="taskRows"></tbody></table></div>
-</div></section>
+</div>
+<details class="panel workspace-fold" id="associationScenarios">
+  <summary>白盒场景目录</summary>
+  <p class="caption">配置后使用正常历史训练条件基线。</p>
+  <div id="scenarioCards" class="gpu-grid"></div>
+  <details class="workspace-fold"><summary>当前未覆盖场景</summary><div id="scenarioUnavailable"></div></details>
+</details>
+<details class="panel workspace-fold" id="blackBoxPanel">
+  <summary>黑盒方法</summary>
+  <div class="model-routes">
+    <div><strong>逐点 PCA</strong><p>按同一时点的指标组合评分。</p></div>
+    <div><strong>窗口 PCA</strong><p>按连续 5 点的联合变化评分。</p></div>
+    <div><strong>Isolation Forest</strong><p>筛查历史中少见的指标组合。</p></div>
+  </div>
+</details>
+</section>
 <section id="page-models" class="page" hidden>
   <div class="panel"><div class="panel-heading"><h2>模型版本</h2></div>
     <div class="table-scroll"><table><thead><tr><th>模型与设备</th><th>方法</th><th>训练数据</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div>

@@ -8,6 +8,22 @@ let coverageFilter='';
 const coverageButtons=new Map();
 const recoveredQueues=new Map();
 
+function incidentForTask(taskId){
+ return data.incident_queue?.groups.find(group=>group.members.some(member=>member.id===taskId));
+}
+
+function openTaskIncident(group,taskId){
+ const cluster=$('cluster');
+ if(cluster.value&&cluster.value!==group.entity.cluster)cluster.value='';
+ $('incidentFilter').value=group.phase==='recovered'?'recovered':'all';
+ choosePage('incidents');
+ renderIncidentQueue(group.id);
+ const member=group.members.find(row=>row.id===taskId);
+ const card=member&&incidentPanel?.cards.get(incidentMemberKey(member));
+ if(card)card.fold.open=true;
+ $('incidentDetail').scrollIntoView({block:'nearest'});
+}
+
 function switchIncidentQueue(archived){
  $('incidentFilter').value=archived?'history':incidentCurrentFilter;
  choosePage('incidents');

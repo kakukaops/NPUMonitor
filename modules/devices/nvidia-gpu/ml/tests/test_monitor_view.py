@@ -19,6 +19,15 @@ class MonitorViewTests(unittest.TestCase):
         self.assertEqual(association_snapshot(points, [])['selection'], 'candidate_peak')
         self.assertIsNone(association_snapshot([], []))
 
+    def test_online_evidence_never_prefers_a_previous_peak(self):
+        points = [{'t': 2, 'score': 9, 'threshold': 1, 'anomaly': True, 'model': 'm'},
+                  {'t': 6, 'score': .3, 'threshold': 1, 'model': 'm'}]
+        state = {'quality': 'valid', 'last_source': 6, 'model_id': 'm'}
+        report = association_snapshot(points, [{'start': 2, 'end': 6}], state)
+        self.assertEqual((report['t'], report['selection']), (6, 'current'))
+        state['quality'] = 'missing'
+        self.assertEqual(association_snapshot(points, [], state)['selection'], 'last_valid')
+
     def test_replay_and_store_use_identical_confirmation_and_gap_rules(self):
         task = {'id': 'detector', 'confirmation_samples': 2, 'recovery_samples': 2}
         stamps = [100, 102, 104, 106, 108, 110, 112, 120, 122]
