@@ -187,6 +187,7 @@ function clearMonitorView(){
  $('monitorViewLegend').replaceChildren();
  $('monitorViewEvidence').replaceChildren();
  renderAssociationEvidence(null);
+ $('xidMonitorPreview').hidden=true;
 }
 
 function monitorPlot(result,metric=result.metric){
@@ -339,6 +340,7 @@ function paintMonitorView(){
  if(view.allInputs)drawMonitorInputs($('monitorInputCharts'),result,graph);
  else if(valueVisible)draw('monitorValueChart',rows,key,false,{...graph,tooltip:$('monitorViewTip'),markAnomalies:view.section!=='scenarios'});
  if(scored.length)draw('monitorScoreChart',rows,key,true,graph);
+ paintXidMonitor(result);
 }
 
 function bindMonitorView(){

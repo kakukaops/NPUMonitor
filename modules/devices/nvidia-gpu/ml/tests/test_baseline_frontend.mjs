@@ -36,9 +36,20 @@ run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/xid-study.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'incidents');
+assert.equal(run(`
+ const volatilitySample=Array.from({length:12},(_,i)=>({t:(i+1)*60,values:{util:i<7?null:i*9}}));
+ xidChurn(volatilitySample,11)
+`),9);
+assert.equal(run('xidChurn(volatilitySample,10)'),null);
+assert.equal(run('xidCombinedScore(.5,90)'),2);
+assert.equal(run('xidCombinedScore(null,null)'),null);
+assert.equal(run(`xidMonitorMinutes({start:0,end:185,input_observations:{util:[]},points:[
+ {t:59,score:2,threshold:1},{t:119,score:3,threshold:1},{t:179,score:4,threshold:1},{t:184,score:99,threshold:1}
+]}).at(-1).score`),2);
 run(`draw('gap-test',[{t:2,score:.6,threshold:1,model:'a',decision_config_revision:1},
  {t:12,score:.7,threshold:1,model:'a',decision_config_revision:1},
  {t:14,score:.8,threshold:2,model:'a',decision_config_revision:2}],'gpu_temp',true)`);

@@ -29,7 +29,10 @@ function renderAssociationView(){
  $('associationKind').value=associationView;
  $('associationSampleStudy').hidden=!data.simulation;
  $('associationReplayLink').hidden=!data.simulation;
- if(page==='study'&&data.simulation)loadAssociationCase();
+ if(page==='study'){
+  loadXidStudy();
+  if(data.simulation)loadAssociationCase();
+ }
 }
 
 function openAssociationAPI(task,metric){

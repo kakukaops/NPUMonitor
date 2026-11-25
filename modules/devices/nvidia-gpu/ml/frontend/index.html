@@ -49,6 +49,7 @@
     <button type="button" id="publicTrend">看单指标曲线</button>
     <button type="button" id="publicAssociation">看关联曲线与评分</button>
   </div>
+  <a class="panel-link xid-study-link" href="/?source=public#association-compare">查看同卡 XID 预警评测 ↗</a>
   <div class="legend" id="publicDataLegend" hidden>
     <span><i class="blue"></i>实际观测</span>
     <span class="public-score-legend"><i class="public-score-line"></i>离线 PCA 分数</span>
@@ -193,6 +194,12 @@
     <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
     <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
     <details id="associationEvidence" class="association-evidence" hidden><summary id="associationEvidenceTitle">评分依据</summary><div id="associationEvidenceBody"></div></details>
+    <details id="xidMonitorPreview" class="association-evidence" hidden>
+      <summary>查看 XID 候选分数</summary>
+      <p class="caption" id="xidMonitorNote"></p>
+      <div class="chart monitor-view-score" id="xidMonitorPlot"><canvas id="xidMonitorChart" role="img" aria-label="所选条件关系与利用率波动的候选分数"></canvas></div>
+      <a class="panel-link" href="/#association-compare">同卡 XID 预警评测 ↗</a>
+    </details>
     <div class="monitor-input-charts" id="monitorInputCharts" aria-label="按同一时间轴展示全部输入指标" hidden></div>
   </section>
 </div>
@@ -250,6 +257,32 @@
 </section>
 <section id="page-study" class="page" hidden>
   <div class="detail-path"><a class="panel-link" href="/methods">← 返回方法与评测</a><a class="panel-link" id="associationReplayLink" href="/#joint-replay" hidden>用工作台模型回放模拟数据</a></div>
+  <section class="panel" id="xidStudy" aria-labelledby="xidStudyTitle">
+    <div class="panel-heading">
+      <div><h2 id="xidStudyTitle">同卡 XID 提前预警</h2><p id="xidStudyScope">正在读取公开数据评测…</p></div>
+      <div class="controls monitoring-inputs xid-study-controls">
+        <label>验证 <select id="xidValidation"><option value="held_out_node">节点留出</option><option value="later_half">时间与节点留出</option></select></label>
+        <label>预算 <select id="xidBudget"><option value="50">约 50 条</option><option value="75">约 75 条</option><option value="100" selected>约 100 条</option></select></label>
+      </div>
+    </div>
+    <div class="table-scroll" tabindex="0" aria-label="两小时 XID 评测结果"><table>
+      <thead><tr><th>方法</th><th>实际告警数</th><th>事件召回</th><th>观察到后续 XID</th><th>后续不可判定</th><th>提前量中位数</th></tr></thead>
+      <tbody id="xidStudyRows"></tbody>
+    </table></div>
+    <p class="caption" id="xidStudyNote"></p>
+    <a class="panel-link xid-study-link" href="https://doi.org/10.5281/zenodo.21932615">GWDG v2 原始数据 ↗</a>
+    <div class="panel-heading xid-trace-heading">
+      <div><h3>真实曲线回放</h3><p id="xidTraceIdentity"></p></div>
+      <div class="controls monitoring-inputs xid-study-controls">
+        <label>记录 <select id="xidTraceCase" aria-label="XID 回放记录"></select></label>
+        <label>方法 <select id="xidTraceMethod" aria-label="XID 回放方法"><option value="combined">条件关系 + 利用率波动</option><option value="condition">仅条件关系</option><option value="multi">原多指标组</option></select></label>
+      </div>
+    </div>
+    <p class="caption" id="xidTraceStatus"></p>
+    <div class="legend"><span><i class="public-score-line"></i>回放评分</span><span><i class="red"></i>留出阈值／确认点</span><span><i class="incident-marker"></i>XID 首次观测</span></div>
+    <div class="chart monitor-view-score"><canvas id="xidTraceScore" role="img" aria-label="XID 预警回放评分和阈值"></canvas></div>
+    <div class="monitor-input-charts" id="xidTraceInputs"></div>
+  </section>
   <section class="panel" id="associationSampleStudy" hidden>
     <div class="panel-heading">
       <div><h2>同一批曲线上的方法对照</h2><p>模拟样例 · 每种方法使用自己的阈值，连续 3 点确认。</p></div>
@@ -321,4 +354,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

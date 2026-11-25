@@ -1487,4 +1487,5 @@ window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
 bindAssociationView();
 bindIncidentFilters();
+bindXidStudy();
 refresh();setInterval(refresh,4000);

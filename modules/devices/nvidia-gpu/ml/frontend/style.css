@@ -307,6 +307,13 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .public-data-panel .panel-heading p{overflow-wrap:anywhere}
 .public-data-panel .incident-marker{background:#bf8739}
 .public-score-line{background:#7c66ce}
+#xidStudy .incident-marker{background:#bf8739}
+#xidStudy .xid-trace-heading{margin-top:18px}
+#xidStudy h3{margin:0 0 4px;font-size:14px}
+#xidTraceIdentity{overflow-wrap:anywhere}
+.xid-study-controls{flex-wrap:wrap}
+#xidStudy .xid-candidate td{background:#eef7f6}
+.xid-study-link{display:inline-block;margin-top:4px}
 #publicDataActions{flex-wrap:wrap;margin-top:10px}
 .queue-switch{width:max-content;max-width:100%;gap:5px;margin-bottom:10px;padding:4px;border:1px solid var(--line);border-radius:8px;background:#f3f7fa}
 .queue-switch button{flex:1;background:transparent;border-color:transparent;font-weight:600;white-space:nowrap}
