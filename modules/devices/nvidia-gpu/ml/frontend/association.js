@@ -12,9 +12,12 @@ function matchesAssociationKind(task,kind=associationView){
 }
 
 function setAssociationView(view,task){
- const pref=monitorPrefs.scenarios;
  associationView=view;
- if(task&&pref.task!==task.id){pref.task=task.id;pref.metric='all';}
+ if(task){
+  clearMethodBoardFilters('scenarios');
+  methodSelection.scenarios=null;
+  boardTarget('scenarios',task.method_parent||task.id);
+ }
 }
 
 function chooseAssociationView(view,task){

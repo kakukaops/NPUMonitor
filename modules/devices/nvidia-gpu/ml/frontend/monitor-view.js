@@ -40,12 +40,11 @@ function showAssociationRun(mode){
 function monitorContext(section,pref){
  const method=boardMethod[section];
  if(section==='baseline'){
-  const entity=$('baselineEntity').value,metric=$('baselineMetric').value;
+  const entity=$('baselineEntity').value,metric=baselineMetric;
   const task=method?.task||data.tasks.find(row=>!row.deleted&&!row.method_parent&&row.entity===entity&&row.template==='uni_'+metric);
   return {entity,task,metric};
  }
- const tasks=associationTasks(filteredEntities());
- const task=method?.task||tasks.find(item=>item.id===pref.task)||tasks[0];
+ const task=method?.task||data.tasks.find(item=>item.id===pref.task&&!item.deleted);
  if(!task){monitorOptions($('monitorMetric'),[]);return {};}
  const spec=data.templates[task.template];
  const targets=Array.from(new Set([...spec.targets,...spec.required]));
@@ -98,7 +97,7 @@ function renderMonitorView(force=false){
  $('monitorRefresh').disabled=!device;
  $('monitorViewIdentity').textContent=device?deviceLabel(device)+' · '+(allInputs?'全部 '+inputCount+' 项输入':(metricNames[metric]||metric)):'';
  if(page==='scenarios')renderAssociationStatus(task,device,allInputs?'all':metric);
- panel.hidden=page==='scenarios'&&(!device||!metric);
+ panel.hidden=!device||!metric;
  if(!device||!metric){
   monitorShown=null;
   clearMonitorView();

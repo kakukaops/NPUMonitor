@@ -179,8 +179,7 @@ function openMonitorDetails(entity,task,metric){
 
 function openDetectionShortcut(){
  if(data&&page==='baseline'&&$('baselineEntity').value){
-  const entity=$('baselineEntity').value,metric=$('baselineMetric').value;
-  const task=data.tasks.find(row=>!row.deleted&&row.entity===entity&&row.template==='uni_'+metric);
+  const {entity,metric,task}=monitorContext('baseline',monitorPrefs.baseline);
   openMonitorDetails(entity,task,metric);
   return;
  }
@@ -344,6 +343,9 @@ function associationHasScore(task,state){
 
 const methodSelection={baseline:null,scenarios:null};
 const boardMethod={baseline:null,scenarios:null};
+const boardPrefix={baseline:'baseline',scenarios:'association'};
+const targetListSignatures={};
+let baselineMetric='';
 
 function monitorMethods(entity,root,metric){
  const template=root?.template||'uni_'+metric;
@@ -367,34 +369,111 @@ function monitorMethods(entity,root,metric){
   const [status,color]=active?monitoredStatus(task):observing?[root.enabled&&data.inference.enabled?'影子监测':'影子已暂停','']:
    training?['训练中','']:ready.length?['待启用','gray']:root?['待训练','gray']:['未配置任务','gray'];
   const score=active&&associationHasScore(task,state)?{...state,t:state.last_source}:!active?shadowPoint:null;
-  return {id:(root?.id||entity.id+'|'+template)+'|'+algorithm,entity,root,task,metric,algorithm,active,observing,
+  return {entity,root,task,metric,algorithm,active,observing,
    ready,supported:supported.includes(algorithm),status,color,score,version:online||
     (observing&&ready.find(model=>model.id===shadow.id))||ready[0]};
  }).sort((a,b)=>Number(b.active)-Number(a.active)||Number(b.observing)-Number(a.observing));
 }
 
-function selectedMethod(section,methods){
- const method=methods.find(row=>row.id===methodSelection[section]);
- if(!method)methodSelection[section]=null;
- boardMethod[section]=method||null;
- return method;
+function boardFilter(section,name){
+ return $(boardPrefix[section]+name);
+}
+
+function boardTarget(section,key){
+ if(section==='baseline')baselineMetric=key;
+ else if(monitorPrefs.scenarios.task!==key){
+  monitorPrefs.scenarios.task=key;
+  monitorPrefs.scenarios.metric='all';
+ }
+}
+
+function redrawMethodBoard(section){
+ if(section==='baseline')renderBaselines();
+ else renderAssociationTasks();
+ renderMonitorView();
+ roleAccess();
+}
+
+function clearMethodBoardFilters(section){
+ for(const suffix of ['TargetSearch','AlgorithmFilter','StatusFilter'])boardFilter(section,suffix).value='';
+}
+
+function boardMethodMatches(method,algorithm,status){
+ if(algorithm&&method.algorithm!==algorithm)return false;
+ if(status==='anomaly')return Boolean(method.active&&method.task.enabled&&stateFor(method.task)?.active);
+ if(status==='enabled')return method.active&&method.task.enabled;
+ if(status==='paused')return method.active&&!method.task.enabled;
+ if(status==='ready')return !method.active&&method.ready.length>0;
+ if(status==='untrained')return !method.active&&!method.ready.length;
+ return true;
+}
+
+function renderMethodBoard(section,targets,preferred){
+ const prefix=boardPrefix[section],single=section==='baseline';
+ const search=boardFilter(section,'TargetSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+ const algorithmFilter=boardFilter(section,'AlgorithmFilter');
+ const templates=new Set(targets.map(target=>target.root?.template||'uni_'+target.metric));
+ const scopes=new Set(targets.filter(target=>target.root).map(({root})=>[root.entity,root.template,root.scope].join('|')));
+ const algorithms=new Set(Array.from(templates).flatMap(template=>supportedAlgorithms({template}).map(([key])=>key)));
+ for(const model of data.models){
+  if(scopes.has([model.entity,model.template,model.source_type].join('|')))algorithms.add(model.algorithm);
+ }
+ options(algorithmFilter,['',...Array.from(algorithms).sort((a,b)=>algorithmLabel(a).localeCompare(algorithmLabel(b)))],
+  key=>key,key=>key?algorithmLabel(key):'全部方法');
+ const algorithm=algorithmFilter.value,status=boardFilter(section,'StatusFilter').value;
+ boardFilter(section,'ClearFilters').hidden=!search.length&&!algorithm&&!status;
+ const methodsFor=target=>(target.methods??=monitorMethods(target.entity,target.root,target.metric)
+  .filter(method=>boardMethodMatches(method,algorithm,status)));
+ const visible=targets.filter(target=>{
+  if(search.length){
+   const text=[target.title,target.subtitle,target.root?.name,...target.fields.flatMap(key=>
+    [key,metricNames[key],data.metrics[key]?.name,data.metrics[key]?.metric_id])].join(' ').toLowerCase();
+   if(!search.every(term=>text.includes(term)))return false;
+  }
+  return !algorithm&&!status||methodsFor(target).length>0;
+ });
+ const target=visible.find(item=>item.key===preferred)||visible[0];
+ boardTarget(section,target?.key||'');
+ const methods=target?methodsFor(target):[];
+ const explicit=methods.find(method=>method.algorithm===methodSelection[section]);
+ const selected=explicit||methods.find(method=>method.active&&method.task===method.root)||
+  methods.find(method=>method.active)||(algorithm||status?methods[0]:null);
+ boardMethod[section]=selected||null;
+ $(single?'baselineMethodSummary':'associationSummary').textContent=targets.length
+  ?visible.length+' / '+targets.length+(single?' 个指标':' 个指标组')
+  :single?'等待 GPU 接入':'当前范围尚无关联任务';
+ $(prefix+'MethodsHeading').textContent=target?target.title+' · '+methods.length+' 种方法':'检测方法';
+ const empty=targets.length?'没有符合筛选条件的结果':'暂无可选择的'+(single?'指标':'指标组');
+ const list=$(prefix+'Targets');
+ const signature=JSON.stringify([target?.key,visible.map(({key,title,subtitle})=>[key,title,subtitle]),empty]);
+ if(targetListSignatures[section]!==signature){
+  const rows=visible.map(item=>{
+   const row=el('li'),button=uiButton(item.title,()=>{
+    boardTarget(section,item.key);
+    redrawMethodBoard(section);
+    Array.from(list.children).find(node=>node.firstElementChild?.getAttribute('aria-pressed')==='true')?.firstElementChild.focus();
+   },'method-target');
+   button.setAttribute?.('aria-pressed',String(item===target));
+   if(item.subtitle)button.append(el('small',item.subtitle));
+   row.append(button);
+   return row;
+  });
+  list.replaceChildren(...(rows.length?rows:[el('li',empty,'empty')]));
+  targetListSignatures[section]=signature;
+ }
+ $(single?'baselineMethodRows':'associationRows').replaceChildren(...(methods.length
+  ?methods.map(method=>methodBoardRow(section,method,method===selected))
+  :[emptyRow(4,target?'该指标没有可用方法':'请选择'+(single?'指标':'指标组'))]));
+ const detail=selected&&!selected.active?selected:null;
+ renderBoardMethodDetail(section,detail);
+ return selected;
 }
 
 function openBoardMethod(section,method){
- methodSelection[section]=method.id;
- if(section==='baseline'){
-  $('baselineMetric').value=method.metric;
-  renderBaselines();
- }else{
-  monitorPrefs.scenarios.task=method.root.id;
-  monitorPrefs.scenarios.metric='all';
-  renderAssociationTasks();
- }
- renderMonitorView();
- roleAccess();
- const target=method.active?(section==='baseline'?'baselineLiveSelection':'associationStatus'):
-  (section==='baseline'?'baselineMethodSelection':'associationMethodSelection');
- $(target).scrollIntoView({block:'start'});
+ methodSelection[section]=method.algorithm;
+ redrawMethodBoard(section);
+ const rows=$(section==='baseline'?'baselineMethodRows':'associationRows');
+ rows.querySelector?.('.method-name[aria-pressed="true"]')?.focus({preventScroll:true});
 }
 
 function renderBoardMethodDetail(section,method){
@@ -410,6 +489,7 @@ function renderBoardMethodDetail(section,method){
  if(!task)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
  actions.append(uiButton(task?.active_model?'返回在线方法':'查看原始曲线',()=>{
   methodSelection[section]=null;
+  clearMethodBoardFilters(section);
   render();
  }));
  const heading=el('div',undefined,'panel-heading');
@@ -429,8 +509,6 @@ function methodBoardRow(section,method,selected){
  const button=uiButton(algorithmLabel(algorithm),()=>openBoardMethod(section,method),'text-button method-name');
  button.setAttribute?.('aria-pressed',String(selected));
  name.append(button);
- if(section==='baseline')name.append(el('small',metricNames[metric]||metric));
- else name.append(el('small',taskDisplayName(task)),el('small',entity.uuid+' · '+(task.scenario_id?'白盒场景':'黑盒模型')));
  status.append(badge(method.status,method.color));
  if(method.active){
   if(task.enabled&&data.inference.enabled)status.append(el('small','在线模型'));
@@ -477,22 +555,12 @@ function renderAssociationTasks(){
  const select=$('associationEntity');
  options(select,[{id:'',uuid:'全部 GPU'},...entities],entity=>entity.id,entity=>entity.id?deviceLabel(entity):entity.uuid);
  if(page!=='scenarios')return;
- const tasks=associationTasks(entities),pref=monitorPrefs.scenarios;
- if(page==='scenarios'&&!tasks.some(task=>task.id===pref.task)){
-  pref.task=tasks[0]?.id;
-  pref.metric='all';
- }
- const methods=tasks.flatMap(task=>monitorMethods(byEntity.get(task.entity),task,null));
- const selected=selectedMethod('scenarios',methods);
- if(selected&&!selected.active)$('associationStatus').hidden=true;
- const evaluated=methods.filter(method=>method.active&&method.score).length;
- $('associationSummary').textContent=methods.length
-  ?tasks.length+' 个任务 · '+methods.length+' 项方法 · '+evaluated+' 项有效在线评分'
-  :'当前范围尚无关联任务。';
- const rows=methods.map(method=>methodBoardRow('scenarios',method,selected?selected.id===method.id:
-  method.active&&method.root.id===pref.task&&method.task===method.root));
- $('associationRows').replaceChildren(...(rows.length?rows:[emptyRow(4,'当前 GPU 范围没有关联检测任务')]));
- renderBoardMethodDetail('scenarios',selected&&!selected.active?selected:null);
+ const targets=associationTasks(entities).map(root=>{
+  const entity=byEntity.get(root.entity);
+  return {key:root.id,root,entity,title:taskDisplayName(root),fields:data.templates[root.template].required,
+   subtitle:(root.scenario_id?'白盒场景':'黑盒模型')+' · '+entity.uuid};
+ });
+ renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
 }
 
 function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实未核验');}
@@ -1067,23 +1135,19 @@ function renderBaselines(){
  $('prepareBaseline').hidden=!data.simulation;
  const entity=entities.find(item=>item.id===deviceSelect.value);
  const tasks=new Map(data.tasks.filter(task=>task.entity===entity?.id&&!task.deleted&&!task.method_parent).map(task=>[task.template,task]));
- const metrics=Array.from(new Set([...PRIMARY,...Array.from(tasks.keys())
-  .filter(template=>data.templates[template]?.kind==='univariate'&&template.startsWith('uni_'))
-  .map(template=>template.slice(4))]));
- options($('baselineMetric'),metrics,m=>m,m=>metricNames[m]||m);
- const selected=$('baselineMetric').value;
- const methods=entity?metrics.flatMap(metric=>monitorMethods(entity,tasks.get('uni_'+metric),metric)):[];
- const alternative=selectedMethod('baseline',methods);
- const evaluated=methods.filter(method=>method.active&&method.score).length;
- $('baselineMethodSummary').textContent=entity?methods.length+' 项方法 · '+evaluated+' 项有效在线评分':'等待 GPU 接入';
- const rows=methods.map(method=>methodBoardRow('baseline',method,alternative?alternative.id===method.id:
-  method.active&&method.metric===selected));
- $('baselineMethodRows').replaceChildren(...(rows.length?rows:[emptyRow(4,'没有可展示的方法')]));
- $('baselineLiveSelection').hidden=Boolean(alternative&&!alternative.active);
- renderBoardMethodDetail('baseline',alternative&&!alternative.active?alternative:null);
- renderBaselineStatus(entity,selected,alternative?.active?alternative.task:tasks.get('uni_'+selected));
+ const metrics=Array.from(new Set([...PRIMARY,...Object.entries(data.templates)
+  .filter(([template,spec])=>spec.kind==='univariate'&&template.startsWith('uni_'))
+  .map(([template])=>template.slice(4))]));
+ const targets=entity?metrics.map(metric=>({
+  key:metric,metric,entity,root:tasks.get('uni_'+metric),
+  title:metricNames[metric]||metric,subtitle:data.metrics[metric]?.name,fields:[metric],
+ })):[];
+ const alternative=renderMethodBoard('baseline',targets,baselineMetric);
+ const selected=baselineMetric;
+ $('baselineLiveSelection').hidden=!selected||Boolean(alternative&&!alternative.active);
+ if(selected)renderBaselineStatus(entity,selected,alternative?.active?alternative.task:tasks.get('uni_'+selected));
  if(page==='baseline'&&!replayMode){
-  if(alternative&&!alternative.active)$('baselineComparison').hidden=true;
+  if(!selected||(alternative&&!alternative.active))$('baselineComparison').hidden=true;
   else renderBaselineComparison(tasks.get('uni_'+selected));
  }
  const previews=PRIMARY.map(metric=>{
@@ -1130,7 +1194,8 @@ async function configureBaseline(entity,metrics){
 
 function openBaselineAction(entity,metric,mode){
  if(!entity){toast('请先选择 GPU');return;}
- const task=data.tasks.find(t=>t.entity===entity&&t.template==='uni_'+metric&&!t.deleted);
+ if(!metric){toast('请先选择指标');return;}
+ const task=data.tasks.find(t=>t.entity===entity&&t.template==='uni_'+metric&&!t.deleted&&!t.method_parent);
  if(task){
   if(mode==='choose')openModelChoice(task);
   else openTraining(task);
@@ -1142,14 +1207,22 @@ function openBaselineAction(entity,metric,mode){
   btn('批量添加 5 项指标',async()=>{await configureBaseline(entity,PRIMARY);$('dialogOverlay').hidden=true;}),
  ],async()=>{},'关闭');
 }
-$('baselineChooseModel').onclick=()=>openBaselineAction($('baselineEntity').value,$('baselineMetric').value,'choose');
-$('baselineTrainModel').onclick=()=>openBaselineAction($('baselineEntity').value,$('baselineMetric').value,'train');
+$('baselineChooseModel').onclick=()=>openBaselineAction($('baselineEntity').value,baselineMetric,'choose');
+$('baselineTrainModel').onclick=()=>openBaselineAction($('baselineEntity').value,baselineMetric,'train');
 $('addModelService').onclick=()=>openModelService();
-$('importRemoteModel').onclick=()=>{const task=data.tasks.find(t=>t.entity===$('baselineEntity').value&&t.template==='uni_'+$('baselineMetric').value&&!t.deleted);if(task)openRemoteImport(task);else openBaselineAction($('baselineEntity').value,$('baselineMetric').value,'choose');};
-$('baselineEntity').onchange=$('baselineMetric').onchange=()=>{
- methodSelection.baseline=null;
- renderBaselines();renderMonitorView();roleAccess();
-};
+$('importRemoteModel').onclick=()=>{const task=data.tasks.find(t=>t.entity===$('baselineEntity').value&&t.template==='uni_'+baselineMetric&&!t.deleted&&!t.method_parent);if(task)openRemoteImport(task);else openBaselineAction($('baselineEntity').value,baselineMetric,'choose');};
+for(const section of Object.keys(boardPrefix)){
+ const redraw=()=>redrawMethodBoard(section);
+ boardFilter(section,'TargetSearch').oninput=redraw;
+ boardFilter(section,'AlgorithmFilter').onchange=redraw;
+ boardFilter(section,'StatusFilter').onchange=redraw;
+ boardFilter(section,'ClearFilters').onclick=()=>{
+  clearMethodBoardFilters(section);
+  redraw();
+  boardFilter(section,'TargetSearch').focus();
+ };
+}
+$('baselineEntity').onchange=()=>redrawMethodBoard('baseline');
 $('baselineArchive').ontoggle=()=>{if(data&&$('baselineArchive').open){renderBaselines();roleAccess();}};
 $('associationEntity').onchange=()=>{renderAssociationTasks();renderMonitorView();renderScenarios();roleAccess();};
 $('prepareBaseline').onclick=()=>action(async()=>{const entity=data.entities.find(e=>e.id===$('baselineEntity').value);if(entity?.source_type!=='simulated')throw Error('请选择显式模拟GPU');const r=await api('/baseline-demo',{method:'POST',body:JSON.stringify({uuid:entity.uuid})});toast('已配置 '+r.tasks.length+' 项，排队 '+r.jobs.length+' 个参考训练；完成后逐项点击“切换模型”启用');});

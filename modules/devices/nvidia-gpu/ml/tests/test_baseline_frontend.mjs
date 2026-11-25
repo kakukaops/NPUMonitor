@@ -28,7 +28,7 @@ class Element{
  append(...c){this.children.push(...c);}replaceChildren(...c){this.children=c;if(this.tagName==='select'&&!c.some(n=>n.value===this._value))this._value=null;}
  getBoundingClientRect(){return {width:800,height:300,left:0};}getContext(){return ctx;}click(){}
 }
-const document={createElement:t=>new Element(t),getElementById:id=>{if(!nodes.has(id)){const n=new Element(['cluster','window','baselineEntity','baselineMetric','taskSelect','metricSelect'].includes(id)?'select':'div');n.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
+const document={createElement:t=>new Element(t),getElementById:id=>{if(!nodes.has(id)){const n=new Element(['cluster','window','baselineEntity','baselineAlgorithmFilter','associationAlgorithmFilter','taskSelect','metricSelect'].includes(id)?'select':'div');n.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
 document.getElementById('window').value='900';
 const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,URLSearchParams,devicePixelRatio:1,window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async(url,options={})=>{calls.push({url,...options});return {ok:true,status:200,json:async()=>url.endsWith('/state')?fixture:url.includes('/model-services/')&&url.includes('/models?task=')?{models:[{model_ref:'catalog-m',deployment_ref:'catalog-d',algorithm:'temporal_mad',created_at:now}],excluded:1}:url.includes('/series/')?{points:[{t:now-2,values:Object.fromEntries(primary.map(m=>[m,50])),expected:Object.fromEntries(primary.map(m=>[m,49])),bounds:Object.fromEntries(primary.map(m=>[m,[45,55]])),score:0,threshold:1,anomaly:false},{t:now,values:Object.fromEntries(primary.map(m=>[m,51])),expected:Object.fromEntries(primary.map(m=>[m,50])),bounds:Object.fromEntries(primary.map(m=>[m,[46,56]])),score:0,threshold:1,anomaly:false}]}:{points:[],tasks,jobs:[],created:[],skipped:[]}};}};
 vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
@@ -56,9 +56,19 @@ assert.equal(nodes.get('countUnknown').textContent,0,'Untrained tasks are distin
 run('data.tasks.pop();data.states[0].quality="missing";render()');
 assert.equal(nodes.get('countUnknown').textContent,1);
 run('data.states[0].quality="valid";render()');
-run('$("baselineMetric").value="power";$("baselineMetric").onchange()');
+const selectMetric=label=>nodes.get('baselineTargets').children.find(row=>row.children[0].textContent===label).children[0].onclick();
+selectMetric('板卡功耗');
 assert.ok(nodes.get('baselineCards').children[2].className.includes('selected-metric'));
-run('$("baselineMetric").value="gpu_temp";$("baselineMetric").onchange()');
+assert.equal(nodes.get('baselineTargets').children.length,8);
+assert.equal(nodes.get('baselineMethodRows').children.length,2,'Only the selected metric’s methods appear');
+run('$("baselineTargetSearch").value="DCGM_FI_DEV_GPU_TEMP";$("baselineTargetSearch").oninput()');
+assert.equal(nodes.get('baselineTargets').children.length,1);
+assert.equal(run('baselineMetric'),'gpu_temp');
+run('$("baselineStatusFilter").value="paused";$("baselineStatusFilter").onchange()');
+assert.equal(run('baselineMetric'),'');
+assert.equal(nodes.get('monitorView').hidden,true);
+run("clearMethodBoardFilters('baseline');redrawMethodBoard('baseline')");
+selectMetric('GPU 温度');
 
 assert.equal(nodes.get('replaySwitch').hidden,true);
 run('data.simulation=false;render()');
@@ -74,7 +84,7 @@ run('data.entities.shift()');
 run('openModelChoice(data.tasks[0])');assert.equal(nodes.get('chooseModel').children.length,1);
 assert.equal(nodes.get('dialogTitle').textContent,'切换模型');
 assert.ok(nodes.get('baselineChooseModel').onclick);assert.ok(nodes.get('baselineTrainModel').onclick);
-run('$("baselineMetric").value="gpu_temp";$("baselineChooseModel").onclick()');
+run('$("baselineChooseModel").onclick()');
 assert.equal(nodes.get('dialogTitle').textContent,'切换模型');
 for(const card of nodes.get('baselineCards').children){
  const controls=card.children.find(n=>n.className==='controls');

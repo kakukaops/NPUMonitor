@@ -88,10 +88,28 @@
       <label>GPU <select id="baselineEntity" aria-label="单指标 GPU"></select></label>
     </div>
   </div>
-  <div class="table-scroll method-board-wrap" tabindex="0" aria-label="可滚动的方法列表"><table class="association-table method-board">
-    <thead><tr><th>指标与方法</th><th>运行状态</th><th>最近评分</th><th>操作</th></tr></thead>
-    <tbody id="baselineMethodRows"></tbody>
-  </table></div>
+  <div class="controls monitoring-inputs board-filters">
+    <label>搜索 <input type="search" id="baselineTargetSearch" aria-label="搜索单指标" placeholder="指标名或 DCGM 字段"></label>
+    <label>方法 <select id="baselineAlgorithmFilter" aria-label="筛选单指标方法"></select></label>
+    <label>状态 <select id="baselineStatusFilter" aria-label="筛选单指标状态">
+      <option value="">全部状态</option><option value="anomaly">有异常</option><option value="enabled">已启用</option>
+      <option value="paused">已暂停</option><option value="ready">待启用</option><option value="untrained">尚无可用版本</option>
+    </select></label>
+    <button type="button" id="baselineClearFilters" hidden>清除筛选</button>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="baselineTargetHeading">
+      <h3 id="baselineTargetHeading">指标</h3>
+      <ul class="method-targets" id="baselineTargets"></ul>
+    </section>
+    <section aria-labelledby="baselineMethodsHeading">
+      <h3 id="baselineMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="检测方法列表"><table class="association-table method-board">
+        <thead><tr><th>方法</th><th>运行状态</th><th>最近评分</th><th>操作</th></tr></thead>
+        <tbody id="baselineMethodRows"></tbody>
+      </table></div>
+    </section>
+  </div>
   <details class="monitor-tools">
     <summary>批量配置与模型导入</summary>
     <div class="controls">
@@ -106,9 +124,7 @@
 </div>
 <section id="baselineMethodSelection" class="panel" hidden></section>
 <div class="panel" id="baselineLiveSelection">
-  <div class="panel-heading"><h2>所选方法</h2><div class="controls monitoring-inputs">
-    <label>指标 <select id="baselineMetric" aria-label="单指标名称"></select></label>
-  </div></div>
+  <div class="panel-heading"><h2>所选方法</h2></div>
   <div id="baselineStatus" class="monitor-focus" aria-live="off"></div>
 </div>
 <div id="baselineMonitorSlot">
@@ -170,10 +186,28 @@
       <button id="newAssociation" class="write" type="button">新建关联任务</button>
     </div>
   </div>
-  <div class="table-scroll method-board-wrap" tabindex="0" aria-label="可滚动的方法列表"><table class="association-table method-board">
-    <thead><tr><th>任务与方法</th><th>运行状态</th><th>输入与评分</th><th>操作</th></tr></thead>
-    <tbody id="associationRows"></tbody>
-  </table></div>
+  <div class="controls monitoring-inputs board-filters">
+    <label>搜索 <input type="search" id="associationTargetSearch" aria-label="搜索关联指标组" placeholder="指标名、DCGM 字段或 GPU UUID"></label>
+    <label>方法 <select id="associationAlgorithmFilter" aria-label="筛选多指标方法"></select></label>
+    <label>状态 <select id="associationStatusFilter" aria-label="筛选多指标状态">
+      <option value="">全部状态</option><option value="anomaly">有异常</option><option value="enabled">已启用</option>
+      <option value="paused">已暂停</option><option value="ready">待启用</option><option value="untrained">尚无可用版本</option>
+    </select></label>
+    <button type="button" id="associationClearFilters" hidden>清除筛选</button>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="associationTargetHeading">
+      <h3 id="associationTargetHeading">指标组</h3>
+      <ul class="method-targets" id="associationTargets"></ul>
+    </section>
+    <section aria-labelledby="associationMethodsHeading">
+      <h3 id="associationMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="关联检测方法列表"><table class="association-table method-board">
+        <thead><tr><th>方法</th><th>运行状态</th><th>输入与评分</th><th>操作</th></tr></thead>
+        <tbody id="associationRows"></tbody>
+      </table></div>
+    </section>
+  </div>
 </div>
 <section id="associationMethodSelection" class="panel" hidden></section>
 <div class="panel monitor-focus association-selection" id="associationStatus" hidden></div>
