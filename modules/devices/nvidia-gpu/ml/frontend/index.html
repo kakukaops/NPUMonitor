@@ -10,7 +10,7 @@
       <div class="nav-label">值班</div>
       <button class="nav active" id="replayNav" data-page="incidents" aria-current="page"><span aria-hidden="true">◫</span>异常队列</button>
       <button class="nav" data-page="baseline"><span aria-hidden="true">⌁</span>单指标趋势</button>
-      <button class="nav" data-page="scenarios"><span aria-hidden="true">◇</span>多指标关联</button>
+      <button class="nav" data-page="scenarios"><span aria-hidden="true">◇</span>多指标关联预警</button>
       <button class="nav" data-page="overview"><span aria-hidden="true">◈</span>GPU 设备</button>
       <button class="nav nav-subentry" id="detectionShortcut" data-page="detection"><span aria-hidden="true">↳</span>监测详情</button>
       <button class="nav" data-page="events"><span aria-hidden="true">◎</span>通知与复核</button>
@@ -83,13 +83,15 @@
 <section id="page-baseline" class="page" hidden>
 <div class="panel monitoring-panel">
   <div class="panel-heading">
-    <h2>监测对象</h2>
+    <div><h2>方法监测看板</h2><p id="baselineMethodSummary"></p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="baselineEntity" aria-label="单指标 GPU"></select></label>
-      <label>指标 <select id="baselineMetric" aria-label="单指标名称"></select></label>
     </div>
   </div>
-  <div id="baselineStatus" class="monitor-focus" aria-live="off"></div>
+  <div class="table-scroll method-board-wrap" tabindex="0" aria-label="可滚动的方法列表"><table class="association-table method-board">
+    <thead><tr><th>指标与方法</th><th>运行状态</th><th>最近评分</th><th>操作</th></tr></thead>
+    <tbody id="baselineMethodRows"></tbody>
+  </table></div>
   <details class="monitor-tools">
     <summary>批量配置与模型导入</summary>
     <div class="controls">
@@ -101,6 +103,13 @@
     </div>
 
   </details>
+</div>
+<section id="baselineMethodSelection" class="panel" hidden></section>
+<div class="panel" id="baselineLiveSelection">
+  <div class="panel-heading"><h2>所选方法</h2><div class="controls monitoring-inputs">
+    <label>指标 <select id="baselineMetric" aria-label="单指标名称"></select></label>
+  </div></div>
+  <div id="baselineStatus" class="monitor-focus" aria-live="off"></div>
 </div>
 <div id="baselineMonitorSlot">
   <section class="panel monitor-view" id="monitorView" aria-labelledby="monitorViewTitle">
@@ -150,7 +159,7 @@
 <section id="page-scenarios" class="page" hidden>
 <div class="panel monitoring-panel" id="associationTasks">
   <div class="panel-heading">
-    <div><h2>关联任务</h2><p id="associationSummary"></p></div>
+    <div><h2>方法监测看板</h2><p id="associationSummary"></p></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
       <label>类型 <select id="associationKind" aria-label="关联任务类型">
@@ -161,11 +170,12 @@
       <button id="newAssociation" class="write" type="button">新建关联任务</button>
     </div>
   </div>
-  <div class="table-scroll"><table class="association-table">
-    <thead><tr><th>任务与 GPU</th><th>当前判定</th><th>数据与评分</th><th>操作</th></tr></thead>
+  <div class="table-scroll method-board-wrap" tabindex="0" aria-label="可滚动的方法列表"><table class="association-table method-board">
+    <thead><tr><th>任务与方法</th><th>运行状态</th><th>输入与评分</th><th>操作</th></tr></thead>
     <tbody id="associationRows"></tbody>
   </table></div>
 </div>
+<section id="associationMethodSelection" class="panel" hidden></section>
 <div class="panel monitor-focus association-selection" id="associationStatus" hidden></div>
 <div id="associationMonitorSlot"></div>
 </section>

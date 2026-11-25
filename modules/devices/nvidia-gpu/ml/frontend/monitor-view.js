@@ -17,6 +17,7 @@ function selectMonitorSample(section){
 }
 
 function selectAssociationMonitor(task){
+ methodSelection.scenarios=null;
  const entity=data.entities.find(row=>row.id===task.entity);
  if($('cluster').value&&entity?.cluster!==$('cluster').value)$('cluster').value='';
  if($('associationEntity').value&&$('associationEntity').value!==task.entity)$('associationEntity').value='';
@@ -63,6 +64,10 @@ function renderMonitorView(force=false){
  const slot=$(page==='baseline'?'baselineMonitorSlot':'associationMonitorSlot');
  const panel=$('monitorView');
  if(panel.parentElement!==slot)slot.append(panel);
+ if(methodSelection[page]){
+  panel.hidden=true;
+  return;
+ }
  const {entity,task,metric,allInputs,inputCount}=monitorContext(page,pref);
  const device=data.entities.find(row=>row.id===entity);
  const isSample=pref.source==='sample',mode=isSample?'replay':pref.mode;
