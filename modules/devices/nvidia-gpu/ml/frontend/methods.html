@@ -16,6 +16,7 @@
       <a class="rail-link" href="/"><span>▦</span> GPU 监控工作台</a>
       <a class="rail-link" href="#architecture"><span>◇</span> 检测架构</a>
       <a class="rail-link" href="#benchmark"><span>▤</span> 基准对照</a>
+      <a class="rail-link" href="/assets/dcgm-method-guide.html"><span aria-hidden="true">≡</span> DCGM 方法说明</a>
       <a class="rail-link" href="/#association-compare"><span>◇</span> 多指标对照实验</a>
       <a class="rail-link" href="#trace"><span>⌁</span> 原始曲线</a>
       <a class="rail-link" href="#rules"><span>▣</span> 规则证据</a>
@@ -76,6 +77,12 @@
           <div class="benchmark-side"><div class="side-kicker">RECOMMENDED CANDIDATE</div><div class="side-ring"><span id="sideRingValue">—</span><small id="sideRingLabel">区间命中</small></div><h3 id="sideTitle">窗口 PCA · 动态阈值</h3><p id="sideDescription">用过去的分数更新 P99.5，连续三点确认。产生候选，不自动通知。</p><div class="side-divider"></div><div class="side-stat"><span id="sideStatLabel">告警段与标签重叠</span><strong id="sideStatValue">—</strong></div><div class="side-stat"><span id="sideCoverageLabel">方法边界</span><strong id="sideCoverageValue">—</strong></div></div>
         </div>
         <div class="model-compare"><div class="model-compare-title"><div><span class="eyebrow">MODEL SELECTION</span><h3>深度模型有没有赢？</h3></div><span>同一 SMD 窗口 / 训练留出阈值 / 3 epoch</span></div><div id="modelCompareRows" class="model-compare-rows"></div><p>USAD 和普通自编码器在这次固定协议下未同时改善事件覆盖与无标签告警量；这不是对所有深度模型的否定。</p></div>
+      </section>
+
+      <section class="final-note" aria-label="DCGM 方法说明">
+        <div class="final-icon" aria-hidden="true">≡</div>
+        <div><strong>DCGM 方法说明</strong><p>查看节点 XID 检测和 GPU 趋势复核的输入、训练方式、适用数据源，以及 GWDG 的召回率、误报率和起始命中。</p></div>
+        <a href="/assets/dcgm-method-guide.html">打开 DCGM 方法与评测说明 →</a>
       </section>
 
       <section id="trace" class="section-block">

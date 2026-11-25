@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>DCGM 方法与评测说明 · NPUMonitor</title>
+  <link rel="stylesheet" href="/assets/methods.css">
+  <link rel="stylesheet" href="/assets/dcgm-method-guide.css">
+</head>
+<body class="method-guide">
+  <header class="topbar">
+    <div class="crumb"><a href="/">工作台</a> <span>/</span> <a href="/methods">方法与评测</a></div>
+    <a class="guide-link" href="/methods">返回方法与评测</a>
+  </header>
+  <main id="content">
+    <header class="guide-intro">
+      <h1>DCGM 方法与评测说明</h1>
+      <p>节点模型用于筛选当前可能伴随 XID 的异常。卡级趋势和白盒关系用于复核哪些 GPU、哪些指标发生了偏离。</p>
+      <nav aria-label="文档目录">
+        <a href="#workflow">工作台怎么用</a>
+        <a href="#input">模型输入</a>
+        <a href="#models">方法与训练</a>
+        <a href="#evaluation">公开数据结果</a>
+        <a href="#sources">数据源</a>
+      </nav>
+    </header>
+
+    <section id="workflow" class="guide-section">
+      <h2>工作台里怎么读结果</h2>
+      <div class="guide-cards">
+        <article>
+          <h3><a class="guide-link" href="/#trend">单指标趋势</a></h3>
+          <p>选 GPU 和指标，对照观测、动态基线或预测区间。出界表示该指标偏离历史行为，可以继续检查同节点其他卡。</p>
+        </article>
+        <article>
+          <h3><a class="guide-link" href="/#association">多指标关联预警</a></h3>
+          <p>白盒结果显示具体负载关系及偏离量。节点模型根据历史统计量评分，浅层树可展开判断路径，稳健范围和 PCA T² 可查看贡献指标。</p>
+        </article>
+        <article>
+          <h3><a class="guide-link" href="/#incidents">异常队列 · 节点联合复核</a></h3>
+          <p>指定节点和时刻，先看五指标节点树及 XID 状态，再对照各 GPU 的趋势区间和条件残差。参考树的分数供人工复核，卡级缺失单独显示。</p>
+        </article>
+      </div>
+      <p class="guide-note">节点 XID 检测回答「当前时刻是否异常」。未来两小时是否出现 XID 使用独立的提前预警任务和事件评估。<a class="guide-link" href="/#association-compare">查看同卡 XID 提前预警评测</a></p>
+    </section>
+
+    <section id="input" class="guide-section">
+      <h2>节点模型用什么数据</h2>
+      <p>每个样本由节点和时刻 <var>t</var> 确定。先按时间对齐节点内各 GPU 的非 XID 指标，读取截至 <var>t</var> 的最近 30 个 10 秒端点（约 5 分钟）。每个指标分别计算节点内均值、最大值和卡级缺测比例，再沿时间汇总为 <strong>10 + 10 + 8 = 28</strong> 个候选特征。</p>
+      <dl class="guide-fields">
+        <div><dt>每个数值通道 · 10 项</dt><dd>当前值、近 3 点均值、近 6 点均值、全窗均值、全窗最大值、近 6 点与此前均值之差、标准差、最小值、全窗斜率、近 6 点斜率。</dd></div>
+        <div><dt>缺测通道 · 8 项</dt><dd>前六种汇总、全窗完全缺测端点占比、截至当前连续完全缺测秒数。有效的 0 会参与统计。</dd></div>
+        <div><dt>输入宽度</dt><dd>单字段 28 维，18 字段 504 维，联合复核的五字段树 140 维。拟合时去掉无方差或无有效数据列，并按训练集标准化。剩余缺测数值按训练均值填补。</dd></div>
+        <div><dt>XID 的角色</dt><dd>节点 XID 标签取当前端点。已观测到卡级 XID 非零时，节点标为非零。实时数据中，已发现的 GPU 都有 XID=0 的有效观测时，节点才标为确认 0。XID 参与监督训练或筛选正常参考窗口，模型打分输入只含非 XID 指标。公开回放的节点 XID 无法归属到具体 GPU。</dd></div>
+      </dl>
+      <p class="guide-note"><strong>输入示意</strong> 某端点两张卡的功耗依次为 260 W 和 300 W。该端点的节点均值为 280 W、最大值为 300 W、缺测比例为 0。再把这三个通道连同此前的功耗端点一起生成 28 个功耗特征。</p>
+      <details>
+        <summary>查看 18 个输入字段</summary>
+        <p>下列字段都带有 <code>DCGM_FI_DEV_</code> 前缀。五字段树使用加粗的字段。</p>
+        <ul class="guide-metrics">
+          <li><code>CORRECTABLE_REMAPPED_ROWS</code></li><li><code>DEC_UTIL</code></li>
+          <li><code>ENC_UTIL</code></li><li><code>FB_FREE</code></li><li><code>FB_USED</code></li>
+          <li><strong><code>GPU_TEMP</code></strong></li><li><strong><code>GPU_UTIL</code></strong></li>
+          <li><code>MEMORY_TEMP</code></li><li><code>MEM_CLOCK</code></li>
+          <li><strong><code>MEM_COPY_UTIL</code></strong></li><li><code>NVLINK_BANDWIDTH_TOTAL</code></li>
+          <li><code>PCIE_REPLAY_COUNTER</code></li><li><strong><code>POWER_USAGE</code></strong></li>
+          <li><code>ROW_REMAP_FAILURE</code></li><li><strong><code>SM_CLOCK</code></strong></li>
+          <li><code>TOTAL_ENERGY_CONSUMPTION</code></li><li><code>UNCORRECTABLE_REMAPPED_ROWS</code></li>
+          <li><code>VGPU_LICENSE_STATUS</code></li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="models" class="guide-section">
+      <h2>方法与训练</h2>
+      <h3>节点级 XID 检测</h3>
+      <div class="guide-table" tabindex="0" role="region" aria-label="节点模型、输入和训练依据">
+        <table>
+          <thead><tr><th scope="col">方法</th><th scope="col">字段</th><th scope="col">训练依据</th><th scope="col">分数含义</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">L2 逻辑回归</th><td>单</td><td>已知 XID 正负样本</td><td>历史统计量的加权组合映射到 XID 非零类别分数。</td></tr>
+            <tr><th scope="row">梯度提升树</th><td>单</td><td>已知 XID 正负样本</td><td>多棵树逐步修正误差，可以学习非线性偏离。</td></tr>
+            <tr><th scope="row">浅层决策树</th><td>单 / 多</td><td>已知 XID 正负样本</td><td>按阈值逐层切分，使用叶节点的加权正类比例。可复核路径上的特征和边界。</td></tr>
+            <tr><th scope="row">PCA + 逻辑回归</th><td>单</td><td>已知 XID 正负样本</td><td>先把相关统计量压缩成主成分，再对主成分打分类分数。</td></tr>
+            <tr><th scope="row">PCA T²</th><td>单 / 多</td><td>当前 XID=0 的参考窗口</td><td>主成分得分平方除以对应方差后求和，衡量联合偏离。</td></tr>
+            <tr><th scope="row">孤立森林</th><td>单</td><td>当前 XID=0 的参考窗口</td><td>随机树越容易将这个样本单独分出来，异常分数越高。</td></tr>
+            <tr><th scope="row">稳健参考范围</th><td>单 / 多</td><td>当前 XID=0 的参考窗口</td><td>取相对参考中位数的最大标准化偏离。尺度用 MAD（中位绝对偏差）及下限约束。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>参考类模型以可观察的 XID=0 为拟合条件。生产节点是否健康还要结合其他证据。若用验证集最大 F1 来选阈值，参考类模型同样需要有 XID 正例的验证集。</p>
+      <h3>联合复核中的 GPU 证据</h3>
+      <ul>
+        <li><strong>单指标动态区间。</strong> 对六个可用趋势指标分别拟合分位数回归，按过去 12 分钟的同指标观测生成下一分钟区间，用更晚的历史段校准区间余量。每分钟需要至少 3 个有效 10 秒点，连续 3 分钟出界才确认候选。训练和校准分别至少需要 60 和 25 个满足连续性要求的样本。</li>
+        <li><strong>白盒负载关系。</strong> 用 GPU 利用率和显存控制器活动解释功耗、温度和 SM 时钟，展示观测与负载条件下参考值的差异。这里的条件关系由岭回归拟合，需要有效参考历史。</li>
+        <li><strong>直接 XID 证据。</strong> 来源提供可信卡级记录时按 UUID 展示。只有节点级 XID 时，通过卡级曲线缩小复核范围，GPU 的物理故障仍需进一步确认。</li>
+      </ul>
+    </section>
+
+    <section id="evaluation" class="guide-section">
+      <h2>GWDG 公开数据评测</h2>
+      <div class="guide-stats">
+        <div><strong>216,101</strong><span>纳入的 10 秒窗口</span></div>
+        <div><strong>50,700</strong><span>当前 XID 非零窗口</span></div>
+        <div><strong>15</strong><span>有效测试节点</span></div>
+        <div><strong>45</strong><span>可评价的明确起始</span></div>
+      </div>
+      <p>原报告按节点五折留出，每轮用 3 组训练、1 组验证、1 组测试。先从 444,648 个已评分窗口排除当前端点 18 个指标全缺测的 228,547 个窗口，其中 9,404 个窗口 XID 非零。保留 152,976 个确认 0 和 12,425 个 XID 未知窗口。逐窗口结果按计数汇总，长时间的同一次异常会贡献许多相邻窗口。</p>
+      <p>下表统一使用「验证集确认 0 窗口 FPR &lt; 1%」校准策略。测试 FPR 同时展示确认 0 与报告中将 XID 未知报警计为误报的口径。精确率按原报告运维口径。明确起始指上一 10 秒端点确认 0、当前端点首次观测非零。</p>
+      <div class="guide-table" tabindex="0" role="region" aria-label="GWDG 离线留出节点结果">
+        <table>
+          <thead><tr><th scope="col">方法与输入</th><th scope="col">精确率</th><th scope="col">窗口召回率</th><th scope="col">测试 FPR<br>含未知</th><th scope="col">测试 FPR<br>确认 0</th><th scope="col">明确起始<br>当刻命中</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">梯度提升树 · 功耗单字段</th><td>78.8%</td><td>66.5%</td><td>5.49%</td><td>3.73%</td><td>6/45</td></tr>
+            <tr><th scope="row">PCA T² · 18 字段</th><td>64.0%</td><td>56.4%</td><td>9.74%</td><td>2.90%</td><td>1/45</td></tr>
+            <tr><th scope="row">稳健范围 · 18 字段</th><td>63.2%</td><td>56.4%</td><td>10.08%</td><td>3.06%</td><td>0/45</td></tr>
+            <tr><th scope="row">浅层树 · 18 字段</th><td>60.9%</td><td>53.0%</td><td>10.43%</td><td>5.32%</td><td>5/45</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>功耗树是这批单指标组合中窗口 F1 最高的一项，适合作为复核候选。它的起始命中只有 6/45，测试 FPR 超过了验证目标。PCA T² 在观察到 XID 非零期间命中 34/86 个可评价片段，在明确起始只命中 1/45。选择值班方法时，应同时读起始命中、测试误报率和可评分覆盖。</p>
+      <details>
+        <summary>两套阈值与三种事件检出分母</summary>
+        <ul>
+          <li><strong>验证集 FPR 严格低于 1%。</strong> 只使用验证节点的确认 0 窗口选择阈值，分数严格大于阈值才报警。不同测试节点的 FPR 会变化。</li>
+          <li><strong>验证集最大 F1。</strong> 使用验证节点的已知正负标签，分数达到阈值即报警。按这个策略，18 字段浅层树的测试窗口召回率为 63.7%、含未知 FPR 为 12.18%，起始仍命中 5/45。</li>
+          <li><strong>事件分母。</strong> 45 个上一点确认 0 的明确起始，包含在 59 个可评价的首次非零观测中。后者包含在 86 个报错期间可评价的片段中。持续报警覆盖起始点也计为命中，需要同时看误报率。</li>
+        </ul>
+      </details>
+      <p class="guide-note"><strong>结果适用范围。</strong> 表中是公开数据的节点级模型结果。报告复用原模型得分并重新校准阈值，评测数据集中在故障相关区间。工作台使用自身拟合的版本，监督模型按验证 F1 定阈值，参考模型按验证参考分数的 P99 定阈值。节点联合复核使用五个输入字段。卡级趋势、提前预警和真实采集的效果需要各自的评测。</p>
+      <p class="guide-sources">
+        <a class="guide-link" href="https://github.com/kakukaops/NPUMonitor/blob/9ce5e72d1f0cd070751984feb243a4f7e43e3a98/modules/devices/nvidia-gpu/ml/frontend/reports/model_report.html">原始报告 HTML</a>
+        <a class="guide-link" href="https://github.com/kakukaops/NPUMonitor/tree/9ce5e72d1f0cd070751984feb243a4f7e43e3a98/modules/devices/nvidia-gpu/ml/frontend/reports/model_report_assets/results">完整结果与阈值 CSV</a>
+      </p>
+      <p>该提交包含报告和结果 CSV。报告中用于从原始得分重算结果的快照和脚本需要另外取得。</p>
+    </section>
+
+    <section id="sources" class="guide-section">
+      <h2>切换数据源后会发生什么</h2>
+      <dl class="guide-fields">
+        <div><dt>公开数据</dt><dd>回放带时间和节点身份的 GWDG 区间，节点树使用该节点的留出折版本。可在录制的 GPU 指标上计算趋势，XID 证据显示在节点层。</dd></div>
+        <div><dt>模拟采集</dt><dd>经过与实时采集相同的查询和对齐流程，使用模拟读数检查监测与交互。</dd></div>
+        <div><dt>人工构造</dt><dd>回放漂移、关系偏离或采集中断等指定场景，检查曲线、告警确认和缺失状态。</dd></div>
+        <div><dt>真实采集</dt><dd>按集群、节点和 GPU UUID 对齐。卡级趋势使用该卡自身历史。联合复核优先使用满足时间条件的本节点已启用模型，否则显示 GWDG 跨源参考分数。</dd></div>
+      </dl>
+      <p>模拟与人工构造用于流程验证。真实采集的跨源参考分数用于影子复核。模型缺版本、历史不足或指标全缺时，页面显示对应状态，保留曲线缺口。</p>
+    </section>
+  </main>
+</body>
+</html>

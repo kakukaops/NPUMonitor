@@ -105,6 +105,7 @@
   <div id="nodeReviewHome">
     <details class="panel node-review" id="nodeReviewPanel">
       <summary>节点联合复核</summary>
+      <a class="panel-link" href="/assets/dcgm-method-guide.html#workflow">节点联合复核方法说明 ↗</a>
       <div class="controls node-review-controls">
         <label>范围 <select id="nodeReviewTarget" aria-label="复核节点或采集区间"></select></label>
         <label id="nodeReviewScenarioLabel" hidden>场景 <select id="nodeReviewScenario"><option value="normal">正常</option><option value="drift">温度漂移</option><option value="relation">功耗与时钟偏离</option><option value="gap">采集中断</option></select></label>
@@ -273,6 +274,7 @@
 <details class="panel metric-archive" id="baselineArchive"><summary>全部指标快捷视图</summary><div id="baselineCards" class="gpu-grid"></div></details>
 <details class="panel">
   <summary>单指标方法说明</summary>
+  <a class="panel-link" href="/assets/dcgm-method-guide.html#models">DCGM 单指标模型与趋势区间 ↗</a>
   <div class="model-routes trend-routes">
     <div><strong>滞后回归</strong><p>学习历史连续观测，检测预测残差和水平偏移。</p></div>
     <div><strong>滚动中位数预测</strong><p>用前 5 个连续采样点预测当前点，检查残差。</p></div>
@@ -283,7 +285,7 @@
 <section id="page-scenarios" class="page" hidden>
 <div class="panel monitoring-panel" id="associationTasks">
   <div class="panel-heading">
-    <div><h2>方法监测看板</h2><p id="associationSummary"></p></div>
+    <div><h2>方法监测看板</h2><p id="associationSummary"></p><a class="panel-link" href="/assets/dcgm-method-guide.html#models">DCGM 多指标方法说明 ↗</a></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
       <label>类型 <select id="associationKind" aria-label="关联任务类型">
