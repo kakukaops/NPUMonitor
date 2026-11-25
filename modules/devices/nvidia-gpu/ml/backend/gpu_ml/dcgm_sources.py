@@ -12,7 +12,7 @@ import joblib
 import numpy as np
 
 from .dcgm_detection import (
-    Capture, STEP, WINDOW, TRAINING_LOCK, XID, assess, example_rows, fit_detector, public_catalog, validate_selection,
+    Capture, STEP, WINDOW, TRAINING_LOCK, XID, assess, example_rows, fit_detector, joint_point, public_catalog, validate_selection,
 )
 from .monitor_view import sample_rows
 from .settings import DATA, DEFAULT_CLUSTER, METRICS, SIMULATION
@@ -184,7 +184,8 @@ def activate_live(engine, source_type, cluster, node, metric, method, mode):
     return {'status': 'active'}
 
 
-def live_detection(engine, source_type, cluster, node, metric, method, mode, start, end, at, review=False, scenario='normal'):
+def live_detection(engine, source_type, cluster, node, metric, method, mode, start, end, at,
+                   review=False, scenario='normal', compare=False, reference_mode=None):
     candidate, active = model_paths(engine, source_type, cluster, node, metric, method, mode)
     if not 0 < start < end <= int(time.time()) or end - start > 3 * 3600:
         raise ValueError('请选择最长 3 小时的历史时段')
@@ -205,6 +206,16 @@ def live_detection(engine, source_type, cluster, node, metric, method, mode, sta
     grid_end = end // STEP * STEP
     capture, cards = source_capture(engine.source, source_type, cluster, node, grid_start, grid_end, scenario)
     result = assess(capture, metric, model, start, end, at)
+    if compare and metric == 'all' and at is not None and start <= at <= grid_end:
+        def load(other_method, other_mode):
+            if (other_method, other_mode) == (method, mode):
+                return model
+            _, path = model_paths(engine, source_type, cluster, node, metric, other_method, other_mode)
+            with TRAINING_LOCK:
+                return joblib.load(path) if path.is_file() else None
+
+        selected_mode = reference_mode or (mode if mode != 'supervised' else 'reference')
+        result['comparison'] = joint_point(capture, at, selected_mode, load)
     offset = (start - grid_start + STEP - 1) // STEP
     if review and any(row['state'] in ('scored', 'alarm') for row in result['points']):
         with TRAINING_LOCK:

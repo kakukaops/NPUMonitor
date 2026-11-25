@@ -527,16 +527,19 @@ def monitor_view_data(request: Request, entity: str, metric: str, task: str = ''
 
 @app.get('/api/gpu-ml/v1/dcgm/public/{collection}')
 def public_dcgm(request: Request, collection: str, metric: str, method: str, mode: str,
-                start: int, end: int, at: Optional[int] = None):
+                start: int, end: int, at: Optional[int] = None, compare: bool = False,
+                reference_mode: Optional[str] = None):
     user(request)
-    return public_detection(collection, metric, method, mode, start, end, at)
+    return public_detection(collection, metric, method, mode, start, end, at, compare, reference_mode)
 
 
 @app.get('/api/gpu-ml/v1/dcgm/live')
 def live_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
-              start: int, end: int, at: Optional[int] = None, review: bool = False, scenario: str = 'normal'):
+              start: int, end: int, at: Optional[int] = None, review: bool = False, scenario: str = 'normal',
+              compare: bool = False, reference_mode: Optional[str] = None):
     user(request)
-    return live_detection(ENGINE, source, cluster, node, metric, method, mode, start, end, at, review, scenario)
+    return live_detection(ENGINE, source, cluster, node, metric, method, mode, start, end, at,
+                          review, scenario, compare, reference_mode)
 
 
 @app.post('/api/gpu-ml/v1/dcgm/train')

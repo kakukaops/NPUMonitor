@@ -410,3 +410,29 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .dcgm-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
 .dcgm-charts canvas { display: block; width: 100%; height: 138px; }
 .dcgm-gpus { min-height: 1.5rem; }
+.dcgm-charts.dcgm-stacked { grid-template-columns: minmax(0, 1fr); }
+.dcgm-stacked canvas { cursor: crosshair; }
+.dcgm-card-time { color: #526079; font-size: .78rem; margin: 0 0 .4rem; }
+.dcgm-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: .4rem;
+  list-style: none;
+  margin: 0 0 .5rem;
+  padding: 0;
+}
+.dcgm-method-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .2rem .65rem;
+  padding: .35rem .5rem;
+  border-left: 2px solid #b5bdcb;
+  border-radius: .25rem;
+  background: #f4f6fa;
+  font-size: .78rem;
+}
+.dcgm-method-result[data-state="alarm"] { border-color: #b96619; background: #fff4e9; }
+.dcgm-method-result[data-state="no_data"] { border-color: #37759e; background: #edf5fa; }
+.dcgm-method-result small { flex-basis: 100%; color: #526079; }
+.dcgm-method-result .dcgm-metric-driver { color: #884110; font-weight: 700; }

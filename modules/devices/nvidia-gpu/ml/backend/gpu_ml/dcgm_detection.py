@@ -270,6 +270,41 @@ def assess(capture, metric, model, start, end, at=None):
             'calibration_windows': model['calibration_windows'] if model else None}
 
 
+def joint_point(capture, at, reference_mode, load_model):
+    """Score each joint method once at the same point for all metric cards."""
+    if reference_mode not in ('reference', 'unlabeled'):
+        raise ValueError('联合检测的无监督训练方式无效')
+    point = assess(capture, 'all', None, at, at)['points']
+    if not point:
+        return None
+    state = point[0]['state']
+    index = (at - capture.start) // STEP
+    inputs = features(capture, 'all', np.array([index])) if state == 'untrained' else None
+    comparisons = []
+    for method in MULTI:
+        mode = reference_mode if method in REFERENCE else 'supervised'
+        row = {'method': method, 'mode': mode, 'state': state}
+        comparisons.append(row)
+        if inputs is None:
+            continue
+        try:
+            model = load_model(method, mode)
+        except ValueError as exc:
+            row.update(state='unavailable', detail=str(exc))
+            continue
+        if model is None:
+            continue
+        if 'trained_through' in model and at < model['trained_through'] + WINDOW * STEP:
+            row.update(state='before_model')
+            continue
+        transformed = transform(model, inputs)
+        score = float(scores(model, transformed)[0])
+        alarm = score > model['threshold']
+        row.update(state='alarm' if alarm else 'scored', score=score, threshold=model['threshold'],
+                   drivers=explanations(model, transformed[0]) if alarm else [])
+    return {'t': at, 'methods': comparisons}
+
+
 @lru_cache(maxsize=16)
 def public_model(fold, metric, method, mode):
     catalog = public_catalog()['collections']
@@ -286,15 +321,28 @@ def public_model(fold, metric, method, mode):
     return fit_detector(method, mode, training, validation)
 
 
-def public_detection(collection, metric, method, mode, start, end, at):
+def public_detection(collection, metric, method, mode, start, end, at, compare=False, reference_mode=None):
     validate_selection(metric, method, mode)
     row = next((row for row in public_catalog()['collections'] if row['id'] == collection), None)
     if not row or not row['start'] <= start < end <= row['end'] or end - start > 3 * 3600:
         raise ValueError('请选择采集区间内最长 3 小时的时段')
-    fold = row['fold']
-    if mode == 'unlabeled':
-        nodes = sorted({item['node'] for item in public_catalog()['collections']})
-        fold = nodes.index(row['node']) % 5
-    with TRAINING_LOCK:
-        model = public_model(fold, metric, method, mode)
-    return assess(public_capture(collection), metric, model, start, end, at)
+    nodes = sorted({item['node'] for item in public_catalog()['collections']})
+    unlabeled_fold = nodes.index(row['node']) % 5
+
+    def load(method, mode):
+        fold = unlabeled_fold if mode == 'unlabeled' else row['fold']
+        with TRAINING_LOCK:
+            return public_model(fold, metric, method, mode)
+
+    try:
+        model = load(method, mode)
+    except ValueError:
+        if not compare or metric != 'all':
+            raise
+        model = None
+    capture = public_capture(collection)
+    result = assess(capture, metric, model, start, end, at)
+    if compare and metric == 'all' and at is not None and start <= at <= end:
+        selected_mode = reference_mode or (mode if mode != 'supervised' else 'reference')
+        result['comparison'] = joint_point(capture, at, selected_mode, load)
+    return result

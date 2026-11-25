@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from gpu_ml.dcgm_detection import NO_DATA, PUBLIC, WINDOW, Capture, assess, features, public_capture, public_catalog
+from gpu_ml.dcgm_detection import NO_DATA, PUBLIC, WINDOW, Capture, assess, features, joint_point, public_capture, public_catalog
 from gpu_ml.dcgm_sources import build_capture
 
 
@@ -39,6 +39,43 @@ class DcgmDetectionTest(unittest.TestCase):
         expected = features(base, 'all', ends)
         self.assertEqual(expected.shape, (2, 504))
         np.testing.assert_allclose(features(changed, 'all', ends), expected, equal_nan=True)
+
+    def test_joint_point_gates_all_three_methods_together(self):
+        capture = public_capture('collection_7a246afef961d90a')
+        at = capture.start + 8951 * 10
+
+        def fail(*args):
+            self.fail('No model should be loaded for a point with all DCGM inputs missing')
+
+        comparison = joint_point(capture, at, 'unlabeled', fail)
+        self.assertEqual(comparison['t'], at)
+        self.assertEqual(
+            [(row['method'], row['mode'], row['state']) for row in comparison['methods']],
+            [('shallow_tree', 'supervised', 'no_data'), ('robust_range', 'unlabeled', 'no_data'),
+             ('pca_t2', 'unlabeled', 'no_data')],
+        )
+
+    def test_joint_point_shares_the_same_time_and_reports_each_model_state(self):
+        capture = public_capture('collection_7a246afef961d90a')
+        index = np.flatnonzero(capture.available[WINDOW:] & np.isfinite(capture.channels[WINDOW:, 5, 0]))[0] + WINDOW
+        at = capture.start + int(index) * 10
+        model = dict(method='robust_range', keep=np.array([5 * 28]), center=np.zeros(1), scale=np.ones(1),
+                     median=np.zeros(1), robust_scale=np.ones(1), threshold=0.)
+
+        def load(method, mode):
+            if method == 'robust_range':
+                self.assertEqual(mode, 'reference')
+                return model
+            if method == 'pca_t2':
+                raise ValueError('Calibration unavailable')
+            return None
+
+        comparison = joint_point(capture, at, 'reference', load)
+        untrained, alarm, unavailable = comparison['methods']
+        self.assertEqual(untrained['state'], 'untrained')
+        self.assertEqual(alarm['state'], 'alarm')
+        self.assertEqual(alarm['drivers'][0]['metric'], 'DCGM_FI_DEV_GPU_TEMP')
+        self.assertEqual(unavailable['detail'], 'Calibration unavailable')
 
     def test_bundled_intervals_match_index(self):
         rows = public_catalog()['collections']
