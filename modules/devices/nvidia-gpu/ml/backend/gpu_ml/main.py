@@ -516,9 +516,11 @@ def series(key:str,request:Request,start:float=0,end:float=0):
 def monitor_view_data(request: Request, entity: str, metric: str, task: str = '',
                       source: str = 'prometheus', mode: str = 'online',
                       span: int = 900, scenario: str = 'normal', start: Optional[float] = None,
-                      end: Optional[float] = None, include_inputs: bool = False, model: Optional[str] = None):
+                      end: Optional[float] = None, include_inputs: bool = False, model: Optional[str] = None,
+                      observations_only: bool = False):
     user(request)
-    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs, model)
+    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs,
+                        model, observations_only)
 
 
 @app.get('/api/gpu-ml/v1/raw-series')
@@ -532,10 +534,13 @@ def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metr
 
 @app.get('/api/gpu-ml/v1/incident-history')
 def incident_history(request: Request, cluster: str = '', q: str = '',
-                     start: Optional[float] = None, end: Optional[float] = None):
+                     start: Optional[float] = None, end: Optional[float] = None, source_type: str = ''):
     user(request)
     now = time.time()
-    entities = [entity for entity in STORE.list('entity') if not cluster or entity['cluster'] == cluster]
+    if source_type not in ('', 'simulated', 'real_unverified'):
+        raise ValueError('采集来源无效')
+    entities = [entity for entity in STORE.list('entity') if (not cluster or entity['cluster'] == cluster)
+                and (not source_type or entity.get('source_type') == source_type)]
     terms = q.casefold().split()
     if len(q) > 200:
         raise ValueError('设备搜索最长支持 200 个字符')
@@ -549,7 +554,7 @@ def incident_history(request: Request, cluster: str = '', q: str = '',
             raise ValueError('归档查询支持最近 7 天内的时段')
         overlap = start, end
     episodes = STORE.recovered_episodes(now - 7 * 86400, now, limit=201, cluster=cluster,
-                                        entity_ids=[entity['id'] for entity in entities] if terms else None,
+                                        entity_ids=[entity['id'] for entity in entities] if terms or source_type else None,
                                         overlap=overlap)
     nightingale = STORE.get('system', 'nightingale_events') or {}
     queue = build_recovered_queue(entities, STORE.list('task'), episodes[:200], TEMPLATES,

@@ -134,7 +134,7 @@ def build_incident_queue(entities, tasks, states, templates, bindings, nightinga
     records, connected, checked_at = notification_records(nightingale, now)
     per_entity = defaultdict(list)
     coverage = defaultdict(lambda: {'enabled': 0, 'scored': 0})
-    devices = {entity['id']: {'entity': {key: entity.get(key) for key in ('id', 'uuid', 'cluster', 'node')},
+    devices = {entity['id']: {'entity': {key: entity.get(key) for key in ('id', 'uuid', 'cluster', 'node', 'source_type')},
                               'enabled': 0, 'scored': 0, 'issues': [], 'signals': 0} for entity in entities}
     for task in tasks:
         entity = by_entity.get(task['entity'])

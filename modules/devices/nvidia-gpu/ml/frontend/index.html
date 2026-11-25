@@ -29,15 +29,36 @@
   <div class="sidebar-bottom">Prometheus <span>·</span> 夜莺</div>
 </aside>
 <div class="main"><header class="workspace-header"><div><span class="breadcrumb" id="pageTrail">监控 / </span><strong id="pageName">异常队列</strong></div><div class="header-actions"><span class="badge environment" id="sourceMode" hidden>模拟环境</span><span id="connection" class="muted">等待连接</span><span class="badge" id="role">未登录</span><button id="logout" class="text-button">退出</button></div></header>
-<main><div class="title-row"><div><h1 id="title">异常队列</h1><p id="subtitle">查看当前异常，打开记录复核。</p></div><div class="title-tools"><div class="controls" id="liveControls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">刷新</button></div><div id="replaySwitch" class="sample-tools" hidden>
-  <button type="button" id="liveMode" hidden>返回异常队列</button>
-  <details id="sampleMenu"><summary>演示样例</summary>
-    <div class="sample-options">
-      <button type="button" id="incidentDemoMode">值班样例</button>
-      <button type="button" id="replayMode">曲线样例</button>
-    </div>
-  </details>
+<main><div class="title-row"><div><h1 id="title">异常队列</h1><p id="subtitle">查看当前异常，打开记录复核。</p></div><div class="title-tools">
+<label class="source-picker" id="workspaceSourceControl">数据来源 <select id="workspaceSource" aria-label="数据来源">
+  <option value="simulated">模拟采集</option><option value="synthetic">人工构造</option>
+  <option value="real_unverified">真实采集</option><option value="public">公开数据</option>
+</select></label>
+<div class="controls" id="liveControls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">刷新</button></div><div id="replaySwitch" class="sample-tools" hidden>
+  <button type="button" id="liveMode" hidden>返回值班样例</button>
+  <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
+<p class="notice" id="workspaceSourceNotice" hidden></p>
+<section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
+  <div class="panel-heading">
+    <div><h2 id="publicDataName">公开历史数据</h2><p id="publicDataContext"></p></div>
+    <label class="source-picker" id="publicMetricControl" hidden>指标 <select id="publicMetric" aria-label="公开数据指标"></select></label>
+  </div>
+  <p class="caption" id="publicDataRange"></p>
+  <div class="controls" id="publicDataActions" hidden>
+    <button type="button" id="publicTrend">看单指标曲线</button>
+    <button type="button" id="publicAssociation">看关联曲线与评分</button>
+  </div>
+  <div class="legend" id="publicDataLegend" hidden>
+    <span><i class="blue"></i>实际观测</span>
+    <span class="public-score-legend"><i class="public-score-line"></i>离线 PCA 分数</span>
+    <span class="public-score-legend"><i class="red"></i>阈值与候选点</span>
+    <span><i class="incident-marker"></i>Slurm 记录时间</span>
+  </div>
+  <div id="publicValueBox" class="chart monitor-view-chart" hidden><canvas id="publicValueChart" role="img" aria-label="公开数据实际观测"></canvas><div class="tooltip" id="publicValueTip" hidden></div></div>
+  <div id="publicScoreBox" class="chart score-chart monitor-view-score" hidden><canvas id="publicScoreChart" role="img" aria-label="公开数据离线关联评分"></canvas></div>
+  <div id="publicInputCharts" class="monitor-input-charts" hidden></div>
+</section>
 <div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
 <div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
 </div>
@@ -120,12 +141,12 @@
     <section aria-labelledby="baselineMethodsHeading">
       <h3 id="baselineMethodsHeading">检测方法</h3>
       <div class="table-scroll method-board-wrap" tabindex="0" aria-label="检测方法列表"><table class="association-table method-board">
-        <thead><tr><th>方法</th><th>运行状态</th><th>检测结果</th><th>通知配置</th><th>操作</th></tr></thead>
+        <thead><tr><th>方法</th><th id="baselineRuntimeHeading">运行状态</th><th>检测结果</th><th>通知配置</th><th>操作</th></tr></thead>
         <tbody id="baselineMethodRows"></tbody>
       </table></div>
     </section>
   </div>
-  <details class="monitor-tools">
+  <details class="monitor-tools" id="baselineTools">
     <summary>批量配置与模型导入</summary>
     <div class="controls">
       <button id="baselineChooseModel" class="write">切换模型</button>
@@ -150,7 +171,6 @@
     </div>
     <div class="controls monitoring-inputs monitor-view-controls">
       <label id="monitorMetricControl" hidden>显示指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
-      <label>数据来源 <select id="monitorSource" aria-label="数据来源"></select></label>
       <label id="monitorModeControl">查看方式 <select id="monitorMode" aria-label="查看方式"><option value="online">实时</option><option value="replay">历史回放</option></select></label>
       <label id="monitorSpanControl">时长 <select id="monitorSpan" aria-label="监测时间范围">
         <option value="300">5 分钟</option><option value="900" selected>15 分钟</option><option value="1800">30 分钟</option><option value="3600">1 小时</option>
@@ -218,7 +238,7 @@
     <section aria-labelledby="associationMethodsHeading">
       <h3 id="associationMethodsHeading">检测方法</h3>
       <div class="table-scroll method-board-wrap" tabindex="0" aria-label="关联检测方法列表"><table class="association-table method-board">
-        <thead><tr><th>方法</th><th>运行状态</th><th>检测结果与输入</th><th>通知配置</th><th>操作</th></tr></thead>
+        <thead><tr><th>方法</th><th id="associationRuntimeHeading">运行状态</th><th>检测结果与输入</th><th>通知配置</th><th>操作</th></tr></thead>
         <tbody id="associationRows"></tbody>
       </table></div>
     </section>
@@ -301,4 +321,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

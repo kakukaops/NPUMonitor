@@ -300,12 +300,14 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 
 .title-tools,.sample-tools,.queue-switch,.task-menu{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .title-tools{justify-content:flex-end}
-.sample-tools details{position:relative}
-.sample-tools summary{list-style:none;cursor:pointer;border:1px solid #d6e0eb;border-radius:7px;background:#fff;padding:6px 10px;color:var(--ink)}
-.sample-tools summary::after{content:' ▾';color:var(--muted)}
-.sample-tools summary::-webkit-details-marker{display:none}
-.sample-options{position:absolute;z-index:15;top:calc(100% + 4px);right:0;display:grid;gap:4px;min-width:110px;padding:5px;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 8px 22px #1b375724}
-.sample-options button{white-space:nowrap;text-align:left;border-color:transparent}
+.source-picker{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}
+.source-picker select{font-weight:600;color:var(--ink)}
+#workspaceSource{border-color:#a9c8c2;background:#f4f9f8}
+.sample-method-board thead th:nth-child(n+3){display:none}
+.public-data-panel .panel-heading p{overflow-wrap:anywhere}
+.public-data-panel .incident-marker{background:#bf8739}
+.public-score-line{background:#7c66ce}
+#publicDataActions{flex-wrap:wrap;margin-top:10px}
 .queue-switch{width:max-content;max-width:100%;gap:5px;margin-bottom:10px;padding:4px;border:1px solid var(--line);border-radius:8px;background:#f3f7fa}
 .queue-switch button{flex:1;background:transparent;border-color:transparent;font-weight:600;white-space:nowrap}
 .queue-switch button[aria-pressed="true"]{background:#fff;border-color:#d5e1e9;color:var(--accent)}
@@ -380,7 +382,6 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 @media(max-width:520px){
  .incident-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
  .coverage-panel summary small{display:inline-block}
- .sample-options{right:auto;left:0}
  .monitor-dates label{flex-wrap:wrap}
  .monitoring-panel,.monitor-view{padding:11px}
  .monitoring-panel .panel-heading{margin-bottom:7px}

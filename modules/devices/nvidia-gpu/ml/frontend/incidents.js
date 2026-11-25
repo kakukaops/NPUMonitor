@@ -16,6 +16,7 @@ function incidentForTask(taskId){
 
 function openTaskIncident(group,taskId){
  const cluster=$('cluster');
+ workspaceDataSource=group.entity.source_type||workspaceDataSource;
  if(cluster.value&&cluster.value!==group.entity.cluster)cluster.value='';
  $('incidentFilter').value=group.phase==='recovered'?'recovered':'all';
  $('incidentSearch').value='';
@@ -32,7 +33,8 @@ function switchIncidentQueue(archived){
 }
 
 function incidentHistory(cluster,query,range){
- const key=query||range?JSON.stringify([cluster,query,range]):cluster;
+ const sourceType=workspaceDataSource;
+ const key=JSON.stringify([sourceType,cluster,query,range]);
  let entry=recoveredQueues.get(key);
  if(!entry){
   entry={at:0,busy:false};
@@ -41,7 +43,7 @@ function incidentHistory(cluster,query,range){
  }
  if(!entry.busy&&Date.now()-entry.at>15000){
   entry.busy=true;
-  const params=new URLSearchParams({cluster});
+  const params=new URLSearchParams({cluster,source_type:sourceType});
   if(query)params.set('q',query);
   if(range){params.set('start',range.start);params.set('end',range.end);}
   api('/incident-history?'+params).then(queue=>{
@@ -548,7 +550,8 @@ function showIncident(detail,group,queue,example,scope,matched){
  panel.group=group;
  if(matched)panel.queue=queue;
  panel.title.textContent=incidentDevice(group.entity);
- panel.subheading.textContent=group.entity.cluster+' · '+(group.entity.source_type==='simulated'?'模拟采集':'真实来源未核验')+' · '+dateTime(group.start);
+ panel.subheading.textContent=group.entity.cluster+' · '+(example?'人工构造':
+  group.entity.source_type==='simulated'?'模拟采集':'真实采集 · 未核验')+' · '+dateTime(group.start);
  panel.duration.textContent=incidentDetailText(group,panel.queue.at);
  panel.duration.className='badge '+(group.phase==='confirmed'?'red':'gray');
  panel.banner.hidden=matched;
@@ -625,7 +628,7 @@ function renderDeviceCoverage(devices,cluster){
 }
 
 function renderIncidentQueue(selectedId){
- if(!data||page!=='incidents'||replayMode)return;
+ if(!data||page!=='incidents'||replayMode||workspaceDataSource==='public')return;
  const example=incidentExampleActive,online=example?incidentExample:data.incident_queue;
  const source=$('incidentSource'),list=$('incidentList'),detail=$('incidentDetail');
  const layout=$('incidentLayout'),filterInput=$('incidentFilter');
@@ -649,12 +652,13 @@ function renderIncidentQueue(selectedId){
   return;
  }
  const cluster=example?'':$('cluster').value;
- renderDeviceCoverage(example?null:online.devices,cluster);
- const all=online.groups.filter(group=>!cluster||group.entity.cluster===cluster);
- const coverage=cluster?(Object.hasOwn(online.coverage,cluster)?[online.coverage[cluster]]:[]):Object.values(online.coverage);
- const enabled=coverage.reduce((total,item)=>total+item.enabled,0);
- const scored=coverage.reduce((total,item)=>total+item.scored,0);
- source.textContent=(example?'样例数据':'在线检测')
+ const scopeIds=example?null:new Set(filteredEntities().map(entity=>entity.id));
+ const devices=(online.devices||[]).filter(device=>example||scopeIds.has(device.entity.id));
+ renderDeviceCoverage(example?null:devices,cluster);
+ const all=online.groups.filter(group=>example||scopeIds.has(group.entity.id));
+ const enabled=devices.reduce((total,item)=>total+item.enabled,0);
+ const scored=devices.reduce((total,item)=>total+item.scored,0);
+ source.textContent=(example?'人工构造样例':workspaceSourceNames[workspaceDataSource]+' · 在线检测')
   +' · '+scored+' / '+enabled+' 项任务有评分'
   +' · '+(online.nightingale_connected?'夜莺已同步 '+tm(online.nightingale_checked_at):'夜莺未同步');
  $('incidentConfirmed').textContent=all.filter(group=>group.phase==='confirmed').length;
@@ -674,7 +678,7 @@ function renderIncidentQueue(selectedId){
   const inPhase=filter==='all'?example||group.phase!=='recovered':filter==='held'?group.held>0:filter===group.phase;
   return inPhase&&inRange&&terms.every(term=>identity.includes(term));
  });
- const scope=JSON.stringify([example,cluster,filter,query,range]);
+ const scope=JSON.stringify([workspaceDataSource,cluster,filter,query,range]);
  const previous=incidentPanel?.scope===scope?incidentPanel.group:null;
  const selection=groups.find(group=>group.id===selectedId)
   ||(previous&&groups.find(group=>group.id===previous.id))

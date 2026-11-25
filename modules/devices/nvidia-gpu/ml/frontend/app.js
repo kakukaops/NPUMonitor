@@ -33,21 +33,71 @@ const liveHashes={incidents:'#incidents',baseline:'#trend',scenarios:'#associati
 const detectionSources=new Set(['baseline','scenarios','overview','tasks']);
 let detectionOrigin=null,dialogTrigger=null;
 let replayMode=false,incidentExampleActive=false;
+const sourcePages=new Set(['incidents','baseline','scenarios']);
+const workspaceSourceNames={simulated:'模拟采集',synthetic:'人工构造',real_unverified:'真实采集',public:'公开数据'};
+let workspaceDataSource='';
+
+function initializeWorkspaceSource(){
+ if(workspaceDataSource||!data)return;
+ const source=new URLSearchParams(window.location?.search||'').get('source');
+ workspaceDataSource=Object.hasOwn(workspaceSourceNames,source)&&(source!=='synthetic'||data.simulation)
+  ?source:data.simulation?'simulated':'real_unverified';
+}
+
+function sourceEntities(){
+ if(!sourcePages.has(page))return data.entities;
+ const type=workspaceDataSource==='synthetic'?'simulated':workspaceDataSource;
+ return data.entities.filter(entity=>entity.source_type===type);
+}
+
+function switchWorkspaceSource(source){
+ if(!data||!Object.hasOwn(workspaceSourceNames,source)||(source==='synthetic'&&!data.simulation))return;
+ if(workspaceDataSource!==source){
+  $('cluster').value='';
+  $('incidentSearch').value='';
+  $('incidentTimeFilter').open=false;
+  resetIncidentTimeFilter();
+  incidentPanel=null;
+  for(const section of Object.keys(monitorPrefs)){
+   clearMethodBoardFilters(section);
+   methodSelection[section]=null;
+  }
+  $('associationEntity').value='';
+  monitorShown=null;
+ }
+ workspaceDataSource=source;
+ if(page==='incidents'&&source==='synthetic')$('incidentFilter').value='all';
+ choosePage(page);
+}
 
 function updatePageVisibility(){
- const available=Boolean(data?.simulation);
- const active=available&&replayMode;
- const visible=active?'replay':page;
+ const active=Boolean(data?.simulation)&&replayMode;
+ const publicView=workspaceDataSource==='public'&&sourcePages.has(page);
+ const synthetic=workspaceDataSource==='synthetic';
+ const visible=publicView?'':active?'replay':page;
  document.querySelectorAll('.page').forEach(panel=>panel.hidden=panel.id!=='page-'+visible);
- $('replaySwitch').hidden=!available||page!=='incidents';
- $('liveMode').hidden=!active&&!incidentExampleActive;
- $('sampleMenu').hidden=active||incidentExampleActive;
+ $('workspaceSourceControl').hidden=!sourcePages.has(page);
+ options($('workspaceSource'),Object.keys(workspaceSourceNames),key=>key,key=>
+  workspaceSourceNames[key]+(key==='synthetic'&&data&&!data.simulation?'（当前环境未启用）':''));
+ $('workspaceSource').value=workspaceDataSource;
+ const sampleOption=Array.from($('workspaceSource').children).find(option=>option.value==='synthetic');
+ if(sampleOption)sampleOption.disabled=!data?.simulation;
+ $('replaySwitch').hidden=!synthetic||page!=='incidents';
+ $('liveMode').hidden=!active;
+ $('replayMode').hidden=active;
+ const sourceNotice=$('workspaceSourceNotice');
+ sourceNotice.textContent=synthetic&&monitorPrefs[page]
+  ?'人工构造的曲线仅用于离线回放。可使用已训练的模拟设备模型查看评分。'
+  :data&&sourcePages.has(page)&&!publicView&&!synthetic&&!sourceEntities().length
+   ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
+ sourceNotice.hidden=!sourceNotice.textContent;
+ $('publicDataPanel').hidden=!publicView;
  $('liveScope').hidden=page!=='overview';
- const hasClusters=new Set((data?.entities||[]).map(entity=>entity.cluster)).size>1;
+ const hasClusters=new Set((data?sourceEntities():[]).map(entity=>entity.cluster)).size>1;
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
  const chartPage=Boolean(monitorPrefs[page]);
  $('cluster').hidden=!showCluster;
- $('liveControls').hidden=active||incidentExampleActive||page==='study'||(chartPage&&!showCluster);
+ $('liveControls').hidden=active||incidentExampleActive||publicView||page==='study'||(chartPage&&!showCluster);
  $('refresh').hidden=chartPage;
  $('window').hidden=page!=='detection';
  if(active)$('integratedReplay').setAttribute('view','all');
@@ -59,11 +109,11 @@ function setWorkspaceNav(expanded){
  $('workspaceNavToggle').textContent=expanded?'收起功能':'全部功能';
 }
 function choosePage(next, showReplay=false, example=false, updateUrl=true){
- if(showReplay&&monitorPrefs[next]){
-  selectMonitorSample(next);
-  showReplay=false;
- }
- const changed=next!==page||showReplay!==replayMode||example!==incidentExampleActive;
+ initializeWorkspaceSource();
+ if((showReplay||example)&&data?.simulation)workspaceDataSource='synthetic';
+ if(showReplay&&monitorPrefs[next])showReplay=false;
+ const nextExample=next==='incidents'&&!showReplay&&workspaceDataSource==='synthetic'&&Boolean(data?.simulation);
+ const changed=next!==page||showReplay!==replayMode||nextExample!==incidentExampleActive;
  if(next==='detection'&&(page!=='detection'||!updateUrl)){
   detectionOrigin=updateUrl
    ?{page:detectionSources.has(page)?page:'overview',scroll:detectionSources.has(page)?window.scrollY||0:0}
@@ -72,7 +122,6 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  page=next;
  setWorkspaceNav(false);
  replayMode=showReplay;
- const nextExample=next==='incidents'&&Boolean(example&&data?.simulation);
  if(nextExample!==incidentExampleActive){
   $('incidentSearch').value='';
   $('incidentTimeFilter').open=false;
@@ -86,13 +135,15 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
   if(selected)button.setAttribute('aria-current','page');
   else button.removeAttribute('aria-current');
  });
- $('sampleMenu').open=false;
  const title=showReplay?'曲线样例':incidentExampleActive?'值班样例':names[next];
  $('pageTrail').textContent=(names[detectionOrigin?.page]||(next==='study'?'方法与评测':['models','tasks','health'].includes(next)?'配置':'值班'))+' / ';
  $('pageName').textContent=title;
  if(next==='detection')$('detectionBack').textContent='← 返回 '+names[detectionOrigin.page];
  $('title').textContent=title;
- $('subtitle').textContent=showReplay?'用模拟曲线查看模型的评分过程。':incidentExampleActive?'在样例中练习查看证据和复核。':pageDescriptions[next]||'';
+ $('subtitle').textContent=showReplay?'用人工构造曲线查看模型的评分过程。':
+  incidentExampleActive?'在人工构造的样例中查看证据和复核。':
+  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开数据的历史观测和已有离线结果。':
+  workspaceDataSource==='synthetic'&&monitorPrefs[next]?'选择场景，查看观测和所选方法的回放结果。':pageDescriptions[next]||'';
  $('subtitle').hidden=!$('subtitle').textContent;
  const hash=showReplay?replayHashes[next]:incidentExampleActive?'#incident-demo':
   next==='incidents'&&$('incidentFilter').value==='history'?'#incident-history':
@@ -100,7 +151,10 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  const existing=window.location?.hash;
  if(updateUrl&&hash&&window.history){
   const context=next==='detection'?{origin:detectionOrigin,entity:selectedEntity,task:selectedTask,metric:detailMetric||$('metricSelect').value}:null;
-  if(existing!==hash)window.history.pushState?.(context,'',hash);
+  const params=new URLSearchParams(window.location?.search||'');
+  const changedSource=workspaceDataSource&&params.get('source')!==workspaceDataSource;
+  if(changedSource)params.set('source',workspaceDataSource);
+  if(existing!==hash||changedSource)window.history.pushState?.(context,'',(params.size?'?'+params:'')+hash);
   else if(context)window.history.replaceState?.(context,'',hash);
  }
  if(data){
@@ -115,6 +169,8 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
 }
 
 function openReplayFromLocation(){
+ workspaceDataSource='';
+ initializeWorkspaceSource();
  const hash=window.location?.hash;
  if(hash==='#incident-demo'&&data?.simulation){
   $('incidentFilter').value='all';
@@ -122,13 +178,13 @@ function openReplayFromLocation(){
   return true;
  }
  if(hash==='#incident-history'){
+  if(workspaceDataSource==='synthetic')workspaceDataSource='simulated';
   $('incidentFilter').value='history';
   choosePage('incidents',false,false,false);
   return true;
  }
  const association=Object.keys(associationHashes).find(key=>associationHashes[key]===hash);
  if(association){
-  monitorPrefs.scenarios.source='prometheus';
   setAssociationView(association);
   choosePage('scenarios',false,false,false);
   return true;
@@ -153,7 +209,7 @@ function openReplayFromLocation(){
 
 function tasksFor(entity){return data.tasks.filter(t=>!entity||t.entity===entity);}
 function stateFor(task){return data.states.find(s=>s.id===task.id);}
-function filteredEntities(){return data.entities.filter(e=>!$('cluster').value||e.cluster===$('cluster').value);}
+function filteredEntities(){return sourceEntities().filter(e=>!$('cluster').value||e.cluster===$('cluster').value);}
 function currentTask(){return data?.tasks.find(t=>t.id===selectedTask);}
 function decision(s,t){if(t.deleted)return ['已退役','gray'];if(!t.enabled)return ['已暂停','gray'];if(!s||s.quality!=='valid')return [(s?.active?'异常保持 · ':'')+(statusNames[s?.quality]||s?.quality||'等待数据'),'gray'];if(s.active)return [t.notification_mode==='evidence'?'行为线索 · 仅记录证据':'持续异常','red'];if(s.pending)return ['疑似异常',''];return [t.scenario_id?'未发现本场景偏离':'正常','green'];}
 function monitoredStatus(task){
@@ -184,6 +240,10 @@ function openMonitorDetails(entity,task,metric){
 }
 
 function openDetectionShortcut(){
+ if(sourcePages.has(page)&&['public','synthetic'].includes(workspaceDataSource)){
+  choosePage(page==='scenarios'?'scenarios':'baseline');
+  return;
+ }
  if(data&&page==='baseline'&&$('baselineEntity').value){
   const {entity,metric,task}=monitorContext('baseline',monitorPrefs.baseline);
   openMonitorDetails(entity,task,metric);
@@ -249,8 +309,9 @@ function saveDetectionContext(){
 }
 
 function render(){if(!data)return;
+ initializeWorkspaceSource();
 updatePageVisibility();
- const selectedCluster=$('cluster').value;options($('cluster'),[{cluster:'',name:'全部集群'},...Array.from(new Set(data.entities.map(e=>e.cluster))).map(cluster=>({cluster,name:cluster}))],r=>r.cluster,r=>r.name);$('cluster').value=selectedCluster;
+ options($('cluster'),[{cluster:'',name:'全部集群'},...Array.from(new Set(sourceEntities().map(e=>e.cluster))).map(cluster=>({cluster,name:cluster}))],r=>r.cluster,r=>r.name);
  const entities=filteredEntities(),ids=new Set(entities.map(entity=>entity.id));
  const enabled=data.tasks.filter(task=>ids.has(task.entity)&&task.enabled&&!task.deleted&&task.active_model);
  $('countGPU').textContent=entities.length;
@@ -272,7 +333,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderPublicData();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -415,7 +476,7 @@ function boardMethodMatches(method,algorithm,status){
 }
 
 function renderMethodBoard(section,targets,preferred){
- const prefix=boardPrefix[section],single=section==='baseline';
+ const prefix=boardPrefix[section],single=section==='baseline',synthetic=workspaceDataSource==='synthetic';
  const search=boardFilter(section,'TargetSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
  const algorithmFilter=boardFilter(section,'AlgorithmFilter');
  const templates=new Set(targets.map(target=>target.root?.template||'uni_'+target.metric));
@@ -426,7 +487,9 @@ function renderMethodBoard(section,targets,preferred){
  }
  options(algorithmFilter,['',...Array.from(algorithms).sort((a,b)=>algorithmLabel(a).localeCompare(algorithmLabel(b)))],
   key=>key,key=>key?algorithmLabel(key):'全部方法');
- const algorithm=algorithmFilter.value,status=boardFilter(section,'StatusFilter').value;
+ const statusFilter=boardFilter(section,'StatusFilter');
+ if(statusFilter.parentElement)statusFilter.parentElement.hidden=synthetic;
+ const algorithm=algorithmFilter.value,status=synthetic?'':statusFilter.value;
  boardFilter(section,'ClearFilters').hidden=!search.length&&!algorithm&&!status;
  const methodsFor=target=>(target.methods??=monitorMethods(target.entity,target.root,target.metric)
   .filter(method=>boardMethodMatches(method,algorithm,status)));
@@ -467,10 +530,13 @@ function renderMethodBoard(section,targets,preferred){
   list.replaceChildren(...(rows.length?rows:[el('li',empty,'empty')]));
   targetListSignatures[section]=signature;
  }
- $(single?'baselineMethodRows':'associationRows').replaceChildren(...(methods.length
+ const methodRows=$(single?'baselineMethodRows':'associationRows');
+ methodRows.closest?.('table')?.classList.toggle('sample-method-board',synthetic);
+ $(prefix+'RuntimeHeading').textContent=synthetic?'回放模型':'运行状态';
+ methodRows.replaceChildren(...(methods.length
   ?methods.map(method=>methodBoardRow(section,method,method===selected))
-  :[emptyRow(5,target?'该指标没有可用方法':'请选择'+(single?'指标':'指标组'))]));
- const detail=selected&&!selected.active?selected:null;
+  :[emptyRow(synthetic?2:5,target?'该指标没有可用方法':'请选择'+(single?'指标':'指标组'))]));
+ const detail=!synthetic&&selected&&!selected.active?selected:null;
  renderBoardMethodDetail(section,detail);
  return selected;
 }
@@ -515,6 +581,12 @@ function methodBoardRow(section,method,selected){
  const button=uiButton(algorithmLabel(algorithm),()=>openBoardMethod(section,method),'text-button method-name');
  button.setAttribute?.('aria-pressed',String(selected));
  name.append(button);
+ if(workspaceDataSource==='synthetic'){
+  status.append(badge(version?'可回放':'暂无可用版本',version?'green':'gray'));
+  if(version)status.append(el('small','版本 '+modelVersion(version)));
+  row.append(name,status);
+  return row;
+ }
  status.append(badge(method.active?(task.enabled?'已启用':'已暂停'):method.status,
   method.active&&task.enabled?'green':'gray'));
  if(method.active){
@@ -574,6 +646,7 @@ function renderAssociationTasks(){
  const entities=filteredEntities(),byEntity=new Map(entities.map(entity=>[entity.id,entity]));
  const select=$('associationEntity');
  options(select,[{id:'',uuid:'全部 GPU'},...entities],entity=>entity.id,entity=>entity.id?deviceLabel(entity):entity.uuid);
+ $('newAssociation').hidden=workspaceDataSource==='synthetic';
  if(page!=='scenarios')return;
  const targets=associationTasks(entities).map(root=>{
   const entity=byEntity.get(root.entity);
@@ -583,7 +656,7 @@ function renderAssociationTasks(){
  renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
 }
 
-function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实未核验');}
+function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实采集 · 未核验');}
 
 function isAssociationTask(task){
  return Boolean(task.scenario_id||data.templates[task.template]?.kind==='multivariate');
@@ -600,7 +673,7 @@ function taskDisplayName(task){
 
 function renderAssociationStatus(task,entity,metric){
  const box=$('associationStatus');
- box.hidden=!task||!entity||Boolean(boardMethod.scenarios&&!boardMethod.scenarios.active);
+ box.hidden=workspaceDataSource==='synthetic'||!task||!entity||Boolean(boardMethod.scenarios&&!boardMethod.scenarios.active);
  if(box.hidden)return;
  const [label,color]=monitoredStatus(task),model=data.models.find(row=>row.id===task.active_model);
  const context=el('div'),title=el('div',undefined,'monitor-context');
@@ -613,7 +686,7 @@ function renderAssociationStatus(task,entity,metric){
  const pref=monitorPrefs.scenarios;
  for(const [mode,label] of [['online','查看实时'],['replay','回放此任务']]){
   const button=uiButton(label,()=>showAssociationRun(mode));
-  button.setAttribute('aria-pressed',String(pref.source!=='sample'&&pref.mode===mode));
+  button.setAttribute('aria-pressed',String(pref.mode===mode));
   button.disabled=mode==='replay'&&!model;
   actions.append(button);
  }
@@ -1152,8 +1225,8 @@ function renderBaselines(){
  const entities=filteredEntities(),previous=$('baselineEntity').value,deviceSelect=$('baselineEntity');
  options(deviceSelect,entities,e=>e.id,deviceLabel);
  if(!entities.some(e=>e.id===previous))deviceSelect.value=preferredBaselineEntity(entities)?.id||'';
- $('prepareBaseline').hidden=!data.simulation;
  const entity=entities.find(item=>item.id===deviceSelect.value);
+ $('prepareBaseline').hidden=!data.simulation||entity?.source_type!=='simulated';
  const tasks=new Map(data.tasks.filter(task=>task.entity===entity?.id&&!task.deleted&&!task.method_parent).map(task=>[task.template,task]));
  const metrics=Array.from(new Set([...PRIMARY,...Object.entries(data.templates)
   .filter(([template,spec])=>spec.kind==='univariate'&&template.startsWith('uni_'))
@@ -1164,10 +1237,13 @@ function renderBaselines(){
  })):[];
  const alternative=renderMethodBoard('baseline',targets,baselineMetric);
  const selected=baselineMetric;
- $('baselineLiveSelection').hidden=!selected||Boolean(alternative&&!alternative.active);
+ const synthetic=workspaceDataSource==='synthetic';
+ $('baselineLiveSelection').hidden=synthetic||!selected||Boolean(alternative&&!alternative.active);
+ $('baselineTools').hidden=synthetic;
+ $('baselineArchive').hidden=synthetic;
  if(selected)renderBaselineStatus(entity,selected,alternative?.active?alternative.task:tasks.get('uni_'+selected));
  if(page==='baseline'&&!replayMode){
-  if(!selected||(alternative&&!alternative.active))$('baselineComparison').hidden=true;
+  if(synthetic||!selected||(alternative&&!alternative.active))$('baselineComparison').hidden=true;
   else renderBaselineComparison(tasks.get('uni_'+selected));
  }
  const previews=PRIMARY.map(metric=>{
@@ -1200,7 +1276,7 @@ function renderBaselines(){
   return {metric,task,card};
  });
  $('baselineCards').replaceChildren(...previews.map(({card})=>card));
- if(page==='baseline'&&!replayMode&&entity&&$('baselineArchive').open)for(const {metric,task} of previews){
+ if(page==='baseline'&&!synthetic&&!replayMode&&entity&&$('baselineArchive').open)for(const {metric,task} of previews){
   drawBaselinePreview(entity.id,metric,task);
   loadBaselinePreview(entity.id,metric,task);
  }
@@ -1380,7 +1456,7 @@ document.querySelectorAll('button.nav').forEach(button=>{
  button.onclick=()=>{
   if(button.dataset.page==='detection')openDetectionShortcut();
   else if(button.dataset.page==='incidents')switchIncidentQueue(false);
-  else if(button.dataset.page==='scenarios'){monitorPrefs.scenarios.source='prometheus';chooseAssociationView('all');}
+  else if(button.dataset.page==='scenarios')chooseAssociationView('all');
   else choosePage(button.dataset.page);
  };
 });
@@ -1397,9 +1473,7 @@ $('detectionBack').onclick=()=>{
 };
 $('workspaceNavToggle').onclick=()=>setWorkspaceNav($('workspaceNavToggle').getAttribute('aria-expanded')!=='true');
 $('liveMode').onclick=()=>switchIncidentQueue(false);
-$('incidentDemoMode').onclick=()=>{
- if(data?.simulation){$('incidentFilter').value='all';choosePage('incidents',false,true);}
-};
+$('workspaceSource').onchange=event=>switchWorkspaceSource(event.target.value);
 $('incidentCurrent').onclick=()=>switchIncidentQueue(false);
 $('incidentArchive').onclick=()=>switchIncidentQueue(true);
 $('incidentFilter').onchange=()=>{
@@ -1409,6 +1483,7 @@ $('incidentFilter').onchange=()=>{
 };
 $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
+window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
 bindAssociationView();
 bindIncidentFilters();

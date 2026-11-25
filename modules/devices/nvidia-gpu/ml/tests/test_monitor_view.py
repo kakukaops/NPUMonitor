@@ -1,8 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from gpu_ml.monitor_view import association_snapshot, replay_input, replay_results, sample_rows, summarize_confirmations
+from gpu_ml.monitor_view import association_snapshot, monitor_view, replay_input, replay_results, sample_rows, summarize_confirmations
 from gpu_ml.source import Source
 from gpu_ml.store import Store
 
@@ -58,6 +60,21 @@ class MonitorViewTests(unittest.TestCase):
         self.assertTrue(all(b['t']-a['t'] == 2 for a, b in zip(points, points[1:])))
         self.assertTrue(any(not row['values'] for row in points))
         self.assertIn('gpu_temp', points[0]['values'])
+
+    def test_synthetic_observations_never_use_a_live_or_unselected_model(self):
+        with tempfile.TemporaryDirectory() as root, patch('gpu_ml.monitor_view.SIMULATION', True):
+            store = Store(Path(root) / 'source.sqlite')
+            store.put('entity', 'sim', {'source_type': 'simulated'})
+            store.put('entity', 'real', {'source_type': 'real_unverified'})
+            store.put('task', 'temperature', {'entity': 'sim', 'template': 'uni_gpu_temp', 'active_model': 'live'})
+            engine = SimpleNamespace(store=store, load=lambda _: self.fail('Raw sample must not load a model'))
+            result = monitor_view(engine, 'sim', 'temperature', 'gpu_temp', 'sample', 'replay', 300, 'drift',
+                                  observations_only=True)
+            self.assertTrue(result['observations'])
+            self.assertIsNone(result['model'])
+            self.assertFalse(any(point.get('score') is not None for point in result['points']))
+            with self.assertRaisesRegex(ValueError, '仅支持模拟 GPU'):
+                monitor_view(engine, 'real', '', 'gpu_temp', 'sample', 'replay', 300, 'drift')
 
     def test_prometheus_missing_input_resets_confirmation_and_preserves_observation(self):
         class PartialSource(Source):

@@ -169,7 +169,7 @@ def summarize_confirmations(replay, episodes, labels):
 
 
 def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenario, start=None, end=None,
-                 include_inputs=False, replay_model=None):
+                 include_inputs=False, replay_model=None, observations_only=False):
     if source not in ('prometheus', 'sample') or mode not in ('online', 'recorded', 'replay'):
         raise ValueError('数据来源或显示方式无效')
     if source == 'sample' and (not SIMULATION or mode != 'replay' or scenario not in SAMPLES):
@@ -186,6 +186,10 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
     entity = engine.store.get('entity', entity_id)
     if not entity:
         raise ValueError('GPU 不存在')
+    if source == 'sample' and entity.get('source_type') != 'simulated':
+        raise ValueError('人工构造样例仅支持模拟 GPU 的模型')
+    if observations_only and (source != 'sample' or replay_model):
+        raise ValueError('仅观察模式只支持人工样例')
     task = engine.store.get('task', task_id) if task_id else None
     if task_id and (not task or task['entity'] != entity_id or (task.get('deleted') and mode != 'recorded')):
         raise ValueError('任务与 GPU 不匹配')
@@ -194,7 +198,7 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
         raise ValueError('指标不属于当前任务')
     if replay_model and (not task or mode != 'replay'):
         raise ValueError('指定模型仅支持任务的历史回放')
-    model_id = replay_model or (task.get('active_model') if task else None)
+    model_id = None if observations_only else replay_model or (task.get('active_model') if task else None)
     record = engine.store.get('model', model_id) if model_id else None
     if replay_model and (not record or record['status'] not in ('validated', 'published')
                          or (record['entity'], record['template'], record['source_type']) !=
