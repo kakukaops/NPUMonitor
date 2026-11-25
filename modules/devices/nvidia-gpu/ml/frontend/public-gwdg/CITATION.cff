@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it using the metadata below."
+type: dataset
+title: "GWDG GPU Node Telemetry Dataset for Observability-Aware Early Warning"
+abstract: >-
+  Sanitized time-series telemetry from production GPU nodes at the GWDG HPC
+  infrastructure, aligned with operator-curated GPU failure incidents from
+  January 2025 to February 2026. Fifty incident tables sample GPU (DCGM),
+  node/OS, chassis/BMC (IPMI) and monitoring-pipeline metrics every 10 seconds
+  over a 26-hour window anchored on the Slurm-detected node state transition,
+  alongside a scheduler-state table covering the full observation period. The
+  dataset supports reproducible research on early warning for GPU instability,
+  particularly detachment-class failures whose dominant signal is structural
+  observability collapse - metric disappearance, scrape degradation and
+  monitoring gaps - rather than any numeric threshold.
+authors:
+  - family-names: Bidollahkhani
+    given-names: Michael
+    affiliation: "University of Göttingen"
+    email: michael.bkhani@uni-goettingen.de
+  - family-names: Nordsiek
+    given-names: Freja
+    affiliation: "GWDG"
+  - family-names: Kunkel
+    given-names: Julian M.
+    affiliation: "GWDG / University of Göttingen"
+version: "2.0.0"
+date-released: 2026-08-14
+doi: 10.5281/zenodo.21932615
+license: CC-BY-4.0
+keywords:
+  - GPU failure
+  - HPC
+  - telemetry
+  - observability
+  - early warning
+  - anomaly detection
+  - time series
+  - Prometheus
+  - DCGM
+  - Slurm

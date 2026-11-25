@@ -142,7 +142,7 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  $('title').textContent=title;
  $('subtitle').textContent=showReplay?'用人工构造曲线查看模型的评分过程。':
   incidentExampleActive?'在人工构造的样例中查看证据和复核。':
-  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开数据的历史观测和已有离线结果。':
+  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开 GPU 历史观测、实际 XID 与检测结果。':
   workspaceDataSource==='synthetic'&&monitorPrefs[next]?'选择场景，查看观测和所选方法的回放结果。':pageDescriptions[next]||'';
  $('subtitle').hidden=!$('subtitle').textContent;
  const hash=showReplay?replayHashes[next]:incidentExampleActive?'#incident-demo':
@@ -333,7 +333,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderPublicData();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -414,19 +414,30 @@ const boardPrefix={baseline:'baseline',scenarios:'association'};
 const targetListSignatures={};
 let baselineMetric='';
 
+function registeredDcgmMethods(template){
+ if(workspaceDataSource!=='simulated'||!data.dcgm_methods)return [];
+ const spec=data.templates[template];
+ if(spec?.kind==='univariate')return data.dcgm_methods.single;
+ if(spec?.kind==='multivariate'&&!spec.scenario)return data.dcgm_methods.multi;
+ return [];
+}
+
 function monitorMethods(entity,root,metric){
  const template=root?.template||'uni_'+metric;
  const primary=data.models.find(model=>model.id===root?.active_model);
  const shadow=data.models.find(model=>model.id===root?.shadow_model);
  const versions=root?compatibleModels(root):[];
  const supported=supportedAlgorithms(root||{template}).map(([key])=>key);
+ const registered=new Set(registeredDcgmMethods(template));
  const siblings=root?data.tasks.filter(task=>task.method_parent===root.id&&!task.deleted):[];
- const methods=new Set([...supported,...versions.map(model=>model.algorithm),...siblings.map(task=>task.method_algorithm),
+ const methods=new Set([...supported,...registered,...versions.map(model=>model.algorithm),...siblings.map(task=>task.method_algorithm),
   primary?.algorithm,shadow?.algorithm].filter(Boolean));
  return Array.from(methods,algorithm=>{
   const runtime=primary?.algorithm===algorithm?root:siblings.find(task=>task.method_algorithm===algorithm);
   const online=data.models.find(model=>model.id===runtime?.active_model);
   const ready=versions.filter(model=>model.algorithm===algorithm);
+  const recipe=registered.has(algorithm)&&!supported.includes(algorithm)&&!ready.length&&!online
+   ?data.dcgm_methods.training[algorithm]:null;
   const active=Boolean(online),observing=shadow?.algorithm===algorithm;
   const task=runtime||root;
   const training=root&&data.jobs.some(job=>job.task===root.id&&['queued','running','pending_sync'].includes(job.status)
@@ -434,10 +445,10 @@ function monitorMethods(entity,root,metric){
   const state=active?stateFor(task):null;
   const shadowPoint=observing&&(data.shadow||[]).find(row=>row.task===root.id&&row.model===shadow.id);
   const [status,color]=active?monitoredStatus(task):observing?[root.enabled&&data.inference.enabled?'影子监测':'影子已暂停','']:
-   training?['训练中','']:ready.length?['待启用','gray']:root?['待训练','gray']:['未配置任务','gray'];
+   training?['训练中','']:ready.length?['待启用','gray']:root||recipe?['待训练','gray']:['未配置任务','gray'];
   const score=active&&associationHasScore(task,state)?{...state,t:state.last_source}:!active?shadowPoint:null;
   return {entity,root,task,metric,algorithm,active,observing,
-   ready,supported:supported.includes(algorithm),status,color,score,version:online||
+   ready,recipe,supported:supported.includes(algorithm),status,color,score,version:online||
     (observing&&ready.find(model=>model.id===shadow.id))||ready[0]};
  }).sort((a,b)=>Number(b.active)-Number(a.active)||Number(b.observing)-Number(a.observing));
 }
@@ -481,7 +492,9 @@ function renderMethodBoard(section,targets,preferred){
  const algorithmFilter=boardFilter(section,'AlgorithmFilter');
  const templates=new Set(targets.map(target=>target.root?.template||'uni_'+target.metric));
  const scopes=new Set(targets.filter(target=>target.root).map(({root})=>[root.entity,root.template,root.scope].join('|')));
- const algorithms=new Set(Array.from(templates).flatMap(template=>supportedAlgorithms({template}).map(([key])=>key)));
+ const algorithms=new Set(Array.from(templates).flatMap(template=>[
+  ...supportedAlgorithms({template}).map(([key])=>key),...registeredDcgmMethods(template),
+ ]));
  for(const model of data.models){
   if(scopes.has([model.entity,model.template,model.source_type].join('|')))algorithms.add(model.algorithm);
  }
@@ -548,6 +561,13 @@ function openBoardMethod(section,method){
  rows.querySelector?.('.method-name[aria-pressed="true"]')?.focus({preventScroll:true});
 }
 
+function dcgmRecipeDescription(method){
+ const labels=method.recipe==='reference'
+  ?'拟合和校准使用已确认 XID=0 的历史。'
+  :'拟合和校准需要已标注的正常窗口和独立异常事件。';
+ return '已登记 · 节点级检测 · 每 10 秒处理过去 5 分钟的指标。'+labels+' 当前没有已训练版本。';
+}
+
 function renderBoardMethodDetail(section,method){
  const box=$(section==='baseline'?'baselineMethodSelection':'associationMethodSelection');
  box.hidden=!method;
@@ -558,7 +578,7 @@ function renderBoardMethodDetail(section,method){
  const actions=el('div',undefined,'controls');
  if(version)actions.append(uiButton('查看模型版本',()=>openReport(version)));
  if(task&&method.supported)actions.append(uiButton('训练此方法',()=>openTraining(task,algorithm),'write'));
- if(!task)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
+ if(!task&&!method.recipe)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
  actions.append(uiButton(task?.active_model?'返回在线方法':'查看原始曲线',()=>{
   methodSelection[section]=null;
   clearMethodBoardFilters(section);
@@ -567,7 +587,8 @@ function renderBoardMethodDetail(section,method){
  const heading=el('div',undefined,'panel-heading');
  heading.append(title,actions);
  const target=task?taskDisplayName(task):metricNames[metric];
- box.replaceChildren(heading,el('p',target+' · '+entity.uuid,'caption'),el('p',algorithmDescription(algorithm)));
+ box.replaceChildren(heading,el('p',target+' · '+entity.uuid,'caption'),
+  el('p',method.recipe?dcgmRecipeDescription(method):algorithmDescription(algorithm)));
  if(version)box.append(el('p',modelTitle(version)+' · '+modelSource(version),'caption'));
  box.append(el('p',score?'影子评分 '+fmt(score.score,2)+' / 阈值 '+fmt(score.threshold,2)+' · '+dateTime(score.t):
   method.observing?'暂无有效影子评分。':'当前没有运行评分。','caption'));
@@ -632,7 +653,7 @@ function methodBoardRow(section,method,selected){
   }));
  }else if(method.root&&method.supported){
   controls.append(uiButton('训练',()=>openTraining(method.root,algorithm),'write'));
- }else if(!method.root){
+ }else if(!method.root&&!method.recipe){
   controls.append(btn('配置',()=>configureBaseline(entity.id,[metric]),'write'));
  }
  const incident=method.active&&incidentForTask(task.id);
@@ -653,7 +674,8 @@ function renderAssociationTasks(){
   return {key:root.id,root,entity,title:taskDisplayName(root),fields:data.templates[root.template].required,
    subtitle:(root.scenario_id?'白盒场景':'黑盒模型')+' · '+entity.uuid};
  });
- renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
+ const selected=renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
+ if(selected?.recipe)$('associationStatus').hidden=true;
 }
 
 function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实采集 · 未核验');}
@@ -998,7 +1020,7 @@ function supportedAlgorithms(task){
 }
 function numberField(label,id,value,min,max,step='1'){const w=field(label,id);const n=w.children[0];n.type='number';n.value=String(value);n.min=String(min);n.max=String(max);n.step=String(step);n.required=true;return w;}
 function dateTime(t){return typeof t==='number'&&Number.isFinite(t)?new Date(t*1000).toLocaleString('zh-CN',{hour12:false}):'未记录';}
-function algorithmLabel(key){return ({temporal_mad:'动态基线检测（推荐）',rolling_median:'滚动中位数预测',level_mad:'历史水平偏离检测（仅评分）',joint_pca:'逐点 PCA 关联检测',joint_window_pca:'窗口 PCA 关联检测',joint_iforest:'Isolation Forest 组合检测（仅评分）',dcgm_conditional:'负载条件关系检测',dcgm_residual_trend:'长期关系漂移检测',ridge_iforest:'条件关系综合检测（旧版）',robust_mad:'条件偏离检测（旧版）',ensemble_max:'多方法综合评分（仅评分）'})[key]||data.algorithms[key]||'已登记的检测方法';}
+function algorithmLabel(key){return ({temporal_mad:'动态基线检测（推荐）',rolling_median:'滚动中位数预测',level_mad:'历史水平偏离检测（仅评分）',joint_pca:'逐点 PCA 关联检测',joint_window_pca:'窗口 PCA 关联检测',joint_iforest:'Isolation Forest 组合检测（仅评分）',dcgm_conditional:'负载条件关系检测',dcgm_residual_trend:'长期关系漂移检测',ridge_iforest:'条件关系综合检测（旧版）',robust_mad:'条件偏离检测（旧版）',ensemble_max:'多方法综合评分（仅评分）'})[key]||dcgmMethodLabels[key]||data.algorithms[key]||'已登记的检测方法';}
 function algorithmDescription(key){return ({temporal_mad:'根据此前连续观测预测当前值，生成动态参考曲线，并检测预测偏差与历史水平变化。',rolling_median:'使用前 5 个连续样本的中位数预测当前点，检测残差偏离。',joint_window_pca:'对当前点与前 4 点的联合窗口做 PCA，展示各指标的重构偏离。',level_mad:'比较当前值与训练期正常水平，只输出异常评分，不生成动态预测曲线。',joint_pca:'学习多个指标的组合关系，显示关系偏离及重构参考；重构不是预测。',joint_iforest:'识别不常见的指标组合，只输出评分，不提供参考曲线。',dcgm_conditional:'学习可比负载下的指标关系，识别条件偏离。',dcgm_residual_trend:'检查冻结条件基线的残差是否长期偏移。'})[key]||'该方法由系统预先实现；训练后生成适用于当前设备与指标的版本。';}
 function modelLocation(m){if(!m.backend)return '本地模型文件';const service=(data.model_services||[]).find(s=>s.id===m.backend.backend_id);if(service?.location==='reference'||m.execution_location==='reference')return '本机参考服务（HTTP）';if(service?.location==='remote'||m.execution_location==='remote')return '远程模型服务（已登记）';return '独立模型API（位置待核实）';}
 function serviceLabel(service){return service.name+' · '+(service.location==='reference'?'本机参考服务':'远程模型服务（配置）');}
@@ -1485,6 +1507,7 @@ $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
 window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
+bindDcgmView();
 bindAssociationView();
 bindIncidentFilters();
 bindXidStudy();

@@ -11,6 +11,7 @@ class Element {
  set value(value){this._value=String(value);}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value||'':'');}
  append(...children){this.children.push(...children);}
  replaceChildren(...children){this.children=[...children];if(this.tagName==='select'&&!children.some(c=>c.value===this._value))this._value=null;}
+ setAttribute(){}
  getBoundingClientRect(){return {width:800,height:300,left:0};}
  getContext(){return context2d;}
  click(){}
@@ -23,6 +24,7 @@ vm.createContext(sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/dcgm-view.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/xid-study.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'),sandbox);

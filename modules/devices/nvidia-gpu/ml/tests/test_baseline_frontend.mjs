@@ -26,6 +26,7 @@ class Element{
  set id(v){this._id=v;nodes.set(v,this);}get id(){return this._id;}
  set value(v){this._value=String(v);}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value||'':'');}
  append(...c){this.children.push(...c);}replaceChildren(...c){this.children=c;if(this.tagName==='select'&&!c.some(n=>n.value===this._value))this._value=null;}
+ setAttribute(){}
  getBoundingClientRect(){return {width:800,height:300,left:0};}getContext(){return ctx;}click(){}
 }
 const document={createElement:t=>new Element(t),getElementById:id=>{if(!nodes.has(id)){const n=new Element(['cluster','window','baselineEntity','baselineAlgorithmFilter','associationAlgorithmFilter','taskSelect','metricSelect'].includes(id)?'select':'div');n.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
@@ -35,6 +36,7 @@ vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/dcgm-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/xid-study.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
@@ -163,4 +165,20 @@ run('openModelChoice(data.tasks[0])');assert.ok(nodes.get('dialogBody').children
 run('data.tasks=[];renderBaselines()');
 for(const card of nodes.get('baselineCards').children)assert.ok(card.children.some(n=>n.className==='controls'&&n.children.some(b=>b.textContent==='切换模型')));
 run('$("baselineChooseModel").onclick()');assert.equal(nodes.get('dialogTitle').textContent,'当前指标尚未配置');
+// The simulated catalog keeps newly registered methods selectable before model creation.
+run(`data.dcgm_methods={
+ single:['logistic_l2','pca_t2'],multi:['pca_t2'],
+ training:{logistic_l2:'supervised',pca_t2:'reference'},
+}; choosePage('baseline');`);
+const pcaMethod=nodes.get('baselineMethodRows').children.find(row=>row.children[0].children[0]?.textContent==='PCA T²');
+assert.ok(pcaMethod,'Registered methods appear even without a configured task');
+assert.equal(pcaMethod.children[1].children[0].textContent,'待训练');
+pcaMethod.children[0].children[0].onclick();
+assert.equal(run('boardMethod.baseline.algorithm'),'pca_t2');
+assert.ok(nodes.get('baselineMethodSelection').children.some(node=>node.textContent.includes('XID=0')));
+assert.equal(findButton(nodes.get('baselineMethodSelection'),'训练此方法'),undefined);
+assert.equal(run("supportedAlgorithms({template:'uni_gpu_temp'}).some(([key])=>key==='pca_t2')"),false);
+assert.equal(run("registeredDcgmMethods('joint_gpu')[0]"),'pca_t2');
+assert.equal(run("workspaceDataSource='synthetic';registeredDcgmMethods('uni_gpu_temp').length"),0);
+assert.equal(run("workspaceDataSource='real_unverified';registeredDcgmMethods('joint_gpu').length"),0);
 console.log('PASS: fixed model entry, above-chart card controls, unconfigured empty state; readable baseline names, version ordering, source labels, training windows, visible method choice with collapsed tuning parameters, empty state, five drawn preview curves and trained-GPU default; 5 metric cards; model filtering/publish; history source, window/alpha/calibration; runtime revision; decision evidence. Browser visual QA not run.');

@@ -27,6 +27,8 @@ from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
 from .incident_queue import attach_incident_evidence, build_incident_queue, build_recovered_queue
 from .monitor_view import monitor_view
+from .dcgm_detection import method_catalog, public_detection
+from .dcgm_sources import live_detection, train_live, activate_live
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -231,6 +233,7 @@ def state(request:Request):
     return {'role':role,'time':now,'simulation':SIMULATION,'production_admitted':False,
             'entities':entities,'tasks':tasks,'states':states,'models':models,
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
+            'dcgm_methods':method_catalog(),
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
@@ -521,6 +524,36 @@ def monitor_view_data(request: Request, entity: str, metric: str, task: str = ''
     user(request)
     return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs,
                         model, observations_only)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/public/{collection}')
+def public_dcgm(request: Request, collection: str, metric: str, method: str, mode: str,
+                start: int, end: int, at: Optional[int] = None, compare: bool = False,
+                reference_mode: Optional[str] = None):
+    user(request)
+    return public_detection(collection, metric, method, mode, start, end, at, compare, reference_mode)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/live')
+def live_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+              start: int, end: int, at: Optional[int] = None, review: bool = False, scenario: str = 'normal',
+              compare: bool = False, reference_mode: Optional[str] = None):
+    user(request)
+    return live_detection(ENGINE, source, cluster, node, metric, method, mode, start, end, at,
+                          review, scenario, compare, reference_mode)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/train')
+def train_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+               history_hours: int, end: int):
+    user(request, 'operator')
+    return train_live(ENGINE, source, cluster, node, metric, method, mode, history_hours, end)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/activate')
+def activate_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str):
+    user(request, 'operator')
+    return activate_live(ENGINE, source, cluster, node, metric, method, mode)
 
 
 @app.get('/api/gpu-ml/v1/raw-series')

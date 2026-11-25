@@ -39,26 +39,63 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
+<section class="panel monitoring-panel" id="publicMethodBoard" aria-labelledby="publicMethodHeading" hidden>
+  <div class="panel-heading">
+    <div><h2 id="publicMethodHeading">方法监测看板</h2><p id="publicMethodSummary"></p></div>
+  </div>
+  <div class="controls monitoring-inputs board-filters" id="publicMethodFilters">
+    <label>搜索 <input type="search" id="publicTargetSearch" aria-label="搜索公开数据指标" placeholder="指标名或 DCGM 字段"></label>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="publicTargetHeading">
+      <h3 id="publicTargetHeading">指标</h3>
+      <ul class="method-targets" id="publicTargets"></ul>
+    </section>
+    <section aria-labelledby="publicMethodsHeading">
+      <h3 id="publicMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="公开数据检测方法">
+        <table class="association-table method-board">
+          <thead><tr><th>方法</th><th>类型</th></tr></thead>
+          <tbody id="publicMethodRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
   <div class="panel-heading">
-    <div><h2 id="publicDataName">公开历史数据</h2><p id="publicDataContext"></p></div>
-    <label class="source-picker" id="publicMetricControl" hidden>指标 <select id="publicMetric" aria-label="公开数据指标"></select></label>
+    <div><h2 id="publicDataName">GWDG v2 · 节点 XID 检测</h2><p id="publicDataContext"></p></div>
   </div>
-  <p class="caption" id="publicDataRange"></p>
   <div class="controls" id="publicDataActions" hidden>
-    <button type="button" id="publicTrend">看单指标曲线</button>
-    <button type="button" id="publicAssociation">看关联曲线与评分</button>
+    <button type="button" id="publicTrend">看单指标趋势</button>
+    <button type="button" id="publicAssociation">看多指标关联</button>
   </div>
   <a class="panel-link xid-study-link" href="/?source=public#association-compare">查看同卡 XID 预警评测 ↗</a>
-  <div class="legend" id="publicDataLegend" hidden>
-    <span><i class="blue"></i>实际观测</span>
-    <span class="public-score-legend"><i class="public-score-line"></i>离线 PCA 分数</span>
-    <span class="public-score-legend"><i class="red"></i>阈值与候选点</span>
-    <span><i class="incident-marker"></i>Slurm 记录时间</span>
+  <div class="controls" id="dcgmScope" hidden>
+    <label>节点 <select id="dcgmNode"></select></label>
+    <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
   </div>
-  <div id="publicValueBox" class="chart monitor-view-chart" hidden><canvas id="publicValueChart" role="img" aria-label="公开数据实际观测"></canvas><div class="tooltip" id="publicValueTip" hidden></div></div>
-  <div id="publicScoreBox" class="chart score-chart monitor-view-score" hidden><canvas id="publicScoreChart" role="img" aria-label="公开数据离线关联评分"></canvas></div>
-  <div id="publicInputCharts" class="monitor-input-charts" hidden></div>
+  <div class="controls" id="dcgmTimeControl" hidden>
+    <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
+      <button type="button" id="dcgmPrevious" aria-label="上一窗口" title="上一窗口" disabled>‹</button>
+      <output id="dcgmWindowRange" aria-live="polite"></output>
+      <button type="button" id="dcgmNext" aria-label="下一窗口" title="下一窗口" disabled>›</button>
+    </div>
+    <button type="button" id="dcgmRefresh">重新运行检测</button>
+  </div>
+  <p class="caption" id="publicDataRange" role="status"></p>
+  <div id="dcgmResults" hidden>
+    <div class="legend dcgm-legend">
+      <span><i class="dcgm-band xid"></i>实际 XID</span>
+      <span><i class="dcgm-band alarm"></i>算法报警</span>
+      <span><i class="dcgm-dot gap"></i>当前无有效监测数据</span>
+      <span><i class="dcgm-dot unknown"></i>XID 未知</span>
+    </div>
+    <canvas id="dcgmEvents" role="img" tabindex="0" aria-label="节点实际 XID、算法报警和数据缺失时间轴，按左右方向键选择时刻"></canvas>
+    <p id="dcgmPoint" class="caption" aria-live="polite"></p>
+    <div id="dcgmSummary" aria-label="当前时刻各算法的检测结果" hidden></div>
+    <div id="publicInputCharts" class="dcgm-charts"></div>
+  </div>
 </section>
 <div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
 <div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
@@ -354,4 +391,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
