@@ -109,6 +109,24 @@ class Source(PrometheusClient):
                     output[min(source_times)]={'t':min(source_times),'values':sample}
         return [output[k] for k in sorted(output)]
 
+    def rolling_history(self, entity, current, cadence, required, window):
+        if not window:
+            return [current]
+        stamp = current['t']
+        # Query just after each historical cadence boundary so a scrape arriving a
+        # few milliseconds later is not replaced by the preceding scrape.
+        phase = min(cadence / 8, .5)
+        try:
+            history = self.history(
+                entity, stamp - (window + 3) * cadence + phase, stamp - cadence + phase, cadence, required,
+            )
+        except ValueError as exc:
+            if str(exc) != '历史缺少必需指标':
+                raise
+            history = []
+        # Use the already validated current observation at its exact source time.
+        return [*history, current]
+
     def monitor_history(self, entity, start, end, step, required, show):
         """Keep each evaluation opportunity and each displayed metric's observations."""
         keys = list(dict.fromkeys([*required, *show]))

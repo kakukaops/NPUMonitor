@@ -258,6 +258,7 @@ class Engine:
 
     def run(self):
         while not self.stop.is_set():
+            cycle_start = time.monotonic()
             try:
                 control=self.store.get('system','inference') or {'enabled':True}
                 if not control['enabled']:
@@ -285,7 +286,10 @@ class Engine:
                         if task.get('shadow_model'):
                             try:
                                 shadow_model=self.load(task['shadow_model'])
-                                shadow_rows=self.source.history(task['entity'],row['t']-(shadow_model.window+3)*shadow_model.cadence,row['t'],shadow_model.cadence,required) if getattr(shadow_model,'window',0) else [row]
+                                shadow_rows = self.source.rolling_history(
+                                    task['entity'], row, getattr(shadow_model, 'cadence', POLL), required,
+                                    getattr(shadow_model, 'window', 0),
+                                )
                                 shadow_predictions=self.score(shadow_model,shadow_rows)
                                 if shadow_predictions and shadow_predictions[-1]['t']==row['t']:
                                     shadow=shadow_predictions[-1];shadow['model']=task['shadow_model'];self.store.record_shadow(task['id'],shadow)
@@ -293,7 +297,9 @@ class Engine:
                         if not task.get('active_model'):
                             self.store.apply(task['id'],quality='untrained');continue
                         model=self.load(task['active_model'])
-                        rows=self.source.history(task['entity'],row['t']-(model.window+3)*model.cadence,row['t'],model.cadence,required) if getattr(model,'window',0) else [row]
+                        rows = self.source.rolling_history(
+                            task['entity'], row, getattr(model, 'cadence', POLL), required, getattr(model, 'window', 0),
+                        )
                         batch=self.score_batch(model,rows,task.get('sensitivity',1.))
                         if batch.quality!='valid':
                             self.store.apply(task['id'],quality=batch.quality);continue
@@ -312,7 +318,7 @@ class Engine:
                 # The loop is alive; valid normal evidence is still absent.
                 self.last_poll=time.time()
                 logging.warning('Input query failed: %s',self.error)
-            self.stop.wait(POLL)
+            self.stop.wait(max(0, POLL - (time.monotonic() - cycle_start)))
 
     def replay(self,task_id,model_id,start,end,step=2,labels=None):
         task=self.store.get('task',task_id);record=self.store.get('model',model_id)

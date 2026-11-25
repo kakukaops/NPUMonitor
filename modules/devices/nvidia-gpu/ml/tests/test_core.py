@@ -84,6 +84,35 @@ class LifecycleTests(unittest.TestCase):
 
 
 class SourceTests(unittest.TestCase):
+    def test_online_history_accepts_scrape_jitter_without_filling_missing_samples(self):
+        class Fake(Source):
+            samples = [100., 102.001, 104., 106., 106.001]
+
+            def query(self, expression, start=None, end=None, step=2):
+                name = METRICS['gpu_temp']['name']
+                labels = {'cluster_id': 'c', 'UUID': 'GPU-1'}
+                selected = []
+                for index in range(round((end-start)/step)+1):
+                    tick = round(start+index*step, 3)
+                    prior = [stamp for stamp in self.samples if stamp <= tick]
+                    if prior:
+                        selected.append((tick, prior[-1]))
+                return [
+                    {'metric': {**labels, '__name__': name}, 'values': [(tick, 60.) for tick, _ in selected]},
+                    {'metric': {**labels, 'source_metric': name}, 'values': selected},
+                ]
+
+        source = Fake()
+        current = {'t': 106., 'values': {'gpu_temp': 62.}}
+        previous = source.history('c|GPU-1', 100, 106, 2, ['gpu_temp'])
+        self.assertEqual([row['t'] for row in previous], [100., 104., 106.])
+        result = source.rolling_history('c|GPU-1', current, 2, ['gpu_temp'], 3)
+        self.assertEqual([row['t'] for row in result], [100., 102.001, 104., 106.])
+        self.assertIs(result[-1], current)
+        source.samples = [100., 104., 106.]
+        result = source.rolling_history('c|GPU-1', current, 2, ['gpu_temp'], 3)
+        self.assertEqual([row['t'] for row in result], [100., 104., 106.])
+
     def test_quality_duplicate_stale_and_mig_exclusion(self):
         now=time.time();name=METRICS['gpu_temp']['name']
         def observation(uid,val,ts,replica=None,mig=False):

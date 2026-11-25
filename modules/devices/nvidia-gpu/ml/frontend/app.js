@@ -666,10 +666,35 @@ ctx.fillStyle='#a286c6';for(const interval of quality){
  if(right>left)ctx.fillRect(x(left),T,Math.max(1,x(right)-x(left)),4);
 }
 ctx.fillStyle='#8592a6';for(let i=0;i<5;i++){const v=min+(max-min)*i/4;ctx.strokeStyle='#edf1f6';ctx.beginPath();ctx.moveTo(L,y(v));ctx.lineTo(w-R,y(v));ctx.stroke();ctx.textAlign='right';ctx.fillText(axisLabel?axisLabel(v):score?v.toFixed(2):v.toFixed(0),L-8,y(v));}for(let i=0;i<5;i++){ctx.textAlign=i===0?'left':i===4?'right':'center';const t=start+(end-start)*i/4;ctx.fillText(tm(t),x(t),h-10);}if(Number.isFinite(marker)&&marker>=start&&marker<=end){ctx.fillStyle='#bf8739';ctx.fillRect(x(marker),T,1,H);}
-const gap=Math.max(15,(valid.at(-1).cadence_seconds||valid.at(-1).capabilities?.cadence_seconds||2)*1.5);function line(fn,color,dash=[],raw=false){ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.beginPath();let last=null;for(const p of valid){const val=fn(p);if(!Number.isFinite(val)){if(!independent)last=null;continue;}if(!last||p.t-last.t>gap||(!raw&&(p.model!==last.model||p.pipeline_id!==last.pipeline_id||p.decision_config_revision!==last.decision_config_revision||quality.some(interval=>interval.start>last.t&&interval.start<=p.t))))ctx.moveTo(x(p.t),y(val));else ctx.lineTo(x(p.t),y(val));last=p;}ctx.stroke();ctx.setLineDash([]);}if(!score){ctx.fillStyle='#3568e816';for(let i=1;i<valid.length;i++){const a=valid[i-1],b=valid[i];if(b.t-a.t>gap||a.pipeline_id!==b.pipeline_id||a.model!==b.model||!a.bounds?.[key]||!b.bounds?.[key])continue;ctx.beginPath();ctx.moveTo(x(a.t),y(a.bounds[key][0]));ctx.lineTo(x(a.t),y(a.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][0]));ctx.closePath();ctx.fill();}line(p=>p.expected?.[key],'#96a5bc',[4,3]);for(const overlay of overlays)line(p=>overlay.values.get(p.t),overlay.color,[4,3]);line(p=>p.values[key],'#3568e8',[],independent);}else{
+const cadence=(valid.at(-1).cadence_seconds||valid.at(-1).capabilities?.cadence_seconds||2)*1.5;
+const gap=score?cadence:Math.max(15,cadence);
+function line(valueOf,color,dash=[],raw=false,threshold=false){
+ ctx.setLineDash(dash);
+ ctx.strokeStyle=color;
+ ctx.lineWidth=1.6;
+ ctx.beginPath();
+ let last=null;
+ for(const point of valid){
+  const value=valueOf(point);
+  if(!Number.isFinite(value)){
+   if(!independent)last=null;
+   continue;
+  }
+  const configurationChanged=last&&!raw&&(point.model!==last.model||point.pipeline_id!==last.pipeline_id
+   ||point.decision_config_revision!==last.decision_config_revision);
+  const unavailable=last&&(point.t-last.t>gap||(!raw&&quality.some(interval=>interval.start>last.t&&interval.start<=point.t)));
+  const constantThreshold=threshold&&last&&point.threshold===last.threshold;
+  if(!last||configurationChanged||(unavailable&&!constantThreshold))ctx.moveTo(x(point.t),y(value));
+  else ctx.lineTo(x(point.t),y(value));
+  last=point;
+ }
+ ctx.stroke();
+ ctx.setLineDash([]);
+}
+if(!score){ctx.fillStyle='#3568e816';for(let i=1;i<valid.length;i++){const a=valid[i-1],b=valid[i];if(b.t-a.t>gap||a.pipeline_id!==b.pipeline_id||a.model!==b.model||!a.bounds?.[key]||!b.bounds?.[key])continue;ctx.beginPath();ctx.moveTo(x(a.t),y(a.bounds[key][0]));ctx.lineTo(x(a.t),y(a.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][1]));ctx.lineTo(x(b.t),y(b.bounds[key][0]));ctx.closePath();ctx.fill();}line(p=>p.expected?.[key],'#96a5bc',[4,3]);for(const overlay of overlays)line(p=>overlay.values.get(p.t),overlay.color,[4,3]);line(p=>p.values[key],'#3568e8',[],independent);}else{
  if(Number.isFinite(flatThreshold)){
   ctx.beginPath();ctx.setLineDash([5,4]);ctx.strokeStyle='#d95766';ctx.moveTo(L,y(flatThreshold));ctx.lineTo(w-R,y(flatThreshold));ctx.stroke();ctx.setLineDash([]);
- }else line(p=>p.threshold,'#d95766',[5,4]);
+ }else line(p=>p.threshold,'#d95766',[5,4],false,true);
  line(p=>p.score,'#7c66ce');}for(const p of valid.filter(p=>markAnomalies&&p.anomaly&&(score||Number.isFinite(p.values[key])))){ctx.fillStyle='#d95766';ctx.beginPath();ctx.arc(x(p.t),y(score?p.score:p.values[key]),2.4,0,Math.PI*2);ctx.fill();}if(tooltip||target==='metricChart'){canvas.onpointermove=e=>{const px=e.clientX-box.left;const t=start+(px-L)/W*(end-start);if(probe)probe(t);const p=valid.reduce((a,b)=>Math.abs(b.t-t)<Math.abs(a.t-t)?b:a);const tip=tooltip||$('chartTip');tip.textContent=tm(p.t)+'\n实际 '+fmt(p.values[key])+' '+(data?.metrics[key]?.unit||'')+(referenceKind(p)==='none'?'':'\n'+(referenceKind(p)==='joint_reconstruction'?'重构参考 ':'预测/基线参考 ')+fmt(p.expected?.[key]))+'\n分数 '+fmt(p.score,3)+(p.model?' / 阈值 '+fmt(p.threshold,3)+'\n版本 '+short(p.model)+(p.decision_config_revision?' · 配置 '+p.decision_config_revision:''):'');tip.style.left=Math.min(w-160,Math.max(5,px+10))+'px';tip.style.top='15px';tip.hidden=false;};canvas.onpointerleave=()=>{(tooltip||$('chartTip')).hidden=true;if(probe)probe(null);};}}
 function openDialog(title,fields,submit,submitLabel='保存'){
  const overlay=$('dialogOverlay');

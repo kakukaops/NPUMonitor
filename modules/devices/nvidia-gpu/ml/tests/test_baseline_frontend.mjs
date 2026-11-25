@@ -10,7 +10,17 @@ const models=tasks.map((t,i)=>({id:'model-'+i,task:t.id,entity,template:t.templa
 const fixture={role:'admin',time:now,simulation:true,entities:[{id:entity,uuid:'GPU-ML-SIM-0000',name:'SIMULATED-H100',cluster:'gpu-ml-simulation',source_type:'simulated',fresh:true,values:Object.fromEntries(primary.map(m=>[m,50])),quality:Object.fromEntries(primary.map(m=>[m,'valid']))}],tasks,models,states:tasks.map(t=>({id:t.id,quality:'valid',score:2,threshold:1,active:true,last_source:now,calibrated_components:{[bindings.templates[t.template].targets[0]+':level']:2}})),templates:bindings.templates,metrics:bindings.metrics,algorithms:{temporal_mad:'滞后回归',level_mad:'仅评分'},jobs:[],feedback:[],bindings:[],nightingale:{connected:false},source:{last_success:now},inference:{enabled:true},scenarios:['normal','power_spike'],model_backend:{backend_id:'reference-http-v1',state:'available'}};
 const nodes=new Map(),calls=[];
 let chartStrokes=0;
-const ctx=new Proxy({stroke(){chartStrokes++;}}, {get:(obj,key)=>obj[key]||(()=>{}),set:(obj,key,value)=>(obj[key]=value,true)});
+const decisionPaths=[];
+let path=[];
+const ctx=new Proxy({
+ beginPath(){path=[];},
+ moveTo(){path.push('move');},
+ lineTo(){path.push('line');},
+ stroke(){
+  chartStrokes++;
+  if(['#d95766','#7c66ce'].includes(this.strokeStyle))decisionPaths.push([this.strokeStyle,path]);
+ },
+}, {get:(obj,key)=>obj[key]||(()=>{}),set:(obj,key,value)=>(obj[key]=value,true)});
 class Element{
  constructor(tag='div'){this.tagName=tag;this.children=[];this.hidden=false;this.disabled=false;this.style={};this.textContent='';this.classList={toggle(){}};this._value=null;}
  set id(v){this._id=v;nodes.set(v,this);}get id(){return this._id;}
@@ -29,6 +39,13 @@ run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'))
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'incidents');
+run(`draw('gap-test',[{t:2,score:.6,threshold:1,model:'a',decision_config_revision:1},
+ {t:12,score:.7,threshold:1,model:'a',decision_config_revision:1},
+ {t:14,score:.8,threshold:2,model:'a',decision_config_revision:2}],'gpu_temp',true)`);
+assert.deepEqual(decisionPaths.slice(-2),[
+ ['#d95766',['move','line','move']],
+ ['#7c66ce',['move','move','move']],
+]);
 run("$('baselineArchive').open=true;choosePage('baseline')");
 await new Promise(r=>setImmediate(r));
 assert.equal(nodes.get('baselineCards').children.length,5);
