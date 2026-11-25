@@ -183,6 +183,7 @@ body { font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", 
 .workspace-nav .nav.active { background: var(--rail-active); border-color: #285661; color: var(--rail-highlight); font-weight: 670; }
 .workspace-nav .nav.active span { color: var(--rail-highlight); }
 .workspace-nav .preview-link { color: #a9cbbf; }
+.workspace-nav .model-report-link { white-space: normal; line-height: 1.35; }
 .sidebar-bottom { color: #a8b9cb; font-size: 11px; margin: auto 9px 0; padding-top: 15px; }
 .sidebar-bottom span { margin: 0 4px; }
 .workspace-header { height: 54px; background: #fff; padding-inline: 28px; }
