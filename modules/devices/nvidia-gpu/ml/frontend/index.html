@@ -39,6 +39,29 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
+<section class="panel monitoring-panel" id="publicMethodBoard" aria-labelledby="publicMethodHeading" hidden>
+  <div class="panel-heading">
+    <div><h2 id="publicMethodHeading">方法监测看板</h2><p id="publicMethodSummary"></p></div>
+  </div>
+  <div class="controls monitoring-inputs board-filters" id="publicMethodFilters">
+    <label>搜索 <input type="search" id="publicTargetSearch" aria-label="搜索公开数据指标" placeholder="指标名或 DCGM 字段"></label>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="publicTargetHeading">
+      <h3 id="publicTargetHeading">指标</h3>
+      <ul class="method-targets" id="publicTargets"></ul>
+    </section>
+    <section aria-labelledby="publicMethodsHeading">
+      <h3 id="publicMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="公开数据检测方法">
+        <table class="association-table method-board">
+          <thead><tr><th>方法</th><th>类型</th></tr></thead>
+          <tbody id="publicMethodRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
   <div class="panel-heading">
     <div><h2 id="publicDataName">GWDG v2 · 节点 XID 检测</h2><p id="publicDataContext"></p></div>
@@ -50,8 +73,6 @@
   <div class="controls" id="dcgmScope" hidden>
     <label>节点 <select id="dcgmNode"></select></label>
     <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
-    <label>指标 <select id="publicMetric"></select></label>
-    <label><span id="dcgmMethodLabel">方法</span> <select id="dcgmMethod"></select></label>
   </div>
   <div class="controls" id="dcgmTimeControl" hidden>
     <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
@@ -59,7 +80,7 @@
       <output id="dcgmWindowRange" aria-live="polite"></output>
       <button type="button" id="dcgmNext" aria-label="下一窗口" title="下一窗口" disabled>›</button>
     </div>
-    <button type="button" id="dcgmRefresh">刷新曲线</button>
+    <button type="button" id="dcgmRefresh">重新运行检测</button>
   </div>
   <p class="caption" id="publicDataRange" role="status"></p>
   <div id="dcgmResults" hidden>

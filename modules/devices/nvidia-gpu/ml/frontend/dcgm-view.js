@@ -20,8 +20,8 @@ const dcgmEventColors={gap:'#37759e',unknown:'#737f8f'};
 const dcgmPriority=['DCGM_FI_DEV_GPU_TEMP','DCGM_FI_DEV_GPU_UTIL','DCGM_FI_DEV_POWER_USAGE','DCGM_FI_DEV_FB_USED'];
 const dcgmJointMethods=['shallow_tree','robust_range','pca_t2'];
 const dcgmView={catalog:null,catalogRequest:null,capture:null,result:null,windowKey:'',requestKey:'',generation:0,
- node:null,collection:null,windowIndex:0,at:null,metric:dcgmPriority[0],displayMetric:'all18',
- method:'',scoring:false,pointAt:null};
+ node:null,collection:null,windowIndex:0,at:null,metric:dcgmPriority[0],
+ singleMethod:'pca_t2',jointMethod:'pca_t2',boardKey:'',pointAt:null};
 
 function dcgmMetricName(key){return dcgmLabel[key]||key.replace('DCGM_FI_DEV_','');}
 function dcgmOrderedMetrics(){
@@ -81,17 +81,69 @@ function dcgmMoveWindow(direction){
  renderDcgmView();
 }
 
-function dcgmSelection(){
- const v=dcgmView,multi=page==='scenarios',metrics=v.catalog.metrics;
- const methods=multi?dcgmJointMethods:Object.keys(dcgmMethodLabels);
- if(!methods.includes(v.method))v.method='pca_t2';
- if(!metrics.includes(v.metric))v.metric=metrics[0];
- const metricOptions=(multi?dcgmOrderedMetrics():metrics).map(key=>[key,dcgmMetricName(key)]);
- if(multi)metricOptions.unshift(['all18','全部 18 项指标']);
- dcgmRows(metricOptions,'publicMetric',multi?v.displayMetric:v.metric);
- $('dcgmMethodLabel').textContent=multi?'时间轴方法':'方法';
- dcgmRows(methods.map(key=>[key,dcgmMethodLabels[key]]),'dcgmMethod',v.method);
- const common={metric:multi?'all':v.metric,method:v.method,mode:dcgmReference.has(v.method)?'reference':'supervised'};
+function renderPublicMethodBoard(multi,methods,method){
+ const v=dcgmView;
+ const terms=multi?[]:$('publicTargetSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+ const group=v.catalog.metrics.length+' 项 DCGM 联合输入';
+ const metrics=multi?[]:dcgmOrderedMetrics().filter(metric=>{
+  const searchable=(dcgmMetricName(metric)+' '+metric).toLowerCase();
+  return terms.every(term=>searchable.includes(term));
+ });
+ const key=JSON.stringify([multi,v.metric,method,metrics,methods]);
+ const title=multi?group:dcgmMetricName(v.metric);
+ $('publicDataContext').textContent=title+' · '+(multi?'时间轴方法 ':'')+dcgmMethodLabels[method]
+  +' · 每 10 秒使用过去 5 分钟的数据检测当前时刻';
+ if(key===v.boardKey)return;
+ v.boardKey=key;
+ $('publicMethodFilters').hidden=multi;
+ $('publicTargetHeading').textContent=multi?'指标组':'指标';
+ $('publicMethodSummary').textContent=multi?'1 个指标组':metrics.length+' / '+v.catalog.metrics.length+' 个指标';
+ $('publicMethodsHeading').textContent=title+' · '+methods.length+' 种方法';
+
+ const targetRows=multi?[['all',group,'节点级联合检测']]:
+  metrics.map(metric=>[metric,dcgmMetricName(metric),metric]);
+ const targets=$('publicTargets');
+ targets.replaceChildren(...(targetRows.length?targetRows.map(([id,label,subtitle])=>{
+  const row=el('li');
+  const button=uiButton(label,()=>{
+   if(multi||v.metric===id)return;
+   v.metric=id;
+   renderDcgmView();
+   targets.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+  },'method-target');
+  button.setAttribute('aria-pressed',String(multi||v.metric===id));
+  button.append(el('small',subtitle));
+  row.append(button);
+  return row;
+ }):[el('li','没有匹配的指标','empty')]));
+
+ const rows=$('publicMethodRows');
+ rows.replaceChildren(...methods.map(id=>{
+  const selected=id===method;
+  const row=el('tr',undefined,selected?'active-task':'');
+  const name=el('td');
+  const button=uiButton(dcgmMethodLabels[id],()=>{
+   if(selected)return;
+   v[multi?'jointMethod':'singleMethod']=id;
+   renderDcgmView();
+   rows.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+  },'text-button method-name');
+  button.setAttribute('aria-pressed',String(selected));
+  name.append(button);
+  row.append(name,el('td',dcgmReference.has(id)?'XID=0 正常参考':'监督'));
+  return row;
+ }));
+}
+
+function dcgmSelection(multi){
+ const v=dcgmView;
+ const methodKey=multi?'jointMethod':'singleMethod';
+ const methods=data.dcgm_methods?.[multi?'multi':'single']??(multi?dcgmJointMethods:Object.keys(dcgmMethodLabels));
+ if(!methods.includes(v[methodKey]))v[methodKey]=methods[0];
+ if(!v.catalog.metrics.includes(v.metric))v.metric=v.catalog.metrics[0];
+ const method=v[methodKey];
+ renderPublicMethodBoard(multi,methods,method);
+ const common={metric:multi?'all':v.metric,method,mode:dcgmReference.has(method)?'reference':'supervised'};
 
  const collections=v.catalog.collections;
  const nodes=Array.from(new Set(collections.map(row=>row.node)));
@@ -111,7 +163,9 @@ function dcgmSelection(){
 
 function renderDcgmView(force=false){
  const v=dcgmView, charts=Boolean(monitorPrefs[page]);
- if($('publicDataPanel').hidden||!charts){
+ const visible=!$('publicDataPanel').hidden&&charts;
+ $('publicMethodBoard').hidden=!visible||!v.catalog;
+ if(!visible){
   if(v.requestKey||v.result){
    v.generation++;
    v.requestKey='';
@@ -121,15 +175,14 @@ function renderDcgmView(force=false){
   if(!$('publicDataPanel').hidden){
    $('publicDataActions').hidden=false;
    $('dcgmScope').hidden=$('dcgmTimeControl').hidden=true;
+   $('publicDataContext').textContent='';
    $('publicDataRange').textContent='19 个节点 · 48 个采集区间';
   }
   return;
  }
- $('publicDataContext').textContent='每 10 秒使用过去 5 分钟的数据检测当前时刻';
  $('publicDataActions').hidden=true;
  $('dcgmScope').hidden=$('dcgmTimeControl').hidden=false;
- const multi=page==='scenarios',run=v.scoring||multi;
- $('dcgmRefresh').textContent=run?'重新运行检测':'运行检测';
+ const multi=page==='scenarios';
  if(!v.catalog){
   if(!v.catalogRequest){
    $('publicDataRange').textContent='正在读取 DCGM 数据索引…';
@@ -139,9 +192,9 @@ function renderDcgmView(force=false){
   }
   return;
  }
- const {row,common,start,end,at}=dcgmSelection();
+ const {row,common,start,end,at}=dcgmSelection(multi);
  const request={...common,start,end};
- const windowKey=JSON.stringify([page,row.id,run,request]);
+ const windowKey=JSON.stringify([page,row.id,request]);
  if(multi)Object.assign(request,{at,compare:true});
  const requestKey=multi?windowKey+'|'+at:windowKey;
  if(!force&&requestKey===v.requestKey)return;
@@ -152,7 +205,7 @@ function renderDcgmView(force=false){
   v.result=null;
   $('dcgmResults').hidden=true;
  }
- $('publicDataRange').textContent=v.result&&run?'正在读取检测结果…':'正在读取曲线…';
+ $('publicDataRange').textContent=v.result?'正在读取检测结果…':'正在读取曲线…';
  const promise=v.capture?.id===row.id?Promise.resolve(v.capture):dcgmRead(row.id).then(raw=>({
   id:raw.id,start:raw.start,xid:dcgmUnpack(raw.xid),
   labels:Object.fromEntries(raw.gpus.map(card=>[card.id,card.label])),
@@ -175,8 +228,7 @@ function renderDcgmView(force=false){
    v.result={start,end,xid:capture.xid.subarray(first,last),points,series,labels:capture.labels};
    dcgmPaint(v.at);
   }
-  $('publicDataRange').textContent=run?'正在读取检测结果…':'';
-  if(!run)return;
+  $('publicDataRange').textContent='正在读取检测结果…';
   return api('/dcgm/public/'+row.id+'?'+new URLSearchParams(request)).then(result=>{
    if(generation!==v.generation)return;
    Object.assign(v.result,result);
@@ -317,7 +369,7 @@ function dcgmPaint(at){
    selectPoint(selectedAt+(e.key==='ArrowLeft'?-step:step));
   };
  }
- const metrics=multi?(v.displayMetric==='all18'?dcgmOrderedMetrics():[v.displayMetric]):[v.metric];
+ const metrics=multi?dcgmOrderedMetrics():[v.metric];
  const container=$('publicInputCharts');
  container.classList.toggle('dcgm-stacked',multi);
  container.replaceChildren();
@@ -370,7 +422,7 @@ function bindDcgmView(){
  const v=dcgmView;
  $('publicTrend').onclick=()=>choosePage('baseline');
  $('publicAssociation').onclick=()=>chooseAssociationView('all');
- $('dcgmRefresh').onclick=()=>{v.scoring=true;renderDcgmView(true);};
+ $('dcgmRefresh').onclick=()=>renderDcgmView(true);
  $('dcgmPrevious').onclick=()=>dcgmMoveWindow(-1);
  $('dcgmNext').onclick=()=>dcgmMoveWindow(1);
  $('dcgmNode').onchange=event=>{v.node=event.target.value;renderDcgmView();};
@@ -380,19 +432,7 @@ function bindDcgmView(){
   dcgmSelectCollection(row);
   renderDcgmView();
  };
- $('dcgmMethod').onchange=event=>{
-  v.method=event.target.value;
-  v.scoring=false;
-  renderDcgmView();
- };
- $('publicMetric').onchange=event=>{
-  if(page==='baseline'){v.metric=event.target.value;v.scoring=false;}
-  else{
-   v.displayMetric=event.target.value;
-   if(v.result){dcgmPaint(v.pointAt??v.result.end);return;}
-  }
-  renderDcgmView(true);
- };
+ $('publicTargetSearch').oninput=()=>renderDcgmView();
  window.addEventListener('resize',()=>{
   if(!$('publicDataPanel').hidden&&v.result)dcgmPaint(v.pointAt??v.result.end);
  });

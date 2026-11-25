@@ -20,12 +20,13 @@ The data files contain only observations, labels, and derived input summaries.
 ## Viewing and training
 
 From the GPU ML workspace choose 值班 → 单指标趋势 or 多指标关联预警,
-then select 公开数据. Choose a node and a capture interval. Move between
-three-hour windows with the arrow buttons, and click the timeline to select
-a point within the current window. The final window ends at the last sample
-and can overlap the previous one. The single-metric
-page runs the selected method when requested. The joint page displays the
-selected time's method results and alarm reasons above the metric cards.
+then select 公开数据. Use 方法监测看板 to select the metric and method
+for a single-metric view or the timeline method for the 18-input joint view.
+The detection panel follows the board selection. Choose a node and capture
+interval, move between three-hour windows using the arrows, and select
+a point by clicking the timeline. The final window ends at the last sample
+and can overlap the previous one. The joint page displays the selected time's
+method results and alarm reasons above the metric cards.
 
 The alert lanes show observed nonzero XID, the selected model's decision, and
 missing telemetry in that order. XID and model alarms are shaded. The initial
