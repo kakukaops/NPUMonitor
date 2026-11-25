@@ -20,7 +20,10 @@ The data files contain only observations, labels, and derived input summaries.
 ## Viewing and training
 
 From the GPU ML workspace choose 值班 → 单指标趋势 or 多指标关联预警,
-then select 公开数据. Choose a node and a capture interval. The single-metric
+then select 公开数据. Choose a node and a capture interval. Move between
+three-hour windows with the arrow buttons, and click the timeline to select
+a point within the current window. The final window ends at the last sample
+and can overlap the previous one. The single-metric
 page runs the selected method when requested. The joint page displays the
 selected time's method results and alarm reasons above the metric cards.
 

@@ -54,12 +54,11 @@
     <label><span id="dcgmMethodLabel">方法</span> <select id="dcgmMethod"></select></label>
   </div>
   <div class="controls" id="dcgmTimeControl" hidden>
-    <label>时间范围 <select id="dcgmSpan">
-      <option value="900">15 分钟</option><option value="1800">30 分钟</option>
-      <option value="3600">1 小时</option><option value="10800">3 小时</option>
-    </select></label>
-    <label id="dcgmPositionControl">采集时刻 <input id="dcgmPosition" type="range" min="0" step="1"></label>
-    <output id="dcgmPositionTime"></output>
+    <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
+      <button type="button" id="dcgmPrevious" aria-label="上一窗口" title="上一窗口" disabled>‹</button>
+      <output id="dcgmWindowRange" aria-live="polite"></output>
+      <button type="button" id="dcgmNext" aria-label="下一窗口" title="下一窗口" disabled>›</button>
+    </div>
     <button type="button" id="dcgmRefresh">刷新曲线</button>
   </div>
   <p class="caption" id="publicDataRange" role="status"></p>
@@ -70,7 +69,7 @@
       <span><i class="dcgm-dot gap"></i>当前无有效监测数据</span>
       <span><i class="dcgm-dot unknown"></i>XID 未知</span>
     </div>
-    <canvas id="dcgmEvents" role="img" aria-label="节点实际 XID、算法报警和数据缺失时间轴"></canvas>
+    <canvas id="dcgmEvents" role="img" tabindex="0" aria-label="节点实际 XID、算法报警和数据缺失时间轴，按左右方向键选择时刻"></canvas>
     <p id="dcgmPoint" class="caption" aria-live="polite"></p>
     <div id="dcgmSummary" aria-label="当前时刻各算法的检测结果" hidden></div>
     <div id="publicInputCharts" class="dcgm-charts"></div>

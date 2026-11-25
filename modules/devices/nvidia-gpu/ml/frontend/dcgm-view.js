@@ -1,6 +1,7 @@
 'use strict';
 
 const dcgmAsset='/assets/public-gwdg/';
+const dcgmWindowSeconds=3*3600;
 const dcgmLabel={
  DCGM_FI_DEV_GPU_TEMP:'GPU 温度 (°C)',DCGM_FI_DEV_MEMORY_TEMP:'HBM 温度 (°C)',
  DCGM_FI_DEV_POWER_USAGE:'板卡功耗 (W)',DCGM_FI_DEV_GPU_UTIL:'GPU 利用率 (%)',
@@ -18,8 +19,8 @@ const dcgmEventBands={xid:'#f2b5c2',alarm:'#f2c89b'};
 const dcgmEventColors={gap:'#37759e',unknown:'#737f8f'};
 const dcgmPriority=['DCGM_FI_DEV_GPU_TEMP','DCGM_FI_DEV_GPU_UTIL','DCGM_FI_DEV_POWER_USAGE','DCGM_FI_DEV_FB_USED'];
 const dcgmJointMethods=['shallow_tree','robust_range','pca_t2'];
-const dcgmView={catalog:null,catalogRequest:null,capture:null,result:null,requestKey:'',generation:0,
- node:null,collection:null,position:8951,span:900,metric:dcgmPriority[0],displayMetric:'all18',
+const dcgmView={catalog:null,catalogRequest:null,capture:null,result:null,windowKey:'',requestKey:'',generation:0,
+ node:null,collection:null,windowIndex:0,at:null,metric:dcgmPriority[0],displayMetric:'all18',
  method:'',scoring:false,pointAt:null};
 
 function dcgmMetricName(key){return dcgmLabel[key]||key.replace('DCGM_FI_DEV_','');}
@@ -55,6 +56,31 @@ function dcgmRows(choices,id,value){
  }
  node.value=value;
 }
+function dcgmWindow(row,index){
+ const total=Math.max(1,Math.ceil((row.end-row.start)/dcgmWindowSeconds));
+ const pageIndex=Math.max(0,Math.min(index,total-1));
+ const start=Math.max(row.start,Math.min(row.start+pageIndex*dcgmWindowSeconds,row.end-dcgmWindowSeconds));
+ return {index:pageIndex,total,start,end:Math.min(row.end,start+dcgmWindowSeconds)};
+}
+function dcgmSelectCollection(row){
+ const v=dcgmView;
+ const position=row.id==='collection_7a246afef961d90a'?8951:Math.floor(row.n/2);
+ v.capture=null;
+ v.collection=row.id;
+ v.at=row.start+position*10;
+ v.windowIndex=dcgmWindow(row,Math.floor((v.at-row.start)/dcgmWindowSeconds)).index;
+}
+function dcgmMoveWindow(direction){
+ const v=dcgmView;
+ const row=v.catalog?.collections.find(item=>item.id===v.collection);
+ if(!row)return;
+ const next=dcgmWindow(row,v.windowIndex+direction);
+ if(next.index===v.windowIndex)return;
+ v.windowIndex=next.index;
+ v.at=next.start+Math.floor((next.end-next.start)/20)*10;
+ renderDcgmView();
+}
+
 function dcgmSelection(){
  const v=dcgmView,multi=page==='scenarios',metrics=v.catalog.metrics;
  const methods=multi?dcgmJointMethods:Object.keys(dcgmMethodLabels);
@@ -72,19 +98,15 @@ function dcgmSelection(){
  if(!nodes.includes(v.node))v.node=nodes.includes('node039ab2df8a6a')?'node039ab2df8a6a':nodes[0];
  const rows=collections.filter(row=>row.node===v.node);
  const row=rows.find(row=>row.id===v.collection)||rows[0];
- if(v.collection!==row.id){
-  v.capture=null;
-  v.collection=row.id;
-  v.position=row.id==='collection_7a246afef961d90a'?8951:Math.floor(row.n/2);
- }
- const at=row.start+v.position*10;
- const end=Math.min(row.end,Math.max(row.start+v.span,at+v.span/2));
+ if(v.collection!==row.id)dcgmSelectCollection(row);
+ const {start,end,index,total}=dcgmWindow(row,v.windowIndex);
  dcgmRows(nodes.map(node=>[node,node]),'dcgmNode',v.node);
  dcgmRows(rows.map(item=>[item.id,dcgmTime(item.start)+' → '+dcgmTime(item.end)]),'dcgmCollection',row.id);
- $('dcgmPosition').max=row.n-1;
- $('dcgmPosition').value=v.position;
- $('dcgmPositionTime').textContent=dcgmTime(at);
- return {common,row,start:Math.max(row.start,end-v.span),end,at};
+ $('dcgmPrevious').disabled=index===0;
+ $('dcgmNext').disabled=index===total-1;
+ const range=$('dcgmWindowRange'),label=dcgmRange({start,end});
+ if(range.textContent!==label)range.textContent=label;
+ return {common,row,start,end,at:v.at};
 }
 
 function renderDcgmView(force=false){
@@ -118,12 +140,19 @@ function renderDcgmView(force=false){
   return;
  }
  const {row,common,start,end,at}=dcgmSelection();
- const request={...common,start,end,at,compare:multi};
- const requestKey=JSON.stringify([page,row.id,run,request]);
+ const request={...common,start,end};
+ const windowKey=JSON.stringify([page,row.id,run,request]);
+ if(multi)Object.assign(request,{at,compare:true});
+ const requestKey=multi?windowKey+'|'+at:windowKey;
  if(!force&&requestKey===v.requestKey)return;
  v.requestKey=requestKey;
  const generation=++v.generation;
- $('publicDataRange').textContent='正在读取曲线…';
+ if(v.windowKey!==windowKey){
+  v.windowKey=windowKey;
+  v.result=null;
+  $('dcgmResults').hidden=true;
+ }
+ $('publicDataRange').textContent=v.result&&run?'正在读取检测结果…':'正在读取曲线…';
  const promise=v.capture?.id===row.id?Promise.resolve(v.capture):dcgmRead(row.id).then(raw=>({
   id:raw.id,start:raw.start,xid:dcgmUnpack(raw.xid),
   labels:Object.fromEntries(raw.gpus.map(card=>[card.id,card.label])),
@@ -134,23 +163,25 @@ function renderDcgmView(force=false){
  promise.then(capture=>{
   if(generation!==v.generation)return;
   v.capture=capture;
-  const first=(start-capture.start)/10,last=(end-capture.start)/10+1;
-  const points=Array.from({length:last-first},(_,i)=>{
-   const k=first+i;
-   const state=capture.available.some(values=>Number.isFinite(values[k]))?(k<29?'warmup':'untrained'):'no_data';
-   return {t:capture.start+k*10,state};
-  });
-  const series=Object.fromEntries(Object.entries(capture.series).map(([metric,cards])=>[metric,
-   Object.fromEntries(Object.entries(cards).map(([card,values])=>[card,values.subarray(first,last)]))]));
-  v.result={start,end,xid:capture.xid.subarray(first,last),points,series,labels:capture.labels};
-  dcgmPaint(at);
-  $('publicDataRange').textContent=dcgmRange(v.result)+(run?' · 正在读取检测结果…':'');
+  if(!v.result){
+   const first=(start-capture.start)/10,last=(end-capture.start)/10+1;
+   const points=Array.from({length:last-first},(_,i)=>{
+    const k=first+i;
+    const state=capture.available.some(values=>Number.isFinite(values[k]))?(k<29?'warmup':'untrained'):'no_data';
+    return {t:capture.start+k*10,state};
+   });
+   const series=Object.fromEntries(Object.entries(capture.series).map(([metric,cards])=>[metric,
+    Object.fromEntries(Object.entries(cards).map(([card,values])=>[card,values.subarray(first,last)]))]));
+   v.result={start,end,xid:capture.xid.subarray(first,last),points,series,labels:capture.labels};
+   dcgmPaint(v.at);
+  }
+  $('publicDataRange').textContent=run?'正在读取检测结果…':'';
   if(!run)return;
   return api('/dcgm/public/'+row.id+'?'+new URLSearchParams(request)).then(result=>{
    if(generation!==v.generation)return;
    Object.assign(v.result,result);
-   $('publicDataRange').textContent=dcgmRange(v.result)+' · 独立节点回放';
-   dcgmPaint(at);
+   $('publicDataRange').textContent='独立节点回放';
+   dcgmPaint(v.at);
   });
  }).catch(error=>{
   if(generation!==v.generation)return;
@@ -230,11 +261,16 @@ function dcgmPaint(at){
  const summary=$('dcgmSummary');
  summary.hidden=!multi;
  if(multi)summary.replaceChildren(dcgmPointSummary(result,p));
- function seek(e,width){
-  const tick=Math.round((e.offsetX-60)/(width-75)*(result.points.length-1));
-  const newAt=Math.max(result.start,Math.min(result.end,result.start+tick*10));
-  v.position=(newAt-v.capture.start)/10;
-  renderDcgmView(true);
+ function selectPoint(time){
+  const next=Math.max(result.start,Math.min(result.end,time));
+  if(next===v.at)return;
+  v.at=next;
+  dcgmPaint(next);
+  if(multi)renderDcgmView();
+ }
+ function seek(event,width){
+  const tick=Math.round((event.offsetX-60)/(width-75)*(result.points.length-1));
+  selectPoint(result.start+tick*step);
  }
  const events=$('dcgmEvents'),chart=dcgmCanvas(events,103);
  if(chart){
@@ -275,6 +311,11 @@ function dcgmPaint(at){
   }
   ctx.strokeStyle='#7890ab';ctx.beginPath();ctx.moveTo(x(selectedAt),6);ctx.lineTo(x(selectedAt),80);ctx.stroke();
   events.onclick=e=>seek(e,width);
+  events.onkeydown=e=>{
+   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+   e.preventDefault();
+   selectPoint(selectedAt+(e.key==='ArrowLeft'?-step:step));
+  };
  }
  const metrics=multi?(v.displayMetric==='all18'?dcgmOrderedMetrics():[v.displayMetric]):[v.metric];
  const container=$('publicInputCharts');
@@ -291,7 +332,7 @@ function dcgmPaint(at){
   const target=dcgmCanvas(canvas,138),series=Object.entries(result.series[metric]||{});
   if(!target)continue;
   const {ctx,width}=target,x=dcgmX(width,result);
-  if(multi)canvas.onclick=e=>seek(e,width);
+  canvas.onclick=e=>seek(e,width);
   for(const [gpu,rows] of series){
    const label=result.labels?.[gpu]||gpu;
    const name=el('span',multi?label+' · '+fmt(rows[i]):label);
@@ -330,17 +371,20 @@ function bindDcgmView(){
  $('publicTrend').onclick=()=>choosePage('baseline');
  $('publicAssociation').onclick=()=>chooseAssociationView('all');
  $('dcgmRefresh').onclick=()=>{v.scoring=true;renderDcgmView(true);};
- for(const [id,key] of [['dcgmNode','node'],['dcgmCollection','collection'],['dcgmMethod','method'],['dcgmSpan','span']]){
-  $(id).onchange=event=>{
-   if(key==='collection'){
-    const row=v.catalog.collections.find(item=>item.id===event.target.value);
-    v.position=Math.floor(row.n/2);
-   }
-   v[key]=key==='span'?Number(event.target.value):event.target.value;
-   if(key==='method')v.scoring=false;
-   renderDcgmView(true);
-  };
- }
+ $('dcgmPrevious').onclick=()=>dcgmMoveWindow(-1);
+ $('dcgmNext').onclick=()=>dcgmMoveWindow(1);
+ $('dcgmNode').onchange=event=>{v.node=event.target.value;renderDcgmView();};
+ $('dcgmCollection').onchange=event=>{
+  const row=v.catalog.collections.find(item=>item.id===event.target.value);
+  if(!row)return;
+  dcgmSelectCollection(row);
+  renderDcgmView();
+ };
+ $('dcgmMethod').onchange=event=>{
+  v.method=event.target.value;
+  v.scoring=false;
+  renderDcgmView();
+ };
  $('publicMetric').onchange=event=>{
   if(page==='baseline'){v.metric=event.target.value;v.scoring=false;}
   else{
@@ -349,12 +393,6 @@ function bindDcgmView(){
   }
   renderDcgmView(true);
  };
- $('dcgmPosition').oninput=event=>{
-  v.position=Number(event.target.value);
-  const row=v.catalog.collections.find(item=>item.id===v.collection);
-  $('dcgmPositionTime').textContent=dcgmTime(row.start+v.position*10);
- };
- $('dcgmPosition').onchange=()=>renderDcgmView(true);
  window.addEventListener('resize',()=>{
   if(!$('publicDataPanel').hidden&&v.result)dcgmPaint(v.pointAt??v.result.end);
  });
