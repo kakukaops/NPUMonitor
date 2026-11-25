@@ -7,61 +7,6 @@ const monitorPrefs={
 const inputChartGrids=new WeakMap();
 let monitorShown=null;
 let monitorEditingSection=null;
-let paintedPublicTrace='';
-let publicTrendMetric='gpu_temp', publicAssociationMetric='all';
-
-function renderPublicData(force=false){
- const panel=$('publicDataPanel');
- if(panel.hidden){paintedPublicTrace='';return;}
- const trace=window.METHODS_DATA?.trace;
- const range=$('publicDataRange'),context=$('publicDataContext');
- $('publicDataActions').hidden=!trace||page!=='incidents';
- const charts=Boolean(trace&&monitorPrefs[page]),joint=page==='scenarios';
- $('publicMetricControl').hidden=!charts;
- $('publicDataLegend').hidden=!charts;
- if(!trace){
-  context.textContent='尚未加载公开数据';
-  range.textContent='';
- }
- if(!charts){
-  $('publicValueBox').hidden=$('publicScoreBox').hidden=$('publicInputCharts').hidden=true;
-  if(trace){
-   $('publicDataName').textContent='GWDG v2 · DCGM 历史片段';
-   context.textContent=trace.node+' · '+trace.gpu_uuid;
-   range.textContent='包含 Slurm 记录时间和事件前的 180 分钟观测，可查看离线曲线与评分。';
-  }
-  return;
- }
- $('publicDataName').textContent='GWDG v2 · DCGM 历史片段';
- context.textContent=trace.node+' · '+trace.gpu_uuid;
- const timestamp=trace.event_time_utc;
- const event=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(timestamp)?timestamp:timestamp+'Z')/1000;
- const keys=Object.keys(trace.metric_units);
- const metricSelect=$('publicMetric');
- monitorOptions(metricSelect,[...(joint?[['all','全部指标']]:[]),...keys.map(key=>[key,metricNames[key]||key])]);
- const metric=joint?publicAssociationMetric:publicTrendMetric;
- metricSelect.value=metric;
- const all=metric==='all',key=page+'|'+metric;
- const validScores=trace.points.filter(row=>Number.isFinite(row.score)).length;
- $('publicValueBox').hidden=all;
- $('publicInputCharts').hidden=!all;
- $('publicScoreBox').hidden=!joint||!validScores;
- $('publicDataLegend').querySelectorAll('.public-score-legend').forEach(item=>item.hidden=!joint||!validScores);
- if(!force&&paintedPublicTrace===key)return;
- paintedPublicTrace=key;
- const points=trace.points.map(row=>({t:event+row.minute*60,values:row.values,cadence_seconds:60,
-  score:row.score,threshold:row.threshold,anomaly:row.candidate}));
- const graph={range:{start:points[0].t,end:event},marker:event,independent:true};
- range.textContent=dateTime(graph.range.start)+' — '+dateTime(event)+' · 1 分钟粒度 · Slurm 记录 '+dateTime(event)
-  +(joint?' · 离线 PCA '+validScores+' / '+points.length+' 点可评分':'');
- if(all){
-  const input_observations=Object.fromEntries(keys.map(field=>[field,
-   points.filter(row=>Number.isFinite(row.values[field])).map(row=>({...row,values:{[field]:row.values[field]}}))]));
-  drawMonitorInputs($('publicInputCharts'),{points:[],input_observations},graph);
- }else draw('publicValueChart',points,metric,false,{...graph,tooltip:$('publicValueTip'),markAnomalies:false});
- if(joint&&validScores)draw('publicScoreChart',points,keys[0],true,graph);
-}
-
 function monitorOptions(select,rows){
  options(select,rows,row=>row[0],row=>row[1]);
 }
@@ -342,13 +287,6 @@ function paintMonitorView(){
 }
 
 function bindMonitorView(){
- $('publicTrend').onclick=()=>choosePage('baseline');
- $('publicAssociation').onclick=()=>chooseAssociationView('all');
- $('publicMetric').onchange=event=>{
-  if(page==='baseline')publicTrendMetric=event.target.value;
-  else publicAssociationMetric=event.target.value;
-  renderPublicData();
- };
  for(const [id,key] of [
   ['monitorMode','mode'],['monitorSpan','span'],['monitorScenario','scenario'],
   ['monitorMetric','metric'],
@@ -397,7 +335,6 @@ function bindMonitorView(){
   renderMonitorView();
  };
  window.addEventListener('resize',()=>{
-  if(workspaceDataSource==='public')renderPublicData(true);
-  else if(monitorPrefs[page])paintMonitorView();
+  if(monitorPrefs[page]&&workspaceDataSource!=='public')paintMonitorView();
  });
 }

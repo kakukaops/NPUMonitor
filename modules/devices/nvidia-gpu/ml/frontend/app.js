@@ -91,7 +91,6 @@ function updatePageVisibility(){
   :data&&sourcePages.has(page)&&!publicView&&!synthetic&&!sourceEntities().length
    ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
  sourceNotice.hidden=!sourceNotice.textContent;
- $('publicDataPanel').hidden=!publicView;
  $('liveScope').hidden=page!=='overview';
  const hasClusters=new Set((data?sourceEntities():[]).map(entity=>entity.cluster)).size>1;
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
@@ -142,7 +141,7 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  $('title').textContent=title;
  $('subtitle').textContent=showReplay?'用人工构造曲线查看模型的评分过程。':
   incidentExampleActive?'在人工构造的样例中查看证据和复核。':
-  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开数据的历史观测和已有离线结果。':
+  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开 GPU 历史观测、实际 XID 与检测结果。':
   workspaceDataSource==='synthetic'&&monitorPrefs[next]?'选择场景，查看观测和所选方法的回放结果。':pageDescriptions[next]||'';
  $('subtitle').hidden=!$('subtitle').textContent;
  const hash=showReplay?replayHashes[next]:incidentExampleActive?'#incident-demo':
@@ -333,7 +332,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderPublicData();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -1485,6 +1484,7 @@ $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
 window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
+bindDcgmView();
 bindAssociationView();
 bindIncidentFilters();
 refresh();setInterval(refresh,4000);

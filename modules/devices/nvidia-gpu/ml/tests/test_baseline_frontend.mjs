@@ -26,6 +26,7 @@ class Element{
  set id(v){this._id=v;nodes.set(v,this);}get id(){return this._id;}
  set value(v){this._value=String(v);}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value||'':'');}
  append(...c){this.children.push(...c);}replaceChildren(...c){this.children=c;if(this.tagName==='select'&&!c.some(n=>n.value===this._value))this._value=null;}
+ setAttribute(){}
  getBoundingClientRect(){return {width:800,height:300,left:0};}getContext(){return ctx;}click(){}
 }
 const document={createElement:t=>new Element(t),getElementById:id=>{if(!nodes.has(id)){const n=new Element(['cluster','window','baselineEntity','baselineAlgorithmFilter','associationAlgorithmFilter','taskSelect','metricSelect'].includes(id)?'select':'div');n.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
@@ -35,6 +36,7 @@ vm.createContext(sandbox);const run=s=>vm.runInContext(s,sandbox);
 run(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/dcgm-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));

@@ -27,6 +27,8 @@ from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
 from .incident_queue import attach_incident_evidence, build_incident_queue, build_recovered_queue
 from .monitor_view import monitor_view
+from .dcgm_detection import public_detection
+from .dcgm_sources import live_detection, train_live, activate_live
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -521,6 +523,33 @@ def monitor_view_data(request: Request, entity: str, metric: str, task: str = ''
     user(request)
     return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs,
                         model, observations_only)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/public/{collection}')
+def public_dcgm(request: Request, collection: str, metric: str, method: str, mode: str,
+                start: int, end: int, at: Optional[int] = None):
+    user(request)
+    return public_detection(collection, metric, method, mode, start, end, at)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/live')
+def live_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+              start: int, end: int, at: Optional[int] = None, review: bool = False, scenario: str = 'normal'):
+    user(request)
+    return live_detection(ENGINE, source, cluster, node, metric, method, mode, start, end, at, review, scenario)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/train')
+def train_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+               history_hours: int, end: int):
+    user(request, 'operator')
+    return train_live(ENGINE, source, cluster, node, metric, method, mode, history_hours, end)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/activate')
+def activate_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str):
+    user(request, 'operator')
+    return activate_live(ENGINE, source, cluster, node, metric, method, mode)
 
 
 @app.get('/api/gpu-ml/v1/raw-series')

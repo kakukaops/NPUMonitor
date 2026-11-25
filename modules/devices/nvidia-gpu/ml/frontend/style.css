@@ -394,3 +394,19 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
  .monitor-view-controls>label{min-width:0;display:grid;gap:2px}
  .monitor-view-controls select{max-width:100%;width:100%}
 }
+
+.dcgm-toggle { margin: 8px 0; }
+#publicDataPanel label { display: grid; gap: .25rem; min-width: 0; max-width: 100%; }
+#dcgmCollectionControl { flex: 0 1 27rem; }
+#dcgmCollection { width: min(100%, 27rem); min-width: 0; }
+.dcgm-training { padding-top: .5rem; }
+.dcgm-legend { margin-top: 10px; }
+.dcgm-legend .dcgm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.dcgm-dot.xid { background: #c63252; }
+.dcgm-dot.gap { border: 1.5px solid #37759e; }
+.dcgm-dot.alarm { background: #b96619; }
+.dcgm-dot.unknown { background: #737f8f; }
+#dcgmEvents { display: block; width: 100%; height: 103px; cursor: crosshair; }
+.dcgm-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.dcgm-charts canvas { display: block; width: 100%; height: 138px; }
+.dcgm-gpus { min-height: 1.5rem; }

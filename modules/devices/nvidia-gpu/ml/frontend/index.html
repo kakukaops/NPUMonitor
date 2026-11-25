@@ -39,25 +39,56 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
+<div id="dcgmViewToggle" class="controls dcgm-toggle" hidden>
+  <button id="dcgmToggleButton" type="button" aria-controls="publicDataPanel" aria-expanded="false">节点 XID 检测</button>
+</div>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
   <div class="panel-heading">
-    <div><h2 id="publicDataName">公开历史数据</h2><p id="publicDataContext"></p></div>
-    <label class="source-picker" id="publicMetricControl" hidden>指标 <select id="publicMetric" aria-label="公开数据指标"></select></label>
+    <div><h2 id="publicDataName">GWDG v2 · 节点 XID 检测</h2><p id="publicDataContext"></p></div>
   </div>
-  <p class="caption" id="publicDataRange"></p>
   <div class="controls" id="publicDataActions" hidden>
-    <button type="button" id="publicTrend">看单指标曲线</button>
-    <button type="button" id="publicAssociation">看关联曲线与评分</button>
+    <button type="button" id="publicTrend">看单指标趋势</button>
+    <button type="button" id="publicAssociation">看多指标关联</button>
   </div>
-  <div class="legend" id="publicDataLegend" hidden>
-    <span><i class="blue"></i>实际观测</span>
-    <span class="public-score-legend"><i class="public-score-line"></i>离线 PCA 分数</span>
-    <span class="public-score-legend"><i class="red"></i>阈值与候选点</span>
-    <span><i class="incident-marker"></i>Slurm 记录时间</span>
+  <div class="controls" id="dcgmScope" hidden>
+    <label>节点 <select id="dcgmNode"></select></label>
+    <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
+    <label id="dcgmScenarioControl" hidden>构造场景 <select id="dcgmScenario">
+      <option value="normal">正常</option><option value="drift">温度漂移</option>
+      <option value="relation">关联变化</option><option value="gap">监测中断</option>
+    </select></label>
+    <label>指标 <select id="publicMetric"></select></label>
+    <label>方法 <select id="dcgmMethod"></select></label>
+    <label>训练方式 <select id="dcgmMode"></select></label>
   </div>
-  <div id="publicValueBox" class="chart monitor-view-chart" hidden><canvas id="publicValueChart" role="img" aria-label="公开数据实际观测"></canvas><div class="tooltip" id="publicValueTip" hidden></div></div>
-  <div id="publicScoreBox" class="chart score-chart monitor-view-score" hidden><canvas id="publicScoreChart" role="img" aria-label="公开数据离线关联评分"></canvas></div>
-  <div id="publicInputCharts" class="monitor-input-charts" hidden></div>
+  <div class="controls" id="dcgmTimeControl" hidden>
+    <label id="dcgmDateWrap" hidden>回放结束 <input id="dcgmHistoryEnd" type="datetime-local" step="10"></label>
+    <label>时间范围 <select id="dcgmSpan">
+      <option value="900">15 分钟</option><option value="1800">30 分钟</option>
+      <option value="3600">1 小时</option><option value="10800">3 小时</option>
+    </select></label>
+    <label id="dcgmPositionControl">采集时刻 <input id="dcgmPosition" type="range" min="0" step="1"></label>
+    <output id="dcgmPositionTime"></output>
+    <button type="button" id="dcgmRefresh">刷新曲线</button>
+  </div>
+  <div class="controls dcgm-training" id="dcgmTraining" hidden>
+    <label>训练历史（小时） <input type="number" id="dcgmHistoryHours" min="3" max="168" value="24"></label>
+    <button type="button" id="dcgmTrain" class="write">重新训练</button>
+    <button type="button" id="dcgmReview" hidden>回放验证候选模型</button>
+    <button type="button" id="dcgmActivate" class="write" hidden>启用候选模型</button>
+  </div>
+  <p class="caption" id="publicDataRange" role="status"></p>
+  <div id="dcgmResults" hidden>
+    <div class="legend dcgm-legend">
+      <span><i class="dcgm-dot xid"></i>实际 XID</span>
+      <span><i class="dcgm-dot gap"></i>当前无有效监测数据</span>
+      <span><i class="dcgm-dot alarm"></i>算法报警</span>
+      <span><i class="dcgm-dot unknown"></i>XID 未知</span>
+    </div>
+    <canvas id="dcgmEvents" role="img" aria-label="节点实际 XID、数据缺失和算法报警时间轴"></canvas>
+    <p id="dcgmPoint" class="caption" aria-live="polite"></p>
+    <div id="publicInputCharts" class="dcgm-charts"></div>
+  </div>
 </section>
 <div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
 <div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
@@ -321,4 +352,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
