@@ -23,6 +23,8 @@ NO_DATA = '当前无有效监测数据'
 SINGLE = ('logistic_l2', 'hist_gradient_boosting', 'shallow_tree', 'pca_logistic',
           'pca_t2', 'isolation_forest', 'robust_range')
 MULTI = ('shallow_tree', 'robust_range', 'pca_t2')
+CORE_METRICS = ('DCGM_FI_DEV_GPU_TEMP', 'DCGM_FI_DEV_POWER_USAGE', 'DCGM_FI_DEV_GPU_UTIL',
+                'DCGM_FI_DEV_MEM_COPY_UTIL', 'DCGM_FI_DEV_SM_CLOCK')
 REFERENCE = SINGLE[4:]
 MODES = ('reference', 'supervised')
 TRAINING_LOCK = threading.Lock()
@@ -40,9 +42,9 @@ def public_catalog():
 
 
 def validate_selection(metric, method, mode):
-    if metric not in [*public_catalog()['metrics'], 'all']:
+    if metric not in [*public_catalog()['metrics'], 'all', 'core']:
         raise ValueError('未知 DCGM 指标')
-    if method not in (MULTI if metric == 'all' else SINGLE) or mode not in MODES:
+    if method not in (MULTI if metric in ('all', 'core') else SINGLE) or mode not in MODES:
         raise ValueError('检测方法或训练方式无效')
     if (method in REFERENCE) == (mode == 'supervised'):
         raise ValueError('检测方法与训练方式不匹配')
@@ -93,7 +95,8 @@ def features(capture, metric, ends):
     if len(ends) > 2048:
         return np.concatenate([features(capture, metric, ends[i:i+2048]) for i in range(0, len(ends), 2048)])
     cols = public_catalog()['metrics']
-    inputs = capture.channels if metric == 'all' else capture.channels[:, [cols.index(metric)], :]
+    chosen = feature_metrics(metric)
+    inputs = capture.channels if metric == 'all' else capture.channels[:, [cols.index(k) for k in chosen], :]
     windows = np.lib.stride_tricks.sliding_window_view(inputs, WINDOW, axis=0)[ends - WINDOW + 1]
     # Feature order mirrors the research export: 10 mean, 10 max, 8 missingness per metric.
     numeric, missing = windows[:, :, :2, :], windows[:, :, 2, :]
@@ -111,13 +114,19 @@ def features(capture, metric, ends):
         absent = missing >= 1 - 1e-7
         missing_stats = np.stack([*basic(missing), absent.mean(axis=-1),
                                   STEP * np.cumprod(absent[..., ::-1], axis=-1).sum(axis=-1)], axis=-1)
-    return np.concatenate((num_stats.reshape(len(ends), len(cols) if metric == 'all' else 1, 20),
-                           missing_stats), axis=-1).reshape(len(ends), -1).astype(np.float32)
+    return np.concatenate((num_stats.reshape(len(ends), len(chosen), 20),
+                           missing_stats), axis=-1).reshape(len(ends), 28 * len(chosen)).astype(np.float32)
+
+
+def feature_metrics(metric):
+    if metric == 'core':
+        return CORE_METRICS
+    return public_catalog()['metrics'] if metric == 'all' else (metric,)
 
 
 def example_rows(capture, metric, mode, start, end, stride=30):
     ends = np.arange(max(WINDOW - 1, start), end)
-    available = capture.available[ends]
+    available = input_available(capture, metric)[ends]
     labels = capture.xid[ends]
     if mode == 'reference':
         available &= labels == 0
@@ -144,6 +153,13 @@ def example_rows(capture, metric, mode, start, end, stride=30):
         events = len(np.unique(group[positive & available]))
     y = capture.xid[chosen] if mode == 'supervised' else np.zeros(len(chosen))
     return features(capture, metric, chosen), y, events
+
+
+def input_available(capture, metric):
+    if metric == 'core':
+        columns = [public_catalog()['metrics'].index(key) for key in CORE_METRICS]
+        return np.isfinite(capture.channels[:, columns, 0]).any(axis=1)
+    return capture.available
 
 
 def transform(model, x):
@@ -277,7 +293,7 @@ def alarm_evidence(model, raw, z):
         ranked = [(feature, None) for feature in np.argsort(-effects, kind='stable')[:3]
                   if effects[feature] > cutoff]
 
-    metrics = public_catalog()['metrics']
+    metrics = model.get('feature_metrics', public_catalog()['metrics'])
     evidence = []
     for feature, condition in ranked:
         column = int(model['keep'][feature])
@@ -299,7 +315,7 @@ def assess(capture, metric, model, start, end, at=None):
     first = max(0, (start - capture.start + STEP - 1) // STEP)
     last = min(len(capture.xid), (end - capture.start) // STEP + 1)
     indices = np.arange(first, last)
-    available = capture.available[indices]
+    available = input_available(capture, metric)[indices]
     selected = indices[available & (indices >= WINDOW - 1)]
     status = {int(i): {'t': int(capture.start + i * STEP),
                        'state': 'no_data' if not valid else 'warmup' if i < WINDOW - 1 else 'untrained'}
@@ -367,8 +383,11 @@ def public_model(fold, metric, method, mode):
         capture = public_capture(row['id'])
         sample = example_rows(capture, metric, mode, 0, len(capture.xid))
         if sample:
-            (validation if group == (fold + 1) % 5 else training).append(sample)
-    return fit_detector(method, mode, training, validation)
+            calibration_fold = 4 if fold is None else (fold + 1) % 5
+            (validation if group == calibration_fold else training).append(sample)
+    model = fit_detector(method, mode, training, validation)
+    model['feature_metrics'] = feature_metrics(metric)
+    return model
 
 
 def public_detection(collection, metric, method, mode, start, end, at, compare=False, reference_mode=None):

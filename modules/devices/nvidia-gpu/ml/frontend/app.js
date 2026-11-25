@@ -74,7 +74,7 @@ function updatePageVisibility(){
  const active=Boolean(data?.simulation)&&replayMode;
  const publicView=workspaceDataSource==='public'&&sourcePages.has(page);
  const synthetic=workspaceDataSource==='synthetic';
- const visible=publicView?'':active?'replay':page;
+ const visible=publicView&&page!=='incidents'?'':active?'replay':page;
  document.querySelectorAll('.page').forEach(panel=>panel.hidden=panel.id!=='page-'+visible);
  $('workspaceSourceControl').hidden=!sourcePages.has(page);
  options($('workspaceSource'),Object.keys(workspaceSourceNames),key=>key,key=>
@@ -92,6 +92,7 @@ function updatePageVisibility(){
    ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
  sourceNotice.hidden=!sourceNotice.textContent;
  $('publicDataPanel').hidden=!publicView;
+ $('legacyIncidentContent').hidden=publicView;
  $('liveScope').hidden=page!=='overview';
  const hasClusters=new Set((data?sourceEntities():[]).map(entity=>entity.cluster)).size>1;
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
@@ -333,7 +334,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();renderNodeReview();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -1508,6 +1509,7 @@ window.addEventListener('hashchange',openReplayFromLocation);
 window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
 bindDcgmView();
+bindNodeReview();
 bindAssociationView();
 bindIncidentFilters();
 bindXidStudy();

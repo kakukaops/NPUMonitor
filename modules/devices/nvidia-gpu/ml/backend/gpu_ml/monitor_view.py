@@ -15,11 +15,11 @@ SHIFTS = {'gpu_temp': 16, 'memory_temp': 14, 'power': 100, 'sm_clock': -265,
           'mem_clock': -100, 'util': -25, 'mem_util': -20, 'fb_used': 7500}
 
 
-def sample_rows(start, end, step, metric, scenario):
+def sample_rows(start, end, step, metric, scenario, change_at=None):
     stamps = np.arange(math.ceil(start / step) * step, end + 1e-6, step)
     offsets = stamps - start
     values = healthy(offsets, seed=717)
-    begin = (end - start) * .42
+    begin = (end - start) * .42 if change_at is None else change_at - start
     changed = offsets >= begin
     if scenario == 'drift':
         values[metric] = values[metric] + SHIFTS.get(metric, 2) * np.clip((offsets - begin) / 20, 0, 1)
@@ -29,7 +29,8 @@ def sample_rows(start, end, step, metric, scenario):
     values = {key: np.clip(series, METRICS[key]['min'], METRICS[key]['max'])
               for key, series in values.items() if key in METRICS}
     return [
-        {'t': float(stamp), 'values': {} if scenario == 'gap' and changed[i] and offsets[i] < begin * 1.5 else
+        {'t': float(stamp), 'values': {} if scenario == 'gap' and changed[i] and offsets[i] < (
+            begin * 1.5 if change_at is None else begin + 5 * 60) else
          {key: float(series[i]) for key, series in values.items()}}
         for i, stamp in enumerate(stamps)
     ]

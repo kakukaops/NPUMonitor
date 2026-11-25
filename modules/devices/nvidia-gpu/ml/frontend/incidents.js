@@ -537,13 +537,17 @@ function renderIncidentEvidence(panel,group,example){
 function showIncident(detail,group,queue,example,scope,matched){
  const reuse=incidentPanel?.scope===scope&&sameIncident(group,incidentPanel.group);
  if(!reuse){
+  restoreNodeReview();
   const heading=el('div',undefined,'incident-detail-head'),identity=el('div');
   const title=el('h2'),subheading=el('p'),duration=badge('');
   const banner=el('p',undefined,'notice'),evidence=el('section',undefined,'incident-evidence-overview');
-  const body=el('div',undefined,'incident-members');
+  const body=el('div',undefined,'incident-members'),review=el('div',undefined,'incident-node-review');
   identity.append(title,subheading);
   heading.append(identity,duration);
-  detail.replaceChildren(heading,banner,evidence,body);
+  const open=uiButton(example?'用当前方法复演此类场景':'联合复核节点',
+   ()=>openNodeReviewForIncident(incidentPanel.group,incidentPanel.queue,review));
+  review.append(open);
+  detail.replaceChildren(heading,banner,evidence,review,body);
   incidentPanel={scope,title,subheading,duration,banner,evidence,body,cards:new Map(),queue};
  }
  const panel=incidentPanel;
@@ -640,6 +644,7 @@ function renderIncidentQueue(selectedId){
  $('incidentSummary').hidden=archived;
  filterInput.hidden=archived;
  if(!online){
+  restoreNodeReview();
   renderDeviceCoverage(null);
   source.textContent=incidentExampleError?'样例读取失败 · '+incidentExampleError:'正在读取异常队列…';
   $('incidentCount').textContent='';
@@ -707,6 +712,7 @@ function renderIncidentQueue(selectedId){
  detail.hidden=!selection;
  layout.classList.toggle('no-selection',!selection);
  if(!selection){
+  restoreNodeReview();
   incidentPanel=null;
   detail.replaceChildren(el('h2','设备证据'),el('p',enabled?'选择队列中的一条线索查看证据。':'启用任务的模型后，检测结果会出现在这里。'));
   return;

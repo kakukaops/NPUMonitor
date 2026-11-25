@@ -29,6 +29,7 @@ from .incident_queue import attach_incident_evidence, build_incident_queue, buil
 from .monitor_view import monitor_view
 from .dcgm_detection import method_catalog, public_detection
 from .dcgm_sources import live_detection, train_live, activate_live
+from .dcgm_review import node_review
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -532,6 +533,13 @@ def public_dcgm(request: Request, collection: str, metric: str, method: str, mod
                 reference_mode: Optional[str] = None):
     user(request)
     return public_detection(collection, metric, method, mode, start, end, at, compare, reference_mode)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/review')
+def review_dcgm(request: Request, source: str, cluster: str = '', node: str = '', gpu: str = '',
+                collection: str = '', at: Optional[int] = None, scenario: str = 'normal'):
+    user(request)
+    return node_review(ENGINE, source, cluster, node, gpu, collection, at, scenario)
 
 
 @app.get('/api/gpu-ml/v1/dcgm/live')

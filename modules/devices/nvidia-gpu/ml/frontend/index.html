@@ -82,6 +82,7 @@
       <button type="button" id="dcgmNext" aria-label="下一窗口" title="下一窗口" disabled>›</button>
     </div>
     <button type="button" id="dcgmRefresh">重新运行检测</button>
+    <button type="button" id="dcgmReviewSelected">联合复核所选时刻</button>
   </div>
   <p class="caption" id="publicDataRange" role="status"></p>
   <div id="dcgmResults" hidden>
@@ -101,6 +102,33 @@
 <div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
 </div>
 <section id="page-incidents" class="page">
+  <div id="nodeReviewHome">
+    <details class="panel node-review" id="nodeReviewPanel">
+      <summary>节点联合复核</summary>
+      <div class="controls node-review-controls">
+        <label>范围 <select id="nodeReviewTarget" aria-label="复核节点或采集区间"></select></label>
+        <label id="nodeReviewScenarioLabel" hidden>场景 <select id="nodeReviewScenario"><option value="normal">正常</option><option value="drift">温度漂移</option><option value="relation">功耗与时钟偏离</option><option value="gap">采集中断</option></select></label>
+        <label>时刻 <input id="nodeReviewTime" type="datetime-local" step="1"></label>
+        <button id="nodeReviewRun" type="button">运行复核</button>
+      </div>
+      <p id="nodeReviewStatus" class="caption" role="status"></p>
+      <div id="nodeReviewResult" hidden>
+        <div id="nodeReviewEvidence" class="node-review-evidence"></div>
+        <div class="controls">
+          <label>GPU <select id="nodeReviewCard" aria-label="复核 GPU"></select></label>
+          <label>指标 <select id="nodeReviewMetric" aria-label="复核指标"></select></label>
+        </div>
+        <p id="nodeReviewTrend" class="caption" role="status"></p>
+        <div class="legend node-review-legend">
+          <span><i class="blue"></i>分钟观测</span>
+          <span><i class="node-review-band"></i>校准预测区间</span>
+          <span><i class="red"></i>连续偏离</span>
+        </div>
+        <canvas id="nodeReviewCurve" role="img" aria-label="GPU 分钟观测与预测区间"></canvas>
+      </div>
+    </details>
+  </div>
+  <div id="legacyIncidentContent">
   <div class="notice" id="incidentSource" role="status">正在读取异常…</div>
   <details class="panel coverage-panel" id="incidentCoverage" hidden>
     <summary><span>检测覆盖</span><small id="coverageSummary"></small></summary>
@@ -149,6 +177,7 @@
     <section class="panel incident-detail" id="incidentDetail" aria-label="所选设备及其检测证据"></section>
   </div>
   <p class="caption incident-scope">同一张 GPU 的重叠时段合为一条记录。恢复归档保留近 7 天。</p>
+  </div>
 </section>
 <section id="page-replay" class="page" hidden>
 <gpu-replay-panel id="integratedReplay"><p class="notice">正在读取曲线样例…</p></gpu-replay-panel>
@@ -391,4 +420,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/node-review.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

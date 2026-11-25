@@ -12,7 +12,8 @@ import joblib
 import numpy as np
 
 from .dcgm_detection import (
-    Capture, STEP, WINDOW, TRAINING_LOCK, XID, assess, example_rows, fit_detector, joint_point, public_catalog, validate_selection,
+    Capture, STEP, WINDOW, TRAINING_LOCK, XID, assess, example_rows, feature_metrics, fit_detector,
+    joint_point, public_catalog, validate_selection,
 )
 from .monitor_view import sample_rows
 from .settings import DATA, DEFAULT_CLUSTER, METRICS, SIMULATION
@@ -20,13 +21,16 @@ from .settings import DATA, DEFAULT_CLUSTER, METRICS, SIMULATION
 KEYS = {spec['name']: spec for spec in METRICS.values()}
 
 
-def selector(source_type, cluster, node):
+def selector(source_type, cluster, node, fallback_cards=()):
     # Match all three supported node label aliases, retaining original UUIDs.
     names = '|'.join([*public_catalog()['metrics'], XID])
     cluster_match = ('cluster_id=~' + json.dumps(re.escape(cluster) + '|') if cluster == DEFAULT_CLUSTER
                      else 'cluster_id=' + json.dumps(cluster))
     source_match = 'simulated="true"' if source_type == 'simulated' else 'simulated!="true"'
     match = f'__name__=~{json.dumps(names)},UUID!="",{cluster_match},{source_match}'
+    if fallback_cards:
+        uuids = json.dumps('|'.join(map(re.escape, fallback_cards)))
+        return f'last_over_time({{{match},UUID=~{uuids},Hostname="",hostname="",node=""}}[10s])'
     # A range selector on each raw series avoids Prometheus' instant lookback
     # carrying a reading forward across a telemetry gap.
     return ' or '.join(f'last_over_time({{{match},{label}={json.dumps(node)}}}[10s])'
@@ -64,14 +68,15 @@ def build_capture(start, count, cards, seen):
     return Capture(start, np.stack((means, maxima, fractions), axis=-1), xid)
 
 
-def source_capture(source, source_type, cluster, node, start, end, scenario='normal'):
+def source_capture(source, source_type, cluster, node, start, end, scenario='normal', *,
+                   fallback_cards=(), change_at=None):
     metrics = public_catalog()['metrics']
     count = (end - start) // STEP + 1
     columns = {key: index for index, key in enumerate([*metrics, XID])}
     cards, seen, duplicates = {}, {}, set()
     if source_type == 'synthetic':
         values = np.full((count, len(columns)), np.nan)
-        for row in sample_rows(start, end, STEP, 'gpu_temp', scenario):
+        for row in sample_rows(start, end, STEP, 'gpu_temp', scenario, change_at):
             i = (int(row['t']) - start) // STEP
             for key, value in row['values'].items():
                 col = columns.get(METRICS[key]['name'])
@@ -80,7 +85,7 @@ def source_capture(source, source_type, cluster, node, start, end, scenario='nor
         cards['人工构造 GPU'] = values
         seen['人工构造 GPU'] = np.ones(count, dtype=bool)
     else:
-        query = selector(source_type, cluster, node)
+        query = selector(source_type, cluster, node, fallback_cards)
         for first in range(start, end + 1, 6 * 3600):
             last = min(end, first + 6 * 3600 - STEP)
             for row in source.query(query, first, last, STEP):
@@ -88,7 +93,11 @@ def source_capture(source, source_type, cluster, node, start, end, scenario='nor
                 metric, card = labels.get('__name__'), labels.get('UUID')
                 if metric not in columns or not card or labels.get('GPU_I_ID') or labels.get('GPU_I_PROFILE'):
                     continue
-                if {labels[key] for key in ('Hostname', 'hostname', 'node') if labels.get(key)} != {node}:
+                if (labels.get('cluster_id', DEFAULT_CLUSTER) != cluster
+                        or (labels.get('simulated') == 'true') != (source_type == 'simulated')):
+                    continue
+                aliases = {labels[key] for key in ('Hostname', 'hostname', 'node') if labels.get(key)}
+                if (aliases != {node} if not fallback_cards else bool(aliases) or card not in fallback_cards):
                     continue
                 if card not in cards:
                     cards[card] = np.full((count, len(columns)), np.nan)
@@ -166,7 +175,7 @@ def train_live(engine, source_type, cluster, node, metric, method, mode, history
     )
     with TRAINING_LOCK:
         model = fit_detector(method, mode, [rows[0]] if rows[0] else [], [rows[1]] if rows[1] else [])
-        model.update(trained_through=end, version=uuid.uuid4().hex)
+        model.update(trained_through=end, version=uuid.uuid4().hex, feature_metrics=feature_metrics(metric))
         save_model(candidate, model)
     return {'status': 'candidate', 'trained_through': end, 'training_windows': model['training_windows'],
             'calibration_windows': model['calibration_windows']}
