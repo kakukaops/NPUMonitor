@@ -28,6 +28,12 @@ MODES = ('reference', 'supervised')
 TRAINING_LOCK = threading.Lock()
 
 
+def method_catalog():
+    """Catalog entries represent methods and input recipes before any version is trained."""
+    return {'single': SINGLE, 'multi': MULTI,
+            'training': {method: 'reference' if method in REFERENCE else 'supervised' for method in SINGLE}}
+
+
 @lru_cache(maxsize=1)
 def public_catalog():
     return json.loads((PUBLIC / 'index.json').read_text())

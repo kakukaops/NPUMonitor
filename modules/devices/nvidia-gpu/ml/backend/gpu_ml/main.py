@@ -27,7 +27,7 @@ from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
 from .incident_queue import attach_incident_evidence, build_incident_queue, build_recovered_queue
 from .monitor_view import monitor_view
-from .dcgm_detection import public_detection
+from .dcgm_detection import method_catalog, public_detection
 from .dcgm_sources import live_detection, train_live, activate_live
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
@@ -233,6 +233,7 @@ def state(request:Request):
     return {'role':role,'time':now,'simulation':SIMULATION,'production_admitted':False,
             'entities':entities,'tasks':tasks,'states':states,'models':models,
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
+            'dcgm_methods':method_catalog(),
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
