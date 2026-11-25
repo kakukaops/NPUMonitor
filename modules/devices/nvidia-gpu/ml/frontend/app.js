@@ -415,9 +415,9 @@ function renderAssociationStatus(task,entity,metric){
  title.append(el('strong','所选任务'),badge('实时 · '+label,color));
  if(model)title.append(el('span',algorithmLabel(model.algorithm),'muted'));
  context.append(title,el('p',taskDisplayName(task)+' · '+entity.uuid,'caption'));
- const actions=el('div',undefined,'controls'),next=monitorModelAction(task);
- if(next)actions.append(next);
- if(task.active_model&&task.enabled)actions.append(uiButton('模型设置',()=>openMonitoringActions(task),'write'));
+ const actions=el('div',undefined,'controls');
+ if(task.enabled)actions.append(uiButton('模型与方法',()=>openModelChoice(task),'write'));
+ else actions.append(uiButton('管理任务',()=>openTaskActions(task),'write'));
  const incident=incidentForTask(task.id);
  if(incident)actions.append(uiButton('打开异常记录',()=>openTaskIncident(incident,task.id)));
  actions.append(uiButton('查看详情',()=>openMonitorDetails(entity.id,task,metric)));
@@ -768,11 +768,66 @@ function openMonitoringActions(task){
  ],async()=>{},'关闭');
  roleAccess();
 }
-function openTraining(task){const modern=['univariate','multivariate'].includes(data.templates[task.template].kind),fixture=data.simulation&&task.scope==='simulated'&&PRIMARY.some(m=>task.template==='uni_'+m);const advanced=el('details');advanced.append(el('summary','自定义历史时间（留空使用最近窗口）'),field('起始时间','trainStart'),field('结束时间','trainEnd'));for(const w of Array.from(advanced.children).slice(1))w.children[0].type='datetime-local';const methodNote=el('p','系统默认使用适合该指标的检测方法；请选择可信正常历史。高级设置用于调整训练参数。','hint');const fields=[field('检测方法','trainAlgorithm','select',supportedAlgorithms(task)),methodNote,field('数据来源','trainSource','select',[['prometheus','Prometheus 实际采集历史'],...(fixture?[['simulation-reference','显式生成正常模拟参考（非采集历史）']]:[])]),field('历史窗口','trainWindow','select',task.scenario_id?(task.scenario_profile==='laboratory'?[['1800','最近30分钟（仅加速实验）'],['3600','最近1小时']]:data.templates[task.template].scenario.minimum_history_seconds>=604800?[['604800','最近7天'],['1209600','最近14天']]:[['86400','最近1天'],['259200','最近3天'],['604800','最近7天']]):[['1800','最近30分钟'],['3600','最近1小时'],['86400','最近1天']]),numberField('采样步长（秒；上线使用相同周期）','trainStep',task.scenario_profile==='production'?60:2,2,300),advanced,...(modern?pipelineFields():[])];openDialog('训练模型 · '+(data.templates[task.template].targets||[]).map(m=>metricNames[m]||m).join('、'),fields,async()=>{const end=$('trainEnd').value?new Date($('trainEnd').value).getTime()/1000:Math.floor(Date.now()/1000)-4,start=$('trainStart').value?new Date($('trainStart').value).getTime()/1000:end-+$('trainWindow').value;if(!Number.isFinite(start+end)||end<=start)throw Error('历史时间范围无效');await api('/training-jobs',{method:'POST',body:JSON.stringify({task:task.id,algorithm:$('trainAlgorithm').value,start,end,step:+$('trainStep').value,input_source:$('trainSource').value,...(modern?{pipeline:pipelineConfig($('trainAlgorithm').value)}:{})})});toast('正在学习新基线；完成后查看报告，再点击“切换模型”启用');},'开始训练');if(modern){const update=()=>{const temporal=$('trainAlgorithm').value==='temporal_mad';$('trainLag').disabled=!temporal;$('trainAlpha').disabled=!temporal;methodNote.textContent='当前方法：'+algorithmLabel($('trainAlgorithm').value)+'。'+algorithmDescription($('trainAlgorithm').value)+' 训练后可检查结果，再决定是否启用。';};$('trainAlgorithm').value=supportedAlgorithms(task).some(([key])=>key==='temporal_mad')?'temporal_mad':supportedAlgorithms(task)[0][0];$('trainAlgorithm').onchange=update;update();}}
+function openTraining(task,preferredAlgorithm){const modern=['univariate','multivariate'].includes(data.templates[task.template].kind),fixture=data.simulation&&task.scope==='simulated'&&PRIMARY.some(m=>task.template==='uni_'+m);const advanced=el('details');advanced.append(el('summary','自定义历史时间（留空使用最近窗口）'),field('起始时间','trainStart'),field('结束时间','trainEnd'));for(const w of Array.from(advanced.children).slice(1))w.children[0].type='datetime-local';const methodNote=el('p','系统默认使用适合该指标的检测方法；请选择可信正常历史。高级设置用于调整训练参数。','hint');const fields=[field('检测方法','trainAlgorithm','select',supportedAlgorithms(task)),methodNote,field('数据来源','trainSource','select',[['prometheus','Prometheus 实际采集历史'],...(fixture?[['simulation-reference','显式生成正常模拟参考（非采集历史）']]:[])]),field('历史窗口','trainWindow','select',task.scenario_id?(task.scenario_profile==='laboratory'?[['1800','最近30分钟（仅加速实验）'],['3600','最近1小时']]:data.templates[task.template].scenario.minimum_history_seconds>=604800?[['604800','最近7天'],['1209600','最近14天']]:[['86400','最近1天'],['259200','最近3天'],['604800','最近7天']]):[['1800','最近30分钟'],['3600','最近1小时'],['86400','最近1天']]),numberField('采样步长（秒；上线使用相同周期）','trainStep',task.scenario_profile==='production'?60:2,2,300),advanced,...(modern?pipelineFields():[])];openDialog('训练模型 · '+(data.templates[task.template].targets||[]).map(m=>metricNames[m]||m).join('、'),fields,async()=>{const end=$('trainEnd').value?new Date($('trainEnd').value).getTime()/1000:Math.floor(Date.now()/1000)-4,start=$('trainStart').value?new Date($('trainStart').value).getTime()/1000:end-+$('trainWindow').value;if(!Number.isFinite(start+end)||end<=start)throw Error('历史时间范围无效');await api('/training-jobs',{method:'POST',body:JSON.stringify({task:task.id,algorithm:$('trainAlgorithm').value,start,end,step:+$('trainStep').value,input_source:$('trainSource').value,...(modern?{pipeline:pipelineConfig($('trainAlgorithm').value)}:{})})});toast('正在学习新基线；完成后查看报告，再点击“切换模型”启用');},'开始训练');if(modern){const update=()=>{const temporal=$('trainAlgorithm').value==='temporal_mad';$('trainLag').disabled=!temporal;$('trainAlpha').disabled=!temporal;methodNote.textContent='当前方法：'+algorithmLabel($('trainAlgorithm').value)+'。'+algorithmDescription($('trainAlgorithm').value)+' 训练后可检查结果，再决定是否启用。';};const allowed=supportedAlgorithms(task).map(([key])=>key);$('trainAlgorithm').value=[preferredAlgorithm,'temporal_mad',allowed[0]].find(key=>allowed.includes(key));$('trainAlgorithm').onchange=update;update();}}
 function openComparisonReport(report){const fields=[el('p','所有候选使用相同快照；无自动赢家。异常点占比不等于误报率。')];for(const c of report.candidates){const dl=el('dl');pair(dl,'候选',algorithmLabel(c.algorithm));pair(dl,'状态',c.status);if(c.error)pair(dl,'错误',c.error);else{pair(dl,'版本',data.models.find(m=>m.id===c.model)?modelTitle(data.models.find(m=>m.id===c.model)):'待登记');pair(dl,'比较段',c.report.selection);pair(dl,'最终测试',c.report.test);pair(dl,'训练秒数',c.report.fit_seconds);pair(dl,'同源摘要',c.dataset_sha256);}fields.push(dl);}openDialog('方法对比报告',fields,async()=>{});}
 function openEnsemble(task){const members=data.models.filter(m=>m.entity===task.entity&&m.template===task.template&&m.backend&&!m.external_registration&&m.pipeline?.schema===3&&m.algorithm!=='ensemble_max'&&['validated','published'].includes(m.status));if(members.length<2){toast('先运行候选比较，取得同源且通过自检的模型版本');return;}const choices=members.map(m=>[m.id,modelTitle(m)+' · '+algorithmLabel(m.algorithm)+' · '+modelSource(m)]);openDialog('创建冻结成员集成',[el('p','仅支持同一数据快照和时间切分的成员，取校准分数/各自阈值的最大值；不自动发布，也不保证比单模型更好。'),field('成员一','ensembleA','select',choices),field('成员二','ensembleB','select',choices)],async()=>{const r=await api('/ensembles',{method:'POST',body:JSON.stringify({task:task.id,models:[$('ensembleA').value,$('ensembleB').value]})});toast(r.pending?'集成任务待同步，请查看作业状态':'集成版本 '+short(r.id)+' 已创建，请检查报告后发布');});$('ensembleB').value=members[1].id;}
 function openPostprocess(model){openDialog('新建校准 / 判定版本',[el('p','保持模型和预处理参数不变。仅调整阈值不重训；重新校准只使用原快照校准段。创建后查看报告并手动发布。'),field('操作','postMode','select',[['threshold','仅调整阈值'],...(model.algorithm==='ensemble_max'?[]:[['calibration','重新校准并调整阈值']])]),field('阈值倍率','postFactor','select',[['1','1.0'],['1.2','1.2 更保守'],['1.5','1.5 更保守'],['0.9','0.9 更敏感']]),field('校准分位数（重新校准时使用）','postQuantile','select',[['0.99','99%'],['0.995','99.5%'],['0.999','99.9%']])],async()=>{const body={factor:+$('postFactor').value};if($('postMode').value==='calibration')body.calibration={component_quantile:+$('postQuantile').value,threshold_quantile:.995};const r=await api('/models/'+model.id+'/postprocess',{method:'POST',body:JSON.stringify(body)});toast(r.pending?'模型平台任务待同步，请查看作业状态':'已创建版本 '+short(r.id)+'；在线模型未改变');});}
-function openModelChoice(task,preferredModel=task.active_model){const versions=compatibleModels(task);if(!versions.length){openDialog('暂无可使用的基线',[el('p','当前设备和指标还没有通过程序自检的兼容版本。请先训练模型；模拟环境也可准备演示基线。'),btn('训练模型',async()=>openTraining(task)),btn('导入远程模型',async()=>openRemoteImport(task))],async()=>{},'关闭');return;}const details=el('div');openDialog('切换模型',[el('p','可复用本系统训练结果，也可登记远程平台已有模型。先查看执行位置、设备与验证结果，再选择启用。'),btn('导入远程模型（无需重新训练）',async()=>openRemoteImport(task)),field('选择模型版本','chooseModel','select',versions.map(m=>[m.id,algorithmLabel(m.algorithm)+' · '+modelTitle(m)+' · '+modelDevice(m)+' · '+modelSource(m)+' · '+modelLocation(m)+' · '+modelStatus(m)])),details],async()=>{const selected=versions.find(m=>m.id===$('chooseModel').value);await api('/tasks/'+task.id+'/publish',{method:'POST',body:JSON.stringify({model:selected.id})});toast('已启用 '+modelTitle(selected)+'；等待新鲜观测，原有事件和历史保留');},'启用模型');if(versions.some(m=>m.id===preferredModel))$('chooseModel').value=preferredModel;const show=()=>details.replaceChildren(modelDetails(versions.find(m=>m.id===$('chooseModel').value)));$('chooseModel').onchange=show;show();}
+function associationModelMethods(task,versions){
+ const methods=supportedAlgorithms(task);
+ const list=el('div',undefined,'association-model-methods');
+ list.append(el('h3','可训练的方法'));
+ if(task.scenario_id){
+  list.append(el('p','当前白盒场景绑定一种检测方法，可用不同历史数据训练多个版本。','caption'));
+ }
+ for(const [algorithm,name] of methods){
+  const count=versions.filter(version=>version.algorithm===algorithm).length;
+  const row=el('div',undefined,'association-model-method');
+  const info=el('div');
+  info.append(el('strong',name),el('p',count?count+' 个可启用版本':'待训练或导入','caption'));
+  row.append(info,uiButton('训练',()=>openTraining(task,algorithm),'write'));
+  list.append(row);
+ }
+ const actions=el('div',undefined,'controls');
+ if(methods.length>=2)actions.append(uiButton('对比方法',()=>openComparison(task),'write'));
+ if(task.scenario_id&&data.dcgm_scenarios){
+  actions.append(uiButton('配置其他白盒场景',()=>openScenarioCreate(task.entity),'write'));
+ }
+ if(task.active_model)actions.append(uiButton('确认与阈值',()=>openSensitivity(task),'write'));
+ if(data.jobs.some(job=>job.task===task.id&&['queued','running','pending_sync'].includes(job.status))){
+  actions.append(uiButton('查看作业进度',()=>{closeDialog();openModelJobs();}));
+ }
+ if(actions.children.length)list.append(actions);
+ return list;
+}
+
+function openModelChoice(task,preferredModel=task.active_model){
+ const versions=compatibleModels(task),association=isAssociationTask(task);
+ const fields=association?[associationModelMethods(task,versions)]:[];
+ if(!versions.length){
+  fields.unshift(el('p',association?'当前 GPU 和任务暂无可启用版本。':
+   '当前设备和指标还没有通过程序自检的兼容版本。请先训练模型；模拟环境也可准备演示基线。'));
+  if(!association)fields.push(btn('训练模型',async()=>openTraining(task)));
+  fields.push(uiButton('导入远程模型',()=>openRemoteImport(task),'write'));
+  openDialog(association?'模型与方法':'暂无可使用的基线',fields,async()=>{},'关闭');
+  return;
+ }
+ const details=el('div');
+ const versionsField=field('已训练的可启用版本','chooseModel','select',versions.map(model=>[
+  model.id,algorithmLabel(model.algorithm)+' · '+modelTitle(model)+' · '+modelDevice(model)+' · '
+   +modelSource(model)+' · '+modelLocation(model)+' · '+modelStatus(model),
+ ]));
+ if(!association)fields.unshift(el('p','查看模型来源、设备和验证结果后启用。'));
+ fields.push(uiButton('导入远程模型（无需重新训练）',()=>openRemoteImport(task),'write'),versionsField,details);
+ openDialog(association?'模型与方法':'切换模型',fields,async()=>{
+  const selected=versions.find(model=>model.id===$('chooseModel').value);
+  await api('/tasks/'+task.id+'/publish',{method:'POST',body:JSON.stringify({model:selected.id})});
+  toast('已启用 '+modelTitle(selected)+'；等待新鲜观测，原有事件和历史保留');
+ },'启用模型');
+ if(versions.some(model=>model.id===preferredModel))$('chooseModel').value=preferredModel;
+ const show=()=>details.replaceChildren(modelDetails(versions.find(model=>model.id===$('chooseModel').value)));
+ $('chooseModel').onchange=show;
+ show();
+}
 function localDateTimeInput(seconds){
  const date=new Date(seconds*1000);
  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,19);

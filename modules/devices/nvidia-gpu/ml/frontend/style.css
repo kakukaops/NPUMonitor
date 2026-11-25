@@ -316,6 +316,11 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .association-table .active-task td{background:#eef7f6}
 .association-table button[aria-pressed="true"]{color:var(--accent);border-color:#9abeaf}
 .association-selection{margin-bottom:12px}
+.association-model-methods{display:grid;gap:5px;margin-bottom:10px}
+.association-model-methods h3,.association-model-method p{margin:0}
+.association-model-method{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:6px 8px;border:1px solid var(--line);border-radius:7px}
+.association-model-method>button{flex-shrink:0}
 .association-evidence td,.association-evidence th{padding:5px 9px}
 .association-evidence tbody th,.association-study-charts+div tbody th{text-align:left}
 .association-study-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:6px 0 12px}
