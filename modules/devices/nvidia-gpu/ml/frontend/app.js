@@ -334,7 +334,7 @@ function associationTasks(entities){
   return state.pending?0:3;
  };
  return data.tasks.filter(task=>!task.deleted&&ids.has(task.entity)&&(!selected||selected===task.entity)
-  &&isAssociationTask(task)&&matchesAssociationKind(task)).sort((a,b)=>priority(a)-priority(b));
+  &&!task.method_parent&&isAssociationTask(task)&&matchesAssociationKind(task)).sort((a,b)=>priority(a)-priority(b));
 }
 
 function associationHasScore(task,state){
@@ -343,51 +343,58 @@ function associationHasScore(task,state){
 }
 
 const methodSelection={baseline:null,scenarios:null};
+const boardMethod={baseline:null,scenarios:null};
 
-function monitorMethods(entity,task,metric){
- const template=task?.template||'uni_'+metric;
- const online=data.models.find(model=>model.id===task?.active_model);
- const shadow=data.models.find(model=>model.id===task?.shadow_model);
- const versions=task?compatibleModels(task):[];
- const supported=supportedAlgorithms(task||{template}).map(([key])=>key);
- const methods=new Set([...supported,...versions.map(model=>model.algorithm),online?.algorithm,shadow?.algorithm].filter(Boolean));
+function monitorMethods(entity,root,metric){
+ const template=root?.template||'uni_'+metric;
+ const primary=data.models.find(model=>model.id===root?.active_model);
+ const shadow=data.models.find(model=>model.id===root?.shadow_model);
+ const versions=root?compatibleModels(root):[];
+ const supported=supportedAlgorithms(root||{template}).map(([key])=>key);
+ const siblings=root?data.tasks.filter(task=>task.method_parent===root.id&&!task.deleted):[];
+ const methods=new Set([...supported,...versions.map(model=>model.algorithm),...siblings.map(task=>task.method_algorithm),
+  primary?.algorithm,shadow?.algorithm].filter(Boolean));
  return Array.from(methods,algorithm=>{
+  const runtime=primary?.algorithm===algorithm?root:siblings.find(task=>task.method_algorithm===algorithm);
+  const online=data.models.find(model=>model.id===runtime?.active_model);
   const ready=versions.filter(model=>model.algorithm===algorithm);
-  const active=online?.algorithm===algorithm,observing=shadow?.algorithm===algorithm;
-  const training=task&&data.jobs.some(job=>job.task===task.id&&['queued','running','pending_sync'].includes(job.status)
+  const active=Boolean(online),observing=shadow?.algorithm===algorithm;
+  const task=runtime||root;
+  const training=root&&data.jobs.some(job=>job.task===root.id&&['queued','running','pending_sync'].includes(job.status)
    &&(job.algorithm===algorithm||job.algorithms?.includes(algorithm)));
-  const state=task?stateFor(task):null;
-  const shadowPoint=observing&&(data.shadow||[]).find(row=>row.task===task.id&&row.model===shadow.id);
-  const [status,color]=active?monitoredStatus(task):observing?[task.enabled&&data.inference.enabled?'影子监测':'影子已暂停','']:
-   training?['训练中','']:ready.length?['待启用','gray']:task?['待训练','gray']:['未配置任务','gray'];
+  const state=active?stateFor(task):null;
+  const shadowPoint=observing&&(data.shadow||[]).find(row=>row.task===root.id&&row.model===shadow.id);
+  const [status,color]=active?monitoredStatus(task):observing?[root.enabled&&data.inference.enabled?'影子监测':'影子已暂停','']:
+   training?['训练中','']:ready.length?['待启用','gray']:root?['待训练','gray']:['未配置任务','gray'];
   const score=active&&associationHasScore(task,state)?{...state,t:state.last_source}:!active?shadowPoint:null;
-  return {id:(task?.id||entity.id+'|'+template)+'|'+algorithm,entity,task,metric,algorithm,active,observing,
-   ready,supported:supported.includes(algorithm),status,color,score,version:active?online:observing?shadow:ready[0]};
+  return {id:(root?.id||entity.id+'|'+template)+'|'+algorithm,entity,root,task,metric,algorithm,active,observing,
+   ready,supported:supported.includes(algorithm),status,color,score,version:online||
+    (observing&&ready.find(model=>model.id===shadow.id))||ready[0]};
  }).sort((a,b)=>Number(b.active)-Number(a.active)||Number(b.observing)-Number(a.observing));
 }
 
 function selectedMethod(section,methods){
- const method=methods.find(row=>row.id===methodSelection[section]&&!row.active);
+ const method=methods.find(row=>row.id===methodSelection[section]);
  if(!method)methodSelection[section]=null;
+ boardMethod[section]=method||null;
  return method;
 }
 
 function openBoardMethod(section,method){
- methodSelection[section]=method.active?null:method.id;
+ methodSelection[section]=method.id;
  if(section==='baseline'){
   $('baselineMetric').value=method.metric;
   renderBaselines();
-  renderMonitorView();
-  roleAccess();
-  $(method.active?'baselineLiveSelection':'baselineMethodSelection').scrollIntoView({block:'start'});
- }else if(method.active)selectAssociationMonitor(method.task);
- else{
-  monitorPrefs.scenarios.task=method.task.id;
+ }else{
+  monitorPrefs.scenarios.task=method.root.id;
+  monitorPrefs.scenarios.metric='all';
   renderAssociationTasks();
-  renderMonitorView();
-  roleAccess();
-  $('associationMethodSelection').scrollIntoView({block:'start'});
  }
+ renderMonitorView();
+ roleAccess();
+ const target=method.active?(section==='baseline'?'baselineLiveSelection':'associationStatus'):
+  (section==='baseline'?'baselineMethodSelection':'associationMethodSelection');
+ $(target).scrollIntoView({block:'start'});
 }
 
 function renderBoardMethodDetail(section,method){
@@ -399,7 +406,6 @@ function renderBoardMethodDetail(section,method){
  title.append(el('strong',algorithmLabel(algorithm)),badge(method.status,method.color));
  const actions=el('div',undefined,'controls');
  if(version)actions.append(uiButton('查看模型版本',()=>openReport(version)));
- if(task&&method.ready.length)actions.append(uiButton('选择启用版本',()=>openModelChoice(task,method.ready[0].id),'write'));
  if(task&&method.supported)actions.append(uiButton('训练此方法',()=>openTraining(task,algorithm),'write'));
  if(!task)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
  actions.append(uiButton(task?.active_model?'返回在线方法':'查看原始曲线',()=>{
@@ -413,13 +419,16 @@ function renderBoardMethodDetail(section,method){
  if(version)box.append(el('p',modelTitle(version)+' · '+modelSource(version),'caption'));
  box.append(el('p',score?'影子评分 '+fmt(score.score,2)+' / 阈值 '+fmt(score.threshold,2)+' · '+dateTime(score.t):
   method.observing?'暂无有效影子评分。':'当前没有运行评分。','caption'));
+ if(method.version)box.append(el('p','下方为此版本的历史回放。','caption'));
 }
 
 function methodBoardRow(section,method,selected){
  const {task,entity,metric,algorithm,version,score}=method;
  const row=el('tr',undefined,selected?'active-task':'');
  const name=el('td'),status=el('td'),evidence=el('td'),actions=el('td');
- name.append(el('strong',algorithmLabel(algorithm)));
+ const button=uiButton(algorithmLabel(algorithm),()=>openBoardMethod(section,method),'text-button method-name');
+ button.setAttribute?.('aria-pressed',String(selected));
+ name.append(button);
  if(section==='baseline')name.append(el('small',metricNames[metric]||metric));
  else name.append(el('small',taskDisplayName(task)),el('small',entity.uuid+' · '+(task.scenario_id?'白盒场景':'黑盒模型')));
  status.append(badge(method.status,method.color));
@@ -441,9 +450,21 @@ function methodBoardRow(section,method,selected){
   evidence.append(el('small',last?'上次有效评分 '+dateTime(last):'—'));
  }
  const controls=el('div',undefined,'controls');
- const button=uiButton(method.active?'查看曲线':'查看方法',()=>openBoardMethod(section,method));
- button.setAttribute?.('aria-pressed',String(selected));
- controls.append(button);
+ if(method.active||method.ready.length){
+  const enable=!method.active||!task.enabled;
+  controls.append(btn(enable?'启用':'暂停',async()=>{
+   const saved=await api('/tasks/'+encodeURIComponent(method.root.id)+'/method',{method:'POST',body:JSON.stringify({
+    algorithm,enabled:enable,model:version.id,
+   })});
+   data.tasks=[...data.tasks.filter(row=>row.id!==saved.id),saved];
+   render();
+   toast(enable?'已启用 '+algorithmLabel(algorithm):'已暂停 '+algorithmLabel(algorithm));
+  }));
+ }else if(method.root&&method.supported){
+  controls.append(uiButton('训练',()=>openTraining(method.root,algorithm),'write'));
+ }else if(!method.root){
+  controls.append(btn('配置',()=>configureBaseline(entity.id,[metric]),'write'));
+ }
  const incident=method.active&&incidentForTask(task.id);
  if(incident)controls.append(uiButton('异常记录',()=>openTaskIncident(incident,task.id)));
  actions.append(controls);
@@ -463,15 +484,15 @@ function renderAssociationTasks(){
  }
  const methods=tasks.flatMap(task=>monitorMethods(byEntity.get(task.entity),task,null));
  const selected=selectedMethod('scenarios',methods);
- if(selected)$('associationStatus').hidden=true;
+ if(selected&&!selected.active)$('associationStatus').hidden=true;
  const evaluated=methods.filter(method=>method.active&&method.score).length;
  $('associationSummary').textContent=methods.length
   ?tasks.length+' 个任务 · '+methods.length+' 项方法 · '+evaluated+' 项有效在线评分'
   :'当前范围尚无关联任务。';
  const rows=methods.map(method=>methodBoardRow('scenarios',method,selected?selected.id===method.id:
-  method.active&&method.task.id===pref.task));
+  method.active&&method.root.id===pref.task&&method.task===method.root));
  $('associationRows').replaceChildren(...(rows.length?rows:[emptyRow(4,'当前 GPU 范围没有关联检测任务')]));
- renderBoardMethodDetail('scenarios',selected);
+ renderBoardMethodDetail('scenarios',selected&&!selected.active?selected:null);
 }
 
 function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实未核验');}
@@ -491,7 +512,7 @@ function taskDisplayName(task){
 
 function renderAssociationStatus(task,entity,metric){
  const box=$('associationStatus');
- box.hidden=!task||!entity||Boolean(methodSelection.scenarios);
+ box.hidden=!task||!entity||Boolean(boardMethod.scenarios&&!boardMethod.scenarios.active);
  if(box.hidden)return;
  const [label,color]=monitoredStatus(task),model=data.models.find(row=>row.id===task.active_model);
  const context=el('div'),title=el('div',undefined,'monitor-context');
@@ -812,7 +833,7 @@ function closeDialog(){
 function field(label,id,kind='input',rows=[]){const wrapper=el('label',label),input=document.createElement(kind);input.id=id;if(kind==='select')input.append(...rows.map(([value,text])=>{const option=el('option',text);option.value=value;return option;}));wrapper.append(input);return wrapper;}
 function supportedAlgorithms(task){
  const allowed=data.training_algorithms?.[task.template]||data.templates[task.template]?.algorithms||['ridge_iforest','robust_mad'];
- return allowed.filter(key=>Object.hasOwn(data.algorithms,key)).map(key=>[key,algorithmLabel(key)]);
+ return allowed.filter(key=>Object.hasOwn(data.algorithms,key)&&(!task.method_algorithm||key===task.method_algorithm)).map(key=>[key,algorithmLabel(key)]);
 }
 function numberField(label,id,value,min,max,step='1'){const w=field(label,id);const n=w.children[0];n.type='number';n.value=String(value);n.min=String(min);n.max=String(max);n.step=String(step);n.required=true;return w;}
 function dateTime(t){return typeof t==='number'&&Number.isFinite(t)?new Date(t*1000).toLocaleString('zh-CN',{hour12:false}):'未记录';}
@@ -831,7 +852,7 @@ function modelTitle(m){const spec=m.feature_schema||data.templates[m.template]||
 function modelDevice(m){return data.entities.find(e=>e.id===m.entity)?.uuid||m.entity.split('|').slice(1).join('|')||m.entity;}
 function trainingRange(m){const parts=m.report?.partitions,first=parts?.train?.start,last=parts?.test?.end,range=m.training_window;if(range&&Number.isFinite(range.start)&&Number.isFinite(range.end))return dateTime(range.start)+' — '+dateTime(range.end);return Number.isFinite(first)&&Number.isFinite(last)?dateTime(first)+' — '+dateTime(last):'历史版本未记录完整时间范围';}
 function modelStatus(m){if(data.tasks.some(t=>!t.deleted&&t.active_model===m.id))return '当前使用';if(data.tasks.some(t=>!t.deleted&&t.shadow_model===m.id))return '影子观察';return ['validated','published'].includes(m.status)?'可使用（程序自检通过）':'需复核，暂不可使用';}
-function compatibleModels(task){return data.models.filter(m=>m.entity===task.entity&&m.template===task.template&&m.source_type===task.scope&&['validated','published'].includes(m.status)&&(!m.backend||m.backend.backend_id===data.model_backend?.backend_id||(data.model_services||[]).some(s=>s.id===m.backend.backend_id))).sort((a,b)=>(b.created_at||0)-(a.created_at||0)||a.id.localeCompare(b.id));}
+function compatibleModels(task){return data.models.filter(m=>m.entity===task.entity&&m.template===task.template&&m.source_type===task.scope&&(!task.method_algorithm||m.algorithm===task.method_algorithm)&&['validated','published'].includes(m.status)&&(!m.backend||m.backend.backend_id===data.model_backend?.backend_id||(data.model_services||[]).some(s=>s.id===m.backend.backend_id))).sort((a,b)=>(b.created_at||0)-(a.created_at||0)||a.id.localeCompare(b.id));}
 function modelDetails(m){const box=el('div');if(!m)return box;const summary=el('dl');pair(summary,'模型版本',modelTitle(m));pair(summary,'设备',modelDevice(m));pair(summary,'训练来源',modelSource(m));pair(summary,'执行位置',modelLocation(m));if(m.external_registration){pair(summary,'登记验证','连接、身份、输入输出与试评分通过；检测效果仍需回放/旁路验证');pair(summary,'远程版本生成时间',dateTime(m.remote_created_at));}pair(summary,'检测方法',algorithmLabel(m.algorithm));pair(summary,m.external_registration?'登记时间':'版本生成时间',dateTime(m.created_at));pair(summary,'学习的历史范围',trainingRange(m));pair(summary,'使用状态',modelStatus(m));const rate=m.report?.held_out_point_alert_rate;pair(summary,'验证结果',m.external_registration?'远程平台报告见技术详情；本系统仅核验连接与试评分':typeof rate==='number'?'程序自检'+(['validated','published'].includes(m.status)?'通过':'需复核')+'；独立测试异常点占比 '+fmt(rate*100,2)+'%（不是误报率或故障准确率）':'该历史版本未记录验证结果');box.append(summary);const technical=el('details');technical.append(el('summary','技术详情与固定参数（高级）'));const dl=el('dl');pair(dl,'内部模型ID',m.id);pair(dl,'内部算法标识',m.algorithm);pair(dl,'模型服务',m.backend?.backend_id||'历史本地模型');pair(dl,'固定采样周期',(m.capabilities?.cadence_seconds||m.report?.cadence_seconds||'未记录')+' 秒');pair(dl,'固定历史窗口',(m.pipeline?.detector?.window??m.capabilities?.history_samples??'未记录')+' 点');pair(dl,'模型参数',m.pipeline?.detector||'历史版本未记录');pair(dl,'预处理',m.pipeline?.preprocessing?.config||'历史版本未记录');pair(dl,'校准参数',m.pipeline?.calibration||'未记录');pair(dl,'阈值配置',m.pipeline?.decision||m.report?.threshold);if(m.input_diagnostics)pair(dl,'输入适用性',m.input_diagnostics);if(m.report?.test?.forecast_comparison)pair(dl,'测试段预测误差',m.report.test.forecast_comparison);technical.append(dl);box.append(technical);return box;}
 function pipelineFields(){const details=el('details');details.append(el('summary','高级设置：检测方法与训练参数'),field('预处理','trainPreprocess','select',[['identity','保持原始单位'],['robust_scale','按训练集稳健归一化']]),numberField('历史窗口点数（仅滞后回归）','trainLag',12,4,60),numberField('Ridge 正则化 alpha（仅滞后回归）','trainAlpha',1,.001,1000,'0.001'),numberField('分量校准分位数','trainComponentQ',.99,.9,.9999,'.0001'),numberField('阈值校准分位数','trainThresholdQ',.995,.9,.9999,'.0001'),numberField('初始阈值倍率（越大越保守）','trainFactor',1,.8,2,'.1'));return [details];}
 function pipelineConfig(algorithm){return {preprocessing:{kind:$('trainPreprocess').value},calibration:{component_quantile:+$('trainComponentQ').value,threshold_quantile:+$('trainThresholdQ').value},decision:{factor:+$('trainFactor').value},...(algorithm==='temporal_mad'?{detector:{window:+$('trainLag').value,alpha:+$('trainAlpha').value}}:{})};}
@@ -1045,7 +1066,7 @@ function renderBaselines(){
  if(!entities.some(e=>e.id===previous))deviceSelect.value=preferredBaselineEntity(entities)?.id||'';
  $('prepareBaseline').hidden=!data.simulation;
  const entity=entities.find(item=>item.id===deviceSelect.value);
- const tasks=new Map(data.tasks.filter(task=>task.entity===entity?.id&&!task.deleted).map(task=>[task.template,task]));
+ const tasks=new Map(data.tasks.filter(task=>task.entity===entity?.id&&!task.deleted&&!task.method_parent).map(task=>[task.template,task]));
  const metrics=Array.from(new Set([...PRIMARY,...Array.from(tasks.keys())
   .filter(template=>data.templates[template]?.kind==='univariate'&&template.startsWith('uni_'))
   .map(template=>template.slice(4))]));
@@ -1058,11 +1079,11 @@ function renderBaselines(){
  const rows=methods.map(method=>methodBoardRow('baseline',method,alternative?alternative.id===method.id:
   method.active&&method.metric===selected));
  $('baselineMethodRows').replaceChildren(...(rows.length?rows:[emptyRow(4,'没有可展示的方法')]));
- $('baselineLiveSelection').hidden=Boolean(alternative);
- renderBoardMethodDetail('baseline',alternative);
- renderBaselineStatus(entity,selected,tasks.get('uni_'+selected));
+ $('baselineLiveSelection').hidden=Boolean(alternative&&!alternative.active);
+ renderBoardMethodDetail('baseline',alternative&&!alternative.active?alternative:null);
+ renderBaselineStatus(entity,selected,alternative?.active?alternative.task:tasks.get('uni_'+selected));
  if(page==='baseline'&&!replayMode){
-  if(alternative)$('baselineComparison').hidden=true;
+  if(alternative&&!alternative.active)$('baselineComparison').hidden=true;
   else renderBaselineComparison(tasks.get('uni_'+selected));
  }
  const previews=PRIMARY.map(metric=>{

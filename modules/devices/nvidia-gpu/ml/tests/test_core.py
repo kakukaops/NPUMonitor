@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 import tempfile
+import threading
 import time
+from types import SimpleNamespace
 import unittest
 import numpy as np
 from gpu_ml.models import GPUModel
@@ -17,6 +19,33 @@ def rows(start=0,count=900,seed=5):
 
 
 class ModelTests(unittest.TestCase):
+    def test_independent_method_does_not_replace_primary_or_write_after_pause(self):
+        from gpu_ml.engine import Engine
+        with tempfile.TemporaryDirectory() as directory:
+            engine = Engine.__new__(Engine)
+            engine.lock = threading.RLock()
+            engine.store = Store(Path(directory) / 'method.sqlite')
+            engine.load = lambda version: SimpleNamespace(cadence=2)
+            model_scope = {'entity': 'c|GPU', 'template': 'uni_gpu_temp', 'source_type': 'simulated'}
+            for key, algorithm in [('primary', 'rolling_median'), ('alternative', 'level_mad')]:
+                engine.store.put('model', key, {**model_scope, 'algorithm': algorithm, 'status': 'validated'})
+            engine.store.put('task', 'root', {'entity': 'c|GPU', 'template': 'uni_gpu_temp', 'scope': 'simulated',
+                                              'name': 'GPU 温度', 'enabled': True, 'active_model': 'primary'})
+            selected = engine.set_method_enabled('root', 'level_mad', True, 'alternative', 'operator')
+            self.assertTrue(selected['enabled'])
+            self.assertEqual(selected['notification_mode'], 'evidence')
+            self.assertEqual(engine.store.get('task', 'root')['active_model'], 'primary')
+            with self.assertRaises(ValueError):
+                engine.publish(selected['id'], 'primary', 'operator')
+            with self.assertRaises(ValueError):
+                engine.publish('root', 'alternative', 'operator')
+            engine.set_method_enabled('root', 'level_mad', False, 'alternative', 'operator')
+            engine.store.apply(selected['id'], quality='missing', task_revision=selected['revision'])
+            self.assertIsNone(engine.store.get('state', selected['id']))
+            resumed = engine.set_method_enabled('root', 'level_mad', True, 'alternative', 'operator')
+            self.assertEqual(resumed['id'], selected['id'])
+            self.assertEqual(len(engine.store.list('task')), 2)
+
     def test_gpu_anomalies_and_normal_high_load(self):
         train=rows()
         for template,signals in [('thermal',('gpu_temp','memory_temp')),('relation',('power','sm_clock')),('activity',('util',))]:

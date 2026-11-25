@@ -412,13 +412,17 @@ async def update_task(key:str,request:Request):
 
 @app.delete('/api/gpu-ml/v1/tasks/{key}')
 def delete_task(key:str,request:Request):
-    actor=user(request,'operator');task=STORE.get('task',key)
-    if not task:raise HTTPException(404,'任务不存在')
+    actor=user(request,'operator')
     expected=int(request.headers.get('if-match','-1'))
     if expected<1:raise HTTPException(428,'需要If-Match版本')
-    task.update(enabled=False,deleted=True)
-    STORE.put('task',key,task,expected=expected);STORE.administrative_close(key,'task_deleted_by_operator')
-    STORE.audit(actor,'task_delete',key)
+    with ENGINE.lock:
+        task=STORE.get('task',key)
+        if not task:raise HTTPException(404,'任务不存在')
+        if any(row.get('method_parent')==key and not row.get('deleted') for row in STORE.list('task')):
+            raise ValueError('请先退役该任务下的独立方法')
+        task.update(enabled=False,deleted=True)
+        STORE.put('task',key,task,expected=expected);STORE.administrative_close(key,'task_deleted_by_operator')
+        STORE.audit(actor,'task_delete',key)
     return {'deleted':True,'history_preserved':True}
 
 
@@ -464,6 +468,17 @@ async def publish(key:str,request:Request):
     actor=user(request,'operator');body=await request.json();await run_in_threadpool(ENGINE.publish,key,required_body_value(body,'model'),actor)
     return STORE.get('task',key)
 
+@app.post('/api/gpu-ml/v1/tasks/{key}/method')
+async def set_method_enabled(key: str, request: Request):
+    actor = user(request, 'operator')
+    body = await request.json()
+    if not isinstance(body.get('enabled'), bool):
+        raise ValueError('enabled需要布尔值')
+    algorithm = required_body_value(body, 'algorithm')
+    model_id = body.get('model')
+    if model_id is not None and not isinstance(model_id, str):
+        raise ValueError('模型版本无效')
+    return await run_in_threadpool(ENGINE.set_method_enabled, key, algorithm, body['enabled'], model_id, actor)
 @app.post('/api/gpu-ml/v1/tasks/{key}/shadow')
 async def shadow_model(key:str,request:Request):
     actor=user(request,'operator');body=await request.json();task=STORE.get('task',key)
@@ -499,9 +514,9 @@ def series(key:str,request:Request,start:float=0,end:float=0):
 def monitor_view_data(request: Request, entity: str, metric: str, task: str = '',
                       source: str = 'prometheus', mode: str = 'online',
                       span: int = 900, scenario: str = 'normal', start: Optional[float] = None,
-                      end: Optional[float] = None, include_inputs: bool = False):
+                      end: Optional[float] = None, include_inputs: bool = False, model: Optional[str] = None):
     user(request)
-    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs)
+    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs, model)
 
 
 @app.get('/api/gpu-ml/v1/raw-series')

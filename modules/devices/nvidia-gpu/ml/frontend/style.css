@@ -318,6 +318,8 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .association-selection{margin-bottom:12px}
 .method-board-wrap{max-height:420px;overflow:auto}
 .method-board thead th{position:sticky;top:0;z-index:1}
+.method-board .method-name{padding:0;color:#216661;font-weight:650;text-align:left}
+.method-board .method-name:hover{text-decoration:underline}
 .association-selection button[aria-pressed="true"]{background:#eef7f6;border-color:#9abeaf;color:var(--accent)}
 .association-api-request{margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:7px}
 .association-api-request code{display:block;overflow-wrap:anywhere;margin-top:4px}

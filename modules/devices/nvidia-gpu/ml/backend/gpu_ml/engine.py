@@ -120,6 +120,12 @@ class Engine:
             if scenario and scenario['profile']=='laboratory' and (not SIMULATION or task['scope']!='simulated'):raise ValueError('加速实验制品不能发布到真实GPU')
             spec=TEMPLATES[task['template']]
             if record.get('backend') and record.get('feature_schema')!=spec:raise ValueError('模型输入契约已变化，请重新训练')
+            algorithm = record.get('algorithm')
+            if task.get('method_algorithm') and task['method_algorithm'] != algorithm:
+                raise ValueError('独立方法任务只能使用同一方法的版本')
+            related = self.store.get('task', self.method_task_id(task_id, algorithm)) if algorithm else None
+            if related and not related.get('deleted') and related.get('active_model'):
+                raise ValueError('此方法已有独立任务，请在该方法下启用版本')
             model=self.load(model_id)
             if getattr(model,'cadence',2)<2:raise ValueError('模型采样周期无效')
             if record.get('backend'):
@@ -137,6 +143,58 @@ class Engine:
             record.update(status='published');self.store.put('model',model_id,record)
             # Existing active evidence is not cleared by a model version switch.
             self.store.audit(actor,'publish',task_id,{'old':old,'new':model_id})
+
+    @staticmethod
+    def method_task_id(task_id, algorithm):
+        return 'method-' + hashlib.sha256((task_id+'|'+algorithm).encode()).hexdigest()[:24]
+
+    def set_method_enabled(self, task_id, algorithm, enabled, model_id, actor):
+        with self.lock:
+            root = self.store.get('task', task_id)
+            if not root or root.get('deleted') or root.get('method_parent'):
+                raise ValueError('请选择有效的原始检测任务')
+            key = self.method_task_id(task_id, algorithm)
+            task = self.store.get('task', key)
+            current = self.store.get('model', root['active_model']) if root.get('active_model') else None
+            if current and current['algorithm'] == algorithm:
+                task = root
+            elif not task or task.get('deleted'):
+                if not enabled:
+                    return root
+                else:
+                    model = self.store.get('model', model_id) if model_id else None
+                    if (not model or model['algorithm'] != algorithm or model['status'] not in ('validated', 'published')
+                        or (model['entity'], model['template'], model['source_type']) != (root['entity'], root['template'], root['scope'])):
+                        raise ValueError('启用前请选择与任务及方法兼容的模型')
+                    if not current and not task:
+                        task = root
+                    else:
+                        if root.get('scenario_id'):
+                            raise ValueError('白盒场景只能启用该场景对应的方法')
+                        # Allocate a detector and its event history independently. Secondary
+                        # methods contribute evidence through the workbench by default.
+                        inherited = {field: root[field] for field in (
+                            'entity', 'template', 'scope', 'policy_kind', 'sensitivity',
+                            'confirmation_samples', 'recovery_samples',
+                        ) if field in root}
+                        task = self.store.put('task', key, {
+                            **inherited, 'name': root['name']+' · '+algorithm,
+                            'algorithm': algorithm, 'method_algorithm': algorithm, 'method_parent': task_id,
+                            'active_model': None, 'enabled': False, 'notification_mode': 'evidence',
+                            'created_at': time.time(),
+                        }, expected=task['revision'] if task else 0)
+            if enabled and not task.get('active_model'):
+                model = self.store.get('model', model_id) if model_id else None
+                if not model or model['algorithm'] != algorithm:
+                    raise ValueError('此方法尚无可用模型')
+                self.publish(task['id'], model_id, actor)
+                task = self.store.get('task', task['id'])
+            if task['enabled'] != enabled:
+                task = self.store.put('task', task['id'], {**task, 'enabled': enabled}, expected=task['revision'])
+                if not enabled:
+                    self.store.administrative_close(task['id'], 'task_paused_by_operator')
+                self.store.audit(actor, 'method_enabled' if enabled else 'method_paused', task['id'], {'algorithm': algorithm})
+            return task
 
     def score(self,model,rows,factor=1.):
         if isinstance(model,RemoteModel):return model.evaluate(rows,factor).points
@@ -269,18 +327,18 @@ class Engine:
                     if not task['enabled']:continue
                     entity=entities.get(task['entity']);required=TEMPLATES[task['template']]['required']
                     if not entity:
-                        self.store.apply(task['id'],quality='missing');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='missing');continue
                     invalid=[entity['quality'].get(k,'missing') for k in required if entity['quality'].get(k)!='valid']
                     if invalid:
-                        self.store.apply(task['id'],quality=','.join(sorted(set(invalid))));continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality=','.join(sorted(set(invalid))));continue
                     if max(entity['times'][k] for k in required)-min(entity['times'][k] for k in required)>2:
-                        self.store.apply(task['id'],quality='unaligned');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='unaligned');continue
                     if task['template']=='activity' and entity['values']['job_running']!=1:
-                        self.store.apply(task['id'],quality='context_inactive');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='context_inactive');continue
                     try:
                         row={'t':min(entity['times'][k] for k in required),'values':{k:entity['values'][k] for k in required}}
                         if not self.observation_is_fresh(row['t']):
-                            self.store.apply(task['id'],quality='inference_stale');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='inference_stale');continue
                         prior=self.store.get('state',task['id'])
                         if prior and prior.get('quality')=='valid' and prior.get('last_source',0)>=row['t']:continue
                         if task.get('shadow_model'):
@@ -295,26 +353,26 @@ class Engine:
                                     shadow=shadow_predictions[-1];shadow['model']=task['shadow_model'];self.store.record_shadow(task['id'],shadow)
                             except Exception:logging.exception('Shadow scoring failed; primary remains independent')
                         if not task.get('active_model'):
-                            self.store.apply(task['id'],quality='untrained');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='untrained');continue
                         model=self.load(task['active_model'])
                         rows = self.source.rolling_history(
                             task['entity'], row, getattr(model, 'cadence', POLL), required, getattr(model, 'window', 0),
                         )
                         batch=self.score_batch(model,rows,task.get('sensitivity',1.))
                         if batch.quality!='valid':
-                            self.store.apply(task['id'],quality=batch.quality);continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality=batch.quality);continue
                         result=batch.points[-1]
                         if not self.observation_is_fresh(result['t']):
-                            self.store.apply(task['id'],quality='inference_stale');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='inference_stale');continue
                         result['decision_config_revision']=task['revision'];result['effective_task_factor']=task.get('sensitivity',1.)
-                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result,confirmation_samples=task.get('confirmation_samples',3),recovery_samples=task.get('recovery_samples',3))
+                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result,task_revision=task['revision'],confirmation_samples=task.get('confirmation_samples',3),recovery_samples=task.get('recovery_samples',3))
                     except Exception as exc:
-                        self.store.apply(task['id'],quality='model_error');logging.exception('Model inference failed')
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='model_error');logging.exception('Model inference failed')
                 self.last_poll=time.time();self.error=None
             except Exception as exc:
                 self.error=type(exc).__name__
                 for task in self.store.list('task'):
-                    if task['enabled']:self.store.apply(task['id'],quality='query_error')
+                    if task['enabled']:self.store.apply(task['id'],task_revision=task['revision'],quality='query_error')
                 # The loop is alive; valid normal evidence is still absent.
                 self.last_poll=time.time()
                 logging.warning('Input query failed: %s',self.error)

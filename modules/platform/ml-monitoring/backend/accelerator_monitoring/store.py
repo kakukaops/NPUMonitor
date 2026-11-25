@@ -143,11 +143,16 @@ class Store:
             row = db.execute('SELECT payload FROM recovered_episode WHERE id=?', (key,)).fetchone()
             return json.loads(row['payload']) if row else None
 
-    def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3):
+    def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3,
+              task_revision=None):
         for count in (confirmation_samples,recovery_samples):
             if isinstance(count,bool) or not isinstance(count,int) or not 1<=count<=30:raise ValueError('确认/恢复样本数须为1至30的整数')
         now=time.time() if now is None else now
         with self.db() as db:
+            if task_revision is not None:
+                config=db.execute("SELECT revision FROM documents WHERE kind='task' AND id=?", (task,)).fetchone()
+                if not config or config['revision'] != task_revision:
+                    return None
             row=db.execute("SELECT payload,revision FROM documents WHERE kind='state' AND id=?",(task,)).fetchone()
             state=json.loads(row['payload']) if row else {'id':task,'active':False,'quality':'unverified','last_source':0,'pending':0,'clear_count':0,'episode_id':None}
             was_active = state['active']

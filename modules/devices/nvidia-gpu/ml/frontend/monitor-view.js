@@ -38,20 +38,22 @@ function showAssociationRun(mode){
 }
 
 function monitorContext(section,pref){
+ const method=boardMethod[section];
  if(section==='baseline'){
   const entity=$('baselineEntity').value,metric=$('baselineMetric').value;
-  const task=data.tasks.find(row=>!row.deleted&&row.entity===entity&&row.template==='uni_'+metric);
+  const task=method?.task||data.tasks.find(row=>!row.deleted&&!row.method_parent&&row.entity===entity&&row.template==='uni_'+metric);
   return {entity,task,metric};
  }
  const tasks=associationTasks(filteredEntities());
- const task=tasks.find(item=>item.id===pref.task)||tasks[0];
+ const task=method?.task||tasks.find(item=>item.id===pref.task)||tasks[0];
  if(!task){monitorOptions($('monitorMetric'),[]);return {};}
  const spec=data.templates[task.template];
  const targets=Array.from(new Set([...spec.targets,...spec.required]));
- const selectedMetric=pref.task===task.id&&targets.includes(pref.metric)?pref.metric:'all';
+ const root=task.method_parent||task.id;
+ const selectedMetric=pref.task===root&&targets.includes(pref.metric)?pref.metric:'all';
  monitorOptions($('monitorMetric'),[['all','全部输入'],...targets.map(metric=>[metric,metricNames[metric]||metric])]);
  $('monitorMetric').value=selectedMetric;
- pref.task=task.id;
+ pref.task=root;
  pref.metric=selectedMetric;
  return {entity:task.entity,task,metric:selectedMetric==='all'?targets[0]:selectedMetric,
   allInputs:selectedMetric==='all',inputCount:targets.length};
@@ -64,20 +66,24 @@ function renderMonitorView(force=false){
  const slot=$(page==='baseline'?'baselineMonitorSlot':'associationMonitorSlot');
  const panel=$('monitorView');
  if(panel.parentElement!==slot)slot.append(panel);
- if(methodSelection[page]){
+ const selected=boardMethod[page];
+ if(selected&&!selected.version){
   panel.hidden=true;
   return;
  }
  const {entity,task,metric,allInputs,inputCount}=monitorContext(page,pref);
  const device=data.entities.find(row=>row.id===entity);
- const isSample=pref.source==='sample',mode=isSample?'replay':pref.mode;
+ const candidate=selected&&!selected.active&&selected.version;
+ const source=candidate?'prometheus':pref.source;
+ const isSample=source==='sample',mode=isSample||candidate?'replay':pref.mode;
  const canChooseDates=!isSample&&mode==='replay';
  const range=canChooseDates?pref.range:null;
  monitorOptions($('monitorSource'),[['prometheus','采集数据'],...(data.simulation?[['sample','内置样例']]:[])]);
- $('monitorSource').value=pref.source;
+ $('monitorSource').value=source;
+ $('monitorSource').disabled=Boolean(candidate);
  $('monitorSource').closest?.('label')?.toggleAttribute?.('hidden',!data.simulation||(page==='scenarios'&&!isSample));
  $('monitorMode').value=mode;
- $('monitorMode').disabled=isSample;
+ $('monitorMode').disabled=isSample||Boolean(candidate);
  $('monitorModeControl').hidden=isSample||page==='scenarios';
  $('monitorSpanControl').hidden=Boolean(range);
  $('monitorUseRecent').hidden=!range;
@@ -101,7 +107,8 @@ function renderMonitorView(force=false){
    :'请选择 GPU 和指标。';
   return;
  }
- const query=new URLSearchParams({entity,metric,task:task?.id||'',source:pref.source,mode,span:pref.span,scenario:pref.scenario});
+ const query=new URLSearchParams({entity,metric,task:task?.id||'',source,mode,span:pref.span,scenario:pref.scenario});
+ if(candidate)query.set('model',candidate.id);
  if(page==='scenarios')query.set('include_inputs','true');
  if(range){query.set('start',range.start);query.set('end',range.end);}
  const key=page+'|'+String(allInputs)+'|'+query.toString()+'|'+(task?.active_model||'')+'|'+(task?.revision||'');
@@ -110,7 +117,9 @@ function renderMonitorView(force=false){
   clearMonitorView();
  }
  const view=monitorShown;
- if(view.busy||(!force&&view.checked&&(mode==='replay'||Date.now()-view.checked<7500)))return;
+ const firstScoreReady=mode==='online'&&task?.enabled&&stateFor(task)?.quality==='valid'
+  &&view.result&&!view.result.points.some(point=>Number.isFinite(point.score));
+ if(view.busy||(!force&&!firstScoreReady&&view.checked&&(mode==='replay'||Date.now()-view.checked<7500)))return;
  view.busy=true;
  if(!view.result)$('monitorViewStatus').textContent='正在读取曲线…';
  api('/monitor-view?'+query).then(result=>{

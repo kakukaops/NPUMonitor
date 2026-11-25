@@ -168,7 +168,8 @@ def summarize_confirmations(replay, episodes, labels):
     }
 
 
-def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenario, start=None, end=None, include_inputs=False):
+def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenario, start=None, end=None,
+                 include_inputs=False, replay_model=None):
     if source not in ('prometheus', 'sample') or mode not in ('online', 'recorded', 'replay'):
         raise ValueError('数据来源或显示方式无效')
     if source == 'sample' and (not SIMULATION or mode != 'replay' or scenario not in SAMPLES):
@@ -191,8 +192,14 @@ def monitor_view(engine, entity_id, task_id, metric, source, mode, span, scenari
     spec = TEMPLATES[task['template']] if task else None
     if spec and metric not in spec['targets'] and (not include_inputs or metric not in spec['required']):
         raise ValueError('指标不属于当前任务')
-    model_id = task.get('active_model') if task else None
+    if replay_model and (not task or mode != 'replay'):
+        raise ValueError('指定模型仅支持任务的历史回放')
+    model_id = replay_model or (task.get('active_model') if task else None)
     record = engine.store.get('model', model_id) if model_id else None
+    if replay_model and (not record or record['status'] not in ('validated', 'published')
+                         or (record['entity'], record['template'], record['source_type']) !=
+                         (task['entity'], task['template'], task['scope'])):
+        raise ValueError('此模型版本不可用于该任务的回放')
     state, episodes = {}, []
     observation_error = False
     required = spec['required'] if spec and (model_id or include_inputs) else [metric]
