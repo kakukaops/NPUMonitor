@@ -25,6 +25,17 @@ function selectAssociationMonitor(task){
  $('associationStatus').scrollIntoView({block:'start'});
 }
 
+function showAssociationRun(mode){
+ const pref=monitorPrefs.scenarios;
+ pref.source='prometheus';
+ pref.mode=mode;
+ monitorEditingSection=null;
+ if(window.location?.hash==='#joint-replay')chooseAssociationView(associationView);
+ else renderMonitorView(true);
+ roleAccess();
+ $('monitorViewTitle').scrollIntoView({block:'nearest'});
+}
+
 function monitorContext(section,pref){
  if(section==='baseline'){
   const entity=$('baselineEntity').value,metric=$('baselineMetric').value;
@@ -62,7 +73,7 @@ function renderMonitorView(force=false){
  $('monitorSource').closest?.('label')?.toggleAttribute?.('hidden',!data.simulation||(page==='scenarios'&&!isSample));
  $('monitorMode').value=mode;
  $('monitorMode').disabled=isSample;
- $('monitorModeControl').hidden=isSample;
+ $('monitorModeControl').hidden=isSample||page==='scenarios';
  $('monitorSpanControl').hidden=Boolean(range);
  $('monitorUseRecent').hidden=!range;
  $('monitorDatesToggle').hidden=!canChooseDates;

@@ -316,6 +316,9 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .association-table .active-task td{background:#eef7f6}
 .association-table button[aria-pressed="true"]{color:var(--accent);border-color:#9abeaf}
 .association-selection{margin-bottom:12px}
+.association-selection button[aria-pressed="true"]{background:#eef7f6;border-color:#9abeaf;color:var(--accent)}
+.association-api-request{margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:7px}
+.association-api-request code{display:block;overflow-wrap:anywhere;margin-top:4px}
 .association-model-methods{display:grid;gap:5px;margin-bottom:10px}
 .association-model-methods h3,.association-model-method p{margin:0}
 .association-model-method{display:flex;align-items:center;justify-content:space-between;gap:10px;

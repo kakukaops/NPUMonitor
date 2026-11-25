@@ -29,6 +29,39 @@ function renderAssociationView(){
  if(page==='study'&&data.simulation)loadAssociationCase();
 }
 
+function openAssociationAPI(task,metric){
+ const spec=data.templates[task.template],white=associationFamily(task)==='white';
+ const model=data.models.find(row=>row.id===task.active_model);
+ const info=el('dl');
+ pair(info,'任务',taskDisplayName(task));
+ pair(info,'运行版本',model?algorithmLabel(model.algorithm)+' · '+short(model.id):'尚未启用模型');
+ const names=keys=>keys.map(key=>metricNames[key]||key).join('、');
+ pair(info,'必需指标',names(spec.required));
+ if(white){
+  pair(info,'参考条件',names(spec.features||[]));
+  pair(info,'判定指标',names(spec.targets));
+ }
+ const pref=monitorPrefs.scenarios;
+ const requests=[['在线评分记录','online'],['按当前模型回放','replay']].map(([label,mode])=>{
+  const params=new URLSearchParams({entity:task.entity,task:task.id,
+   metric:metric==='all'?spec.targets[0]:metric,mode,span:pref.span,include_inputs:'true'});
+  if(mode==='replay'&&pref.range){params.set('start',pref.range.start);params.set('end',pref.range.end);}
+  const url=API+'/monitor-view?'+params;
+  const block=el('div',undefined,'association-api-request');
+  const link=el('a','打开 JSON','panel-link');
+  link.href=url;
+  link.target='_blank';
+  link.rel='noopener';
+  block.append(el('strong',label),el('code','GET '+url),link);
+  return block;
+ });
+ openDialog('调用接口 · '+(white?'白盒场景':'黑盒模型'),[
+  el('p','白盒和黑盒共用接口。用任务 ID 指定要运行的场景或模型。'),
+  info,...requests,
+  el('p','在线接口读取已经保存的评分。回放按当前启用版本重算所选历史。网页沿用当前登录，服务请求可使用已配置的 Bearer 令牌。','caption'),
+ ],async()=>{},'关闭');
+}
+
 function renderAssociationEvidence(report){
  const box=$('associationEvidence'),content=$('associationEvidenceBody');
  const point=page==='scenarios'?report?.association_evidence:null;

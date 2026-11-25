@@ -412,10 +412,20 @@ function renderAssociationStatus(task,entity,metric){
  if(box.hidden)return;
  const [label,color]=monitoredStatus(task),model=data.models.find(row=>row.id===task.active_model);
  const context=el('div'),title=el('div',undefined,'monitor-context');
- title.append(el('strong','所选任务'),badge('实时 · '+label,color));
+ const white=associationFamily(task)==='white';
+ title.append(el('strong',white?'白盒场景':'黑盒模型'),badge('在线 · '+label,color));
  if(model)title.append(el('span',algorithmLabel(model.algorithm),'muted'));
  context.append(title,el('p',taskDisplayName(task)+' · '+entity.uuid,'caption'));
+ if(task.enabled&&model&&data.inference.enabled)context.append(el('p','按采集周期自动评分。','caption'));
  const actions=el('div',undefined,'controls');
+ const pref=monitorPrefs.scenarios;
+ for(const [mode,label] of [['online','查看实时'],['replay','回放此任务']]){
+  const button=uiButton(label,()=>showAssociationRun(mode));
+  button.setAttribute('aria-pressed',String(pref.source!=='sample'&&pref.mode===mode));
+  button.disabled=mode==='replay'&&!model;
+  actions.append(button);
+ }
+ actions.append(uiButton('调用接口',()=>openAssociationAPI(task,metric)));
  if(task.enabled)actions.append(uiButton('模型与方法',()=>openModelChoice(task),'write'));
  else actions.append(uiButton('管理任务',()=>openTaskActions(task),'write'));
  const incident=incidentForTask(task.id);
