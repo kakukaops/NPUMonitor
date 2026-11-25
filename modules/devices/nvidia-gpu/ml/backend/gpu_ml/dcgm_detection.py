@@ -24,7 +24,7 @@ SINGLE = ('logistic_l2', 'hist_gradient_boosting', 'shallow_tree', 'pca_logistic
           'pca_t2', 'isolation_forest', 'robust_range')
 MULTI = ('shallow_tree', 'robust_range', 'pca_t2')
 REFERENCE = SINGLE[4:]
-MODES = ('reference', 'unlabeled', 'supervised')
+MODES = ('reference', 'supervised')
 TRAINING_LOCK = threading.Lock()
 
 
@@ -112,7 +112,7 @@ def features(capture, metric, ends):
 def example_rows(capture, metric, mode, start, end, stride=30):
     ends = np.arange(max(WINDOW - 1, start), end)
     available = capture.available[ends]
-    labels = capture.xid[ends] if mode != 'unlabeled' else None
+    labels = capture.xid[ends]
     if mode == 'reference':
         available &= labels == 0
     elif mode == 'supervised':
@@ -136,7 +136,6 @@ def example_rows(capture, metric, mode, start, end, stride=30):
         positive = labels == 1
         group = np.cumsum(labels == 0)
         events = len(np.unique(group[positive & available]))
-    # A strict unlabeled training job passes no label information to fitting/calibration.
     y = capture.xid[chosen] if mode == 'supervised' else np.zeros(len(chosen))
     return features(capture, metric, chosen), y, events
 
@@ -218,29 +217,76 @@ def fit_detector(method, mode, training, calibration):
     return model
 
 
+def tree_path(model, z):
+    tree = model['estimator'].tree_
+    node = 0
+    while tree.feature[node] >= 0:
+        feature = tree.feature[node]
+        above = np.float32(z[feature]) > tree.threshold[node]
+        child = tree.children_right[node] if above else tree.children_left[node]
+        yield node, child, feature, above
+        node = child
+
+
+def feature_effects(model, z):
+    if model['method'] == 'robust_range':
+        return np.abs(z - model['median']) / model['robust_scale']
+    if model['method'] == 'pca_t2':
+        pca = model['pca']
+        return (z - pca.mean_) * ((pca.transform(z[None, :])[0] / pca.explained_variance_) @ pca.components_)
+    tree = model['estimator'].tree_
+    probability = tree.value[:, 0, 1] / tree.value[:, 0, :].sum(axis=1)
+    terms = np.zeros_like(z)
+    for node, child, feature, _ in tree_path(model, z):
+        terms[feature] += probability[child] - probability[node]
+    return terms
+
+
 def explanations(model, z):
     """Return the strongest positive metric contributions for one alarm."""
-    if model['method'] == 'robust_range':
-        terms = np.abs(z - model['median']) / model['robust_scale']
-    elif model['method'] == 'pca_t2':
-        pca = model['pca']
-        terms = (z - pca.mean_) * ((pca.transform(z[None, :])[0] / pca.explained_variance_) @ pca.components_)
-    else:
-        tree = model['estimator'].tree_
-        probability = tree.value[:, 0, 1] / tree.value[:, 0, :].sum(axis=1)
-        terms = np.zeros_like(z)
-        node = 0
-        while tree.feature[node] >= 0:
-            feature = tree.feature[node]
-            child = tree.children_left[node] if np.float32(z[feature]) <= tree.threshold[node] else tree.children_right[node]
-            terms[feature] += probability[child] - probability[node]
-            node = child
+    terms = feature_effects(model, z)
     metric_terms = np.zeros((len(public_catalog()['metrics']), 28))
     metric_terms.flat[model['keep']] = terms
     strength = metric_terms.max(axis=1) if model['method'] == 'robust_range' else metric_terms.sum(axis=1)
     order = np.argsort(-strength, kind='stable')
     return [{'metric': public_catalog()['metrics'][idx], 'contribution': float(strength[idx])}
             for idx in order[:3] if strength[idx] > 1e-12]
+
+
+_NUMERIC_FEATURES = ('当前值', '近 30 秒均值', '近 1 分钟均值', '近 5 分钟均值', '近 5 分钟最大值',
+                     '近 1 分钟均值与此前 4 分钟均值之差', '近 5 分钟标准差', '近 5 分钟最小值',
+                     '近 5 分钟趋势', '近 1 分钟趋势')
+_MISSING_FEATURES = (*_NUMERIC_FEATURES[:6], '近 5 分钟全缺测的时间占比', '连续全缺测时长')
+
+
+def alarm_evidence(model, raw, z):
+    """Identify threshold violations, the fitted tree path, or positive T² drivers."""
+    method = model['method']
+    if method == 'shallow_tree':
+        ranked = [(feature, '高于分裂阈值' if above else '低于或等于分裂阈值')
+                  for _, _, feature, above in tree_path(model, z)]
+    else:
+        effects = feature_effects(model, z)
+        cutoff = model['threshold'] if method == 'robust_range' else 1e-12
+        ranked = [(feature, None) for feature in np.argsort(-effects, kind='stable')[:3]
+                  if effects[feature] > cutoff]
+
+    metrics = public_catalog()['metrics']
+    evidence = []
+    for feature, condition in ranked:
+        column = int(model['keep'][feature])
+        metric, offset = divmod(column, 28)
+        if offset < 20:
+            channel = 'GPU 间均值' if offset < 10 else 'GPU 间最大值'
+            statistic = _NUMERIC_FEATURES[offset % 10]
+        else:
+            channel = 'GPU 缺测比例'
+            statistic = _MISSING_FEATURES[offset - 20]
+        item = {'metric': metrics[metric], 'feature': channel + ' · ' + statistic}
+        if condition:
+            item.update(condition=condition, imputed=not np.isfinite(raw[column]))
+        evidence.append(item)
+    return evidence
 
 
 def assess(capture, metric, model, start, end, at=None):
@@ -270,10 +316,8 @@ def assess(capture, metric, model, start, end, at=None):
             'calibration_windows': model['calibration_windows'] if model else None}
 
 
-def joint_point(capture, at, reference_mode, load_model):
+def joint_point(capture, at, load_model):
     """Score each joint method once at the same point for all metric cards."""
-    if reference_mode not in ('reference', 'unlabeled'):
-        raise ValueError('联合检测的无监督训练方式无效')
     point = assess(capture, 'all', None, at, at)['points']
     if not point:
         return None
@@ -282,7 +326,7 @@ def joint_point(capture, at, reference_mode, load_model):
     inputs = features(capture, 'all', np.array([index])) if state == 'untrained' else None
     comparisons = []
     for method in MULTI:
-        mode = reference_mode if method in REFERENCE else 'supervised'
+        mode = 'reference' if method in REFERENCE else 'supervised'
         row = {'method': method, 'mode': mode, 'state': state}
         comparisons.append(row)
         if inputs is None:
@@ -301,17 +345,17 @@ def joint_point(capture, at, reference_mode, load_model):
         score = float(scores(model, transformed)[0])
         alarm = score > model['threshold']
         row.update(state='alarm' if alarm else 'scored', score=score, threshold=model['threshold'],
-                   drivers=explanations(model, transformed[0]) if alarm else [])
+                   drivers=explanations(model, transformed[0]) if alarm else [],
+                   evidence=alarm_evidence(model, inputs[0], transformed[0]) if alarm else [])
     return {'t': at, 'methods': comparisons}
 
 
 @lru_cache(maxsize=16)
 def public_model(fold, metric, method, mode):
     catalog = public_catalog()['collections']
-    nodes = sorted({row['node'] for row in catalog})
     validation, training = [], []
     for row in catalog:
-        group = nodes.index(row['node']) % 5 if mode == 'unlabeled' else row['fold']
+        group = row['fold']
         if group == fold:
             continue
         capture = public_capture(row['id'])
@@ -326,13 +370,12 @@ def public_detection(collection, metric, method, mode, start, end, at, compare=F
     row = next((row for row in public_catalog()['collections'] if row['id'] == collection), None)
     if not row or not row['start'] <= start < end <= row['end'] or end - start > 3 * 3600:
         raise ValueError('请选择采集区间内最长 3 小时的时段')
-    nodes = sorted({item['node'] for item in public_catalog()['collections']})
-    unlabeled_fold = nodes.index(row['node']) % 5
+    if reference_mode not in (None, 'reference'):
+        raise ValueError('仅支持 XID=0 正常参考')
 
     def load(method, mode):
-        fold = unlabeled_fold if mode == 'unlabeled' else row['fold']
         with TRAINING_LOCK:
-            return public_model(fold, metric, method, mode)
+            return public_model(row['fold'], metric, method, mode)
 
     try:
         model = load(method, mode)
@@ -343,6 +386,5 @@ def public_detection(collection, metric, method, mode, start, end, at, compare=F
     capture = public_capture(collection)
     result = assess(capture, metric, model, start, end, at)
     if compare and metric == 'all' and at is not None and start <= at <= end:
-        selected_mode = reference_mode or (mode if mode != 'supervised' else 'reference')
-        result['comparison'] = joint_point(capture, at, selected_mode, load)
+        result['comparison'] = joint_point(capture, at, load)
     return result

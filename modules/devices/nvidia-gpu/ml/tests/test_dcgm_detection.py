@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from gpu_ml.dcgm_detection import NO_DATA, PUBLIC, WINDOW, Capture, assess, features, joint_point, public_capture, public_catalog
+from gpu_ml.dcgm_detection import NO_DATA, PUBLIC, WINDOW, Capture, assess, features, joint_point, public_capture, public_catalog, validate_selection
 from gpu_ml.dcgm_sources import build_capture
 
 
@@ -47,12 +47,12 @@ class DcgmDetectionTest(unittest.TestCase):
         def fail(*args):
             self.fail('No model should be loaded for a point with all DCGM inputs missing')
 
-        comparison = joint_point(capture, at, 'unlabeled', fail)
+        comparison = joint_point(capture, at, fail)
         self.assertEqual(comparison['t'], at)
         self.assertEqual(
             [(row['method'], row['mode'], row['state']) for row in comparison['methods']],
-            [('shallow_tree', 'supervised', 'no_data'), ('robust_range', 'unlabeled', 'no_data'),
-             ('pca_t2', 'unlabeled', 'no_data')],
+            [('shallow_tree', 'supervised', 'no_data'), ('robust_range', 'reference', 'no_data'),
+             ('pca_t2', 'reference', 'no_data')],
         )
 
     def test_joint_point_shares_the_same_time_and_reports_each_model_state(self):
@@ -70,12 +70,22 @@ class DcgmDetectionTest(unittest.TestCase):
                 raise ValueError('Calibration unavailable')
             return None
 
-        comparison = joint_point(capture, at, 'reference', load)
+        comparison = joint_point(capture, at, load)
         untrained, alarm, unavailable = comparison['methods']
         self.assertEqual(untrained['state'], 'untrained')
         self.assertEqual(alarm['state'], 'alarm')
         self.assertEqual(alarm['drivers'][0]['metric'], 'DCGM_FI_DEV_GPU_TEMP')
+        self.assertEqual(alarm['evidence'], [
+            {'metric': 'DCGM_FI_DEV_GPU_TEMP', 'feature': 'GPU 间均值 · 当前值'}
+        ])
         self.assertEqual(unavailable['detail'], 'Calibration unavailable')
+
+    def test_supported_methods_have_fixed_label_based_training(self):
+        validate_selection('all', 'pca_t2', 'reference')
+        validate_selection('all', 'shallow_tree', 'supervised')
+        for method in ('pca_t2', 'robust_range'):
+            with self.assertRaisesRegex(ValueError, '检测方法或训练方式无效'):
+                validate_selection('all', method, 'unlabeled')
 
     def test_bundled_intervals_match_index(self):
         rows = public_catalog()['collections']

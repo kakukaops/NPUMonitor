@@ -91,6 +91,7 @@ function updatePageVisibility(){
   :data&&sourcePages.has(page)&&!publicView&&!synthetic&&!sourceEntities().length
    ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
  sourceNotice.hidden=!sourceNotice.textContent;
+ $('publicDataPanel').hidden=!publicView;
  $('liveScope').hidden=page!=='overview';
  const hasClusters=new Set((data?sourceEntities():[]).map(entity=>entity.cluster)).size>1;
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);

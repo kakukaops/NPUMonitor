@@ -154,8 +154,8 @@ def train_live(engine, source_type, cluster, node, metric, method, mode, history
     candidate, _ = model_paths(engine, source_type, cluster, node, metric, method, mode)
     if not 3 <= history_hours <= 168 or not 0 < end <= int(time.time()):
         raise ValueError('训练需要 3 至 168 小时的历史范围')
-    if source_type == 'synthetic' and mode != 'unlabeled':
-        raise ValueError('人工构造来源没有真实 XID 标签，请使用完全无标签方法')
+    if source_type == 'synthetic':
+        raise ValueError('人工构造来源缺少实际 XID 标签，无法训练此检测器')
     end = end // STEP * STEP
     start = end - history_hours * 3600
     capture, _ = source_capture(engine.source, source_type, cluster, node, start, end)
@@ -187,6 +187,8 @@ def activate_live(engine, source_type, cluster, node, metric, method, mode):
 def live_detection(engine, source_type, cluster, node, metric, method, mode, start, end, at,
                    review=False, scenario='normal', compare=False, reference_mode=None):
     candidate, active = model_paths(engine, source_type, cluster, node, metric, method, mode)
+    if reference_mode not in (None, 'reference'):
+        raise ValueError('仅支持 XID=0 正常参考')
     if not 0 < start < end <= int(time.time()) or end - start > 3 * 3600:
         raise ValueError('请选择最长 3 小时的历史时段')
     if scenario not in ('normal', 'drift', 'relation', 'gap'):
@@ -214,8 +216,7 @@ def live_detection(engine, source_type, cluster, node, metric, method, mode, sta
             with TRAINING_LOCK:
                 return joblib.load(path) if path.is_file() else None
 
-        selected_mode = reference_mode or (mode if mode != 'supervised' else 'reference')
-        result['comparison'] = joint_point(capture, at, selected_mode, load)
+        result['comparison'] = joint_point(capture, at, load)
     offset = (start - grid_start + STEP - 1) // STEP
     if review and any(row['state'] in ('scored', 'alarm') for row in result['points']):
         with TRAINING_LOCK:

@@ -39,9 +39,6 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
-<div id="dcgmViewToggle" class="controls dcgm-toggle" hidden>
-  <button id="dcgmToggleButton" type="button" aria-controls="publicDataPanel" aria-expanded="false">节点 XID 检测</button>
-</div>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
   <div class="panel-heading">
     <div><h2 id="publicDataName">GWDG v2 · 节点 XID 检测</h2><p id="publicDataContext"></p></div>
@@ -53,16 +50,10 @@
   <div class="controls" id="dcgmScope" hidden>
     <label>节点 <select id="dcgmNode"></select></label>
     <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
-    <label id="dcgmScenarioControl" hidden>构造场景 <select id="dcgmScenario">
-      <option value="normal">正常</option><option value="drift">温度漂移</option>
-      <option value="relation">关联变化</option><option value="gap">监测中断</option>
-    </select></label>
     <label>指标 <select id="publicMetric"></select></label>
     <label><span id="dcgmMethodLabel">方法</span> <select id="dcgmMethod"></select></label>
-    <label>训练方式 <select id="dcgmMode"></select></label>
   </div>
   <div class="controls" id="dcgmTimeControl" hidden>
-    <label id="dcgmDateWrap" hidden>回放结束 <input id="dcgmHistoryEnd" type="datetime-local" step="10"></label>
     <label>时间范围 <select id="dcgmSpan">
       <option value="900">15 分钟</option><option value="1800">30 分钟</option>
       <option value="3600">1 小时</option><option value="10800">3 小时</option>
@@ -71,22 +62,17 @@
     <output id="dcgmPositionTime"></output>
     <button type="button" id="dcgmRefresh">刷新曲线</button>
   </div>
-  <div class="controls dcgm-training" id="dcgmTraining" hidden>
-    <label>训练历史（小时） <input type="number" id="dcgmHistoryHours" min="3" max="168" value="24"></label>
-    <button type="button" id="dcgmTrain" class="write">重新训练</button>
-    <button type="button" id="dcgmReview" hidden>回放验证候选模型</button>
-    <button type="button" id="dcgmActivate" class="write" hidden>启用候选模型</button>
-  </div>
   <p class="caption" id="publicDataRange" role="status"></p>
   <div id="dcgmResults" hidden>
     <div class="legend dcgm-legend">
-      <span><i class="dcgm-dot xid"></i>实际 XID</span>
+      <span><i class="dcgm-band xid"></i>实际 XID</span>
+      <span><i class="dcgm-band alarm"></i>算法报警</span>
       <span><i class="dcgm-dot gap"></i>当前无有效监测数据</span>
-      <span><i class="dcgm-dot alarm"></i>算法报警</span>
       <span><i class="dcgm-dot unknown"></i>XID 未知</span>
     </div>
-    <canvas id="dcgmEvents" role="img" aria-label="节点实际 XID、数据缺失和算法报警时间轴"></canvas>
+    <canvas id="dcgmEvents" role="img" aria-label="节点实际 XID、算法报警和数据缺失时间轴"></canvas>
     <p id="dcgmPoint" class="caption" aria-live="polite"></p>
+    <div id="dcgmSummary" aria-label="当前时刻各算法的检测结果" hidden></div>
     <div id="publicInputCharts" class="dcgm-charts"></div>
   </div>
 </section>

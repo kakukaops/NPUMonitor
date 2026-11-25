@@ -12,24 +12,20 @@ node mean, maximum and fraction missing are stored losslessly. The node XID
 series records observed nonzero (1), observed zero (0), or unknown (missing).
 The index lists original capture bounds, the research node split, and hashes.
 Demo models are trained on demand and exclude evaluation nodes during fitting
-and calibration. The strict unlabeled mode uses node groups based on IDs.
+and calibration. Supervised methods use the known XID labels. The normal
+reference methods use only confirmed XID=0 windows for fitting and calibration.
 
 The data files contain only observations, labels, and derived input summaries.
 
 ## Viewing and training
 
 From the GPU ML workspace choose 值班 → 单指标趋势 or 多指标关联预警,
-then select 公开数据. Choose a node and a capture interval. 运行检测 fits
-the chosen method on the other nodes' observations, calibrates it on a
-separate node group and evaluates the visible interval. The initial interval
-contains both an observed XID and all-DCGM missingness at
-2025-03-21 07:51:50 UTC.
+then select 公开数据. Choose a node and a capture interval. The single-metric
+page runs the selected method when requested. The joint page displays the
+selected time's method results and alarm reasons above the metric cards.
 
-On other sources, open 节点 XID 检测. Train a candidate from that source,
-review a later interval, then activate the candidate. The initial minimum
-for reference training and calibration is 120 windows in each segment.
-Supervised training and calibration each require two independent usable XID
-episodes and at least five sampled positive and five sampled zero windows.
-The complete input uses 30 points per window at 10 seconds. When there are no
-valid DCGM inputs across the node at the current point, the result is
-当前无有效监测数据. Observed XID remains independently visible.
+The alert lanes show observed nonzero XID, the selected model's decision, and
+missing telemetry in that order. XID and model alarms are shaded. The initial
+interval contains both an observed XID and all-DCGM missingness at
+2025-03-21 07:51:50 UTC. A current endpoint with zero available inputs
+reports 当前无有效监测数据.
