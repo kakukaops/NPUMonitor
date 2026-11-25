@@ -177,7 +177,7 @@ def build_preview(scenario):
 
 def build_incident_example(now):
     """Synthetic online-state examples for the incident queue, without mutating the store."""
-    from .incident_queue import build_incident_queue
+    from .incident_queue import attach_incident_evidence, build_incident_queue
 
     cluster = '示例集群'
     entities = [
@@ -191,17 +191,19 @@ def build_incident_example(now):
         'joint': {'kind': 'multivariate', 'targets': ['util', 'power', 'sm_clock'],
                   'required': ['util', 'power', 'sm_clock'], 'name': '功耗与时钟联合偏离'},
         'scene': {'kind': 'multivariate', 'targets': ['power', 'sm_clock'],
-                  'required': ['util', 'power', 'sm_clock'], 'name': '负载条件下时钟变化'},
+                  'required': ['util', 'power', 'sm_clock'], 'features': ['util'],
+                  'directions': ['high', 'low'], 'name': '同负载下功耗与时钟偏离'},
     }
     tasks = [
         {'id': key, 'entity': entities[index]['id'], 'template': template, 'enabled': True, 'active_model': 'example',
          'notification_mode': policy}
         for key, index, template, policy in (
             ('trend', 0, 'trend', 'alert'), ('joint', 0, 'joint', 'evidence'), ('pending', 1, 'trend', 'alert'),
-            ('held', 2, 'scene', 'alert'), ('recovered', 3, 'joint', 'alert'),
+            ('held', 2, 'scene', 'alert'), ('recovered', 3, 'joint', 'alert'), ('condition', 0, 'scene', 'evidence'),
         )
     ]
     tasks[3]['scenario_id'] = 'power_clock_example'
+    tasks[-1]['scenario_id'] = 'power_clock_example'
     end = int(now)
     states = [
         {'id': 'trend', 'active': True, 'opened_at': end - 11 * 60, 'pending': 4, 'score': 1.81,
@@ -213,6 +215,9 @@ def build_incident_example(now):
         {'id': 'held', 'active': True, 'opened_at': end - 6 * 60},
         {'id': 'recovered', 'active': False, 'opened_at': end - 50 * 60, 'closed_at': end - 25 * 60,
          'reason': 'fresh_normal_confirmed', 'clear_count': 3},
+        {'id': 'condition', 'active': True, 'opened_at': end - 10 * 60, 'pending': 3,
+         'score': 1.68, 'threshold': 1.04, 'reason_metric': 'power',
+         'contributions': {'power': 1.68, 'sm_clock': 1.34}},
     ]
     for state in states:
         state.update(last_source=end - 2, quality='valid', model_id='example')
@@ -229,6 +234,13 @@ def build_incident_example(now):
         signal['id']: incident_example_trace(signal, end)
         for group in queue['groups'] for signal in group['members']
     }
+    methods = {'univariate': 'rolling_median', 'multivariate': 'joint_pca', 'scenario': 'dcgm_conditional'}
+
+    def read_points(members):
+        return {(member['id'], member['start'], member['episode_id']): point
+                for member in members for point in queue['traces'][member['id']] if point['t'] == member['start']}
+
+    attach_incident_evidence(queue, read_points, [{'id': key, 'algorithm': method} for key, method in methods.items()])
     return queue
 
 
@@ -249,11 +261,14 @@ def incident_example_trace(signal, now):
     points = []
     for i, stamp in enumerate(times):
         reference = {key: round(float(baseline[key][i]), 2) for key in signal['metrics']}
-        values = {key: round(value + (shifts[key] if active[i] else 0), 2) for key, value in reference.items()}
+        values = {key: round(float(baseline[key][i]) + (shifts[key] if active[i] else 0), 2)
+                  for key in signal['inputs']}
         points.append({
             't': int(stamp), 'values': values, 'expected': reference,
             'bounds': {key: [value - 2, value + 2] for key, value in reference.items()} if signal['family'] == 'univariate' else {},
             'score': round(float(scores[i]), 3), 'threshold': threshold, 'anomaly': bool(scores[i] > threshold),
-            'cadence_seconds': cadence, 'model': 'incident-example',
+            'active': bool(signal['phase'] != 'pending' and start <= stamp < (signal['end'] or now)),
+            'contributions': signal['contributions'] if active[i] else {},
+            'cadence_seconds': cadence, 'model': signal['family'],
         })
     return points

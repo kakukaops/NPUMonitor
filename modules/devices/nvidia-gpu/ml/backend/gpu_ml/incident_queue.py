@@ -75,6 +75,9 @@ def task_signal(task, state, entity, spec, now, inference_enabled):
         'pending': state.get('pending', 0), 'confirmation': task.get('confirmation_samples', 3),
         'clear_count': state.get('clear_count', 0), 'recovery': task.get('recovery_samples', 3),
         'metrics': spec.get('targets', []), 'reason_metric': state.get('reason_metric'),
+        'inputs': spec.get('required', []),
+        'conditions': spec.get('features', []) if task.get('scenario_id') else [],
+        'directions': spec.get('directions', []) if task.get('scenario_id') else [],
         'contributions': state.get('contributions', {}) if current_score else {},
         'missing': [
             key for key in spec.get('required', [])
@@ -187,6 +190,9 @@ def build_recovered_queue(entities, tasks, episodes, templates, bindings, nighti
             'quality': 'valid', 'last_sample': episode['last_source'], 'pending': 0,
             'confirmation': episode['confirmation_samples'], 'clear_count': episode['clear_count'],
             'recovery': episode['recovery_samples'], 'metrics': spec['targets'],
+            'inputs': spec.get('required', []),
+            'conditions': spec.get('features', []) if task.get('scenario_id') else [],
+            'directions': spec.get('directions', []) if task.get('scenario_id') else [],
             'reason_metric': episode.get('reason_metric'), 'contributions': {}, 'missing': [],
             'score': None, 'threshold': None,
         }
@@ -195,6 +201,22 @@ def build_recovered_queue(entities, tasks, episodes, templates, bindings, nighti
     groups = incident_groups(per_entity, by_entity, now)
     groups.sort(key=lambda group: -group['end'])
     return {'groups': groups, 'at': now, 'nightingale_connected': connected, 'nightingale_checked_at': checked_at}
+
+
+def attach_incident_evidence(queue, read_points, models):
+    members = [member for group in queue['groups'] for member in group['members']]
+    points = read_points(members)
+    algorithms = {model['id']: model['algorithm'] for model in models}
+    for member in members:
+        point = points.get((member['id'], member['start'], member.get('episode_id')))
+        if point is None:
+            continue
+        member['decision'] = {
+            key: point[key] for key in ('t', 'model', 'score', 'threshold', 'values', 'expected',
+                                       'contributions', 'evidence') if key in point
+        }
+        member['decision']['algorithm'] = algorithms.get(point.get('model'))
+    return queue
 
 
 def incident_groups(per_entity, by_entity, now):

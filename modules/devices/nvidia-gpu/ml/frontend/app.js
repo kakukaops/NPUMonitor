@@ -72,7 +72,13 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  page=next;
  setWorkspaceNav(false);
  replayMode=showReplay;
- incidentExampleActive=next==='incidents'&&Boolean(example&&data?.simulation);
+ const nextExample=next==='incidents'&&Boolean(example&&data?.simulation);
+ if(nextExample!==incidentExampleActive){
+  $('incidentSearch').value='';
+  $('incidentTimeFilter').open=false;
+  resetIncidentTimeFilter();
+ }
+ incidentExampleActive=nextExample;
  document.querySelectorAll('button.nav').forEach(button=>{
   const selected=button.dataset.page===next;
   button.classList.toggle('active',selected);
@@ -463,7 +469,7 @@ function renderMethodBoard(section,targets,preferred){
  }
  $(single?'baselineMethodRows':'associationRows').replaceChildren(...(methods.length
   ?methods.map(method=>methodBoardRow(section,method,method===selected))
-  :[emptyRow(4,target?'该指标没有可用方法':'请选择'+(single?'指标':'指标组'))]));
+  :[emptyRow(5,target?'该指标没有可用方法':'请选择'+(single?'指标':'指标组'))]));
  const detail=selected&&!selected.active?selected:null;
  renderBoardMethodDetail(section,detail);
  return selected;
@@ -505,27 +511,41 @@ function renderBoardMethodDetail(section,method){
 function methodBoardRow(section,method,selected){
  const {task,entity,metric,algorithm,version,score}=method;
  const row=el('tr',undefined,selected?'active-task':'');
- const name=el('td'),status=el('td'),evidence=el('td'),actions=el('td');
+ const name=el('td'),status=el('td'),evidence=el('td'),notification=el('td'),actions=el('td');
  const button=uiButton(algorithmLabel(algorithm),()=>openBoardMethod(section,method),'text-button method-name');
  button.setAttribute?.('aria-pressed',String(selected));
  name.append(button);
- status.append(badge(method.status,method.color));
+ status.append(badge(method.active?(task.enabled?'已启用':'已暂停'):method.status,
+  method.active&&task.enabled?'green':'gray'));
  if(method.active){
-  if(task.enabled&&data.inference.enabled)status.append(el('small','在线模型'));
-  status.append(el('small',task.notification_mode==='evidence'?'仅记录证据':
-   data.bindings.some(binding=>binding.id===task.id&&binding.rule_id!=null)?'已绑定夜莺规则':'未绑定夜莺规则'));
+  const binding=data.bindings.find(row=>row.id===task.id&&row.rule_id!=null);
+  notification.append(el('span',task.notification_mode==='evidence'?'仅记录证据':
+   binding?'已绑定夜莺规则':'待绑定夜莺规则'));
+  if(task.notification_mode!=='evidence'&&binding)notification.append(el('small','规则 #'+binding.rule_id));
  }
+ else notification.append(el('small',method.observing?'仅影子观测':'—'));
  if(method.active&&method.observing)status.append(el('small','同方法另有影子版本'));
  if(version)status.append(el('small','版本 '+modelVersion(version)));
+ if(score){
+  if(method.active)evidence.append(badge(method.status,method.color));
+  evidence.append(el('small',(method.active?'在线':'最近影子')+' '+fmt(score.score,2)+' / '+fmt(score.threshold,2)+' · '+tm(score.t)));
+ }
+ else{
+  const state=method.active?stateFor(task):null;
+  if(method.active&&task.enabled){
+   evidence.append(badge(state?.active?'此前异常保持':'暂无评分',state?.active?'red':'gray'));
+   const quality=state?.quality;
+   const reason=!data.inference.enabled?'全局推理已暂停':
+    quality==='valid'?(state.model_id===task.active_model?'等待有效评分':'等待当前版本评分'):
+    quality==='missing'?'输入指标缺失':(statusNames[quality]||quality||'等待数据');
+   evidence.append(el('small',reason));
+  }else evidence.append(el('small','—'));
+  if(state?.last_source)evidence.append(el('small','上次有效评分 '+dateTime(state.last_source)));
+ }
  if(section==='scenarios'){
   const required=data.templates[task.template].required;
   const valid=required.filter(key=>entity.fresh&&entity.quality[key]==='valid').length;
-  evidence.append(el('span',valid+' / '+required.length+' 项输入有效','row-detail'));
- }
- if(score)evidence.append(el('small',(method.active?'在线':'最近影子')+' '+fmt(score.score,2)+' / '+fmt(score.threshold,2)+' · '+tm(score.t)));
- else{
-  const last=method.active&&stateFor(task)?.last_source;
-  evidence.append(el('small',last?'上次有效评分 '+dateTime(last):'—'));
+  evidence.append(el('small',valid+' / '+required.length+' 项输入有效'));
  }
  const controls=el('div',undefined,'controls');
  if(method.active||method.ready.length){
@@ -546,7 +566,7 @@ function methodBoardRow(section,method,selected){
  const incident=method.active&&incidentForTask(task.id);
  if(incident)controls.append(uiButton('异常记录',()=>openTaskIncident(incident,task.id)));
  actions.append(controls);
- row.append(name,status,evidence,actions);
+ row.append(name,status,evidence,notification,actions);
  return row;
 }
 
@@ -1391,4 +1411,5 @@ $('replayMode').onclick=()=>{if(data?.simulation)choosePage(page,true);};
 window.addEventListener('hashchange',openReplayFromLocation);
 bindMonitorView();
 bindAssociationView();
+bindIncidentFilters();
 refresh();setInterval(refresh,4000);

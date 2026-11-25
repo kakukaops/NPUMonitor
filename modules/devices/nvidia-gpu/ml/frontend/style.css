@@ -83,6 +83,22 @@
 .incident-row-top,.incident-detail-head{display:flex;justify-content:space-between;align-items:center;gap:7px;flex-wrap:wrap}
 .incident-detail-head h2{margin:0;overflow-wrap:anywhere}
 .incident-detail{display:grid;gap:10px}
+.incident-filters{display:grid;gap:7px;margin:0 0 12px}
+.incident-filters label{display:grid;gap:4px;font-size:11px;color:var(--muted)}
+.incident-filters input{width:100%;min-width:0}
+.incident-time-controls{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.incident-time-controls summary{cursor:pointer;color:#365986;font-size:11px;padding:4px 0;overflow-wrap:anywhere}
+.incident-time-controls details{min-width:0}
+.incident-time-controls form{display:grid;gap:5px;margin-top:4px}
+.incident-time-controls button{padding:4px 7px;font-size:11px}
+.incident-evidence-overview h3{font-size:13px;margin:0 0 6px}
+.incident-evidence-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:8px}
+.incident-evidence-card{display:flex;align-items:flex-start;flex-direction:column;gap:5px;
+ min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#f8fafd}
+.incident-evidence-card h4,.incident-evidence-card p{margin:0;overflow-wrap:anywhere}
+.incident-evidence-card h4{font-size:12px}
+.incident-evidence-card button{font-size:11px;margin-top:auto;padding:4px 7px}
+.incident-fold,.incident-evidence-overview{scroll-margin-top:12px}
 .incident-member{border:1px solid var(--line);border-radius:8px;padding:11px 12px}
 .incident-member header{display:flex;align-items:center;justify-content:space-between;gap:8px;height:auto;padding:0;border:0;flex-wrap:wrap}
 .incident-member header strong{font-size:12px}

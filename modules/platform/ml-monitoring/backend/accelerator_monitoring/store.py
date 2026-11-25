@@ -124,7 +124,22 @@ class Store:
                             (task,start,end or time.time()+1,limit)).fetchall()
             return list(reversed([json.loads(r['payload']) for r in rows]))
 
-    def recovered_episodes(self, start, end, limit=200, cluster=''):
+    def incident_points(self, members):
+        """Read the exact stored decision for each task, source time and episode."""
+        if not members:
+            return {}
+        keys = [(row['id'], row['start'], row.get('episode_id')) for row in members]
+        with self.db() as db:
+            rows = db.execute("""
+                SELECT r.task, r.source_time, r.payload, json_extract(k.value,'$[2]') AS episode
+                FROM json_each(?) k
+                JOIN results r ON r.task=json_extract(k.value,'$[0]')
+                              AND r.source_time=json_extract(k.value,'$[1]')
+                WHERE episode IS NULL OR json_extract(r.payload,'$.episode_id')=episode
+            """, (json.dumps(keys),)).fetchall()
+        return {(row['task'], row['source_time'], row['episode']): json.loads(row['payload']) for row in rows}
+
+    def recovered_episodes(self, start, end, limit=200, cluster='', entity_ids=None, overlap=None):
         with self.db() as db:
             query = 'SELECT r.payload FROM recovered_episode r'
             args = [start, end]
@@ -135,6 +150,13 @@ class Store:
             if cluster:
                 query += " AND json_extract(e.payload,'$.cluster')=?"
                 args.append(cluster)
+            if entity_ids is not None:
+                query += (" AND EXISTS (SELECT 1 FROM documents task WHERE task.kind='task' AND task.id=r.task"
+                          " AND json_extract(task.payload,'$.entity') IN (SELECT value FROM json_each(?)))")
+                args.append(json.dumps(entity_ids))
+            if overlap:
+                query += " AND r.closed_at>=? AND json_extract(r.payload,'$.opened_at')<=?"
+                args.extend(overlap)
             rows = db.execute(query + ' ORDER BY r.closed_at DESC LIMIT ?', (*args, limit)).fetchall()
             return [json.loads(row['payload']) for row in rows]
 

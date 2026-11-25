@@ -4,6 +4,8 @@ const incidentPhaseLabels={confirmed:'已确认',pending:'待确认',recovered:'
 const incidentFamilyLabels={univariate:'单指标趋势',multivariate:'黑盒模型',scenario:'白盒场景',legacy:'历史模型'};
 let incidentExample=null,incidentExampleError='',incidentExampleLoading=false,incidentPanel=null;
 let incidentCurrentFilter='all';
+let incidentQueueRange=null;
+let incidentSearchTimer=null;
 let coverageFilter='';
 const coverageButtons=new Map();
 const recoveredQueues=new Map();
@@ -16,12 +18,12 @@ function openTaskIncident(group,taskId){
  const cluster=$('cluster');
  if(cluster.value&&cluster.value!==group.entity.cluster)cluster.value='';
  $('incidentFilter').value=group.phase==='recovered'?'recovered':'all';
+ $('incidentSearch').value='';
+ resetIncidentTimeFilter();
  choosePage('incidents');
  renderIncidentQueue(group.id);
  const member=group.members.find(row=>row.id===taskId);
- const card=member&&incidentPanel?.cards.get(incidentMemberKey(member));
- if(card)card.fold.open=true;
- $('incidentDetail').scrollIntoView({block:'nearest'});
+ if(member)showIncidentCurve(incidentMemberKey(member));
 }
 
 function switchIncidentQueue(archived){
@@ -29,15 +31,20 @@ function switchIncidentQueue(archived){
  choosePage('incidents');
 }
 
-function incidentHistory(cluster){
- let entry=recoveredQueues.get(cluster);
+function incidentHistory(cluster,query,range){
+ const key=query||range?JSON.stringify([cluster,query,range]):cluster;
+ let entry=recoveredQueues.get(key);
  if(!entry){
   entry={at:0,busy:false};
-  recoveredQueues.set(cluster,entry);
+  recoveredQueues.set(key,entry);
+  if(recoveredQueues.size>20)recoveredQueues.delete(recoveredQueues.keys().next().value);
  }
  if(!entry.busy&&Date.now()-entry.at>15000){
   entry.busy=true;
-  api('/incident-history?'+new URLSearchParams({cluster})).then(queue=>{
+  const params=new URLSearchParams({cluster});
+  if(query)params.set('q',query);
+  if(range){params.set('start',range.start);params.set('end',range.end);}
+  api('/incident-history?'+params).then(queue=>{
    entry.queue=queue;
    entry.error=null;
   }).catch(error=>entry.error=error.message).finally(()=>{
@@ -47,6 +54,39 @@ function incidentHistory(cluster){
   });
  }
  return entry;
+}
+
+function resetIncidentTimeFilter(){
+ incidentQueueRange=null;
+ $('incidentFrom').value=$('incidentTo').value=$('incidentTimeError').textContent='';
+ $('incidentTimeLabel').textContent='按时段查找';
+ $('incidentTimeLabel').title='';
+ $('incidentClearTime').hidden=true;
+}
+
+function bindIncidentFilters(){
+ const redraw=()=>{renderIncidentQueue();roleAccess();};
+ $('incidentSearch').oninput=()=>{
+  clearTimeout(incidentSearchTimer);
+  if($('incidentFilter').value==='history')incidentSearchTimer=setTimeout(redraw,250);
+  else redraw();
+ };
+ $('incidentTimeForm').onsubmit=event=>{
+  event.preventDefault();
+  const start=new Date($('incidentFrom').value).getTime()/1000,end=new Date($('incidentTo').value).getTime()/1000;
+  const now=incidentExampleActive?incidentExample?.at:Date.now()/1000;
+  if(!(now-7*86400<=start&&start<end&&end<=now)){
+   $('incidentTimeError').textContent='请选择最近 7 天内的有效时段。';
+   return;
+  }
+  $('incidentTimeError').textContent='';
+  incidentQueueRange={start,end};
+  $('incidentTimeLabel').textContent=dateTime(start)+' — '+dateTime(end);
+  $('incidentClearTime').hidden=false;
+  $('incidentTimeFilter').open=false;
+  redraw();
+ };
+ $('incidentClearTime').onclick=()=>{resetIncidentTimeFilter();redraw();};
 }
 
 async function loadIncidentExample(){
@@ -103,12 +143,15 @@ function incidentNotification(member,example){
  }[event.status];
 }
 
-function incidentSeriesRange(member,now){
- const earliest=now-7*86400+60, latest=Math.min(member.end?member.end+120:now,now);
- const anchor=member.start>=earliest?member.start:(member.end??now);
- const start=Math.min(Math.max(anchor-120,earliest),latest-1);
- const end=Math.min(latest,start+3*3600);
- return {start,end};
+function incidentSeriesRange(member,group,now){
+ const bounds=signal=>{
+  const earliest=now-7*86400+60,latest=Math.min(signal.end?signal.end+120:now,now);
+  const anchor=signal.start>=earliest?signal.start:(signal.end??now);
+  const start=Math.min(Math.max(anchor-120,earliest),latest-1);
+  return {start,end:Math.min(latest,start+3*3600)};
+ };
+ const shared=bounds(group);
+ return member.start>=shared.start&&member.start<=shared.end?shared:bounds(member);
 }
 
 function incidentFeedback(card,getRange,example){
@@ -166,7 +209,7 @@ function buildIncidentCharts(card,group,queue,example){
  const body=el('div',undefined,'incident-chart-body'),bar=el('div',undefined,'incident-chart-title');
  const label=el('label','展示指标'),metric=el('select');
  const spec=data.templates[data.tasks.find(row=>row.id===card.member.id)?.template];
- const inputs=Array.from(new Set([...card.member.metrics,...(spec?.required||[])]));
+ const inputs=Array.from(new Set([...card.member.metrics,...(card.member.inputs||spec?.required||[])]));
  const multi=inputs.length>1;
  const primary=card.member.metrics.includes(card.member.reason_metric)?card.member.reason_metric:card.member.metrics[0];
  options(metric,multi?['all',...inputs]:inputs,key=>key,key=>key==='all'?'全部输入':metricNames[key]||key);
@@ -181,6 +224,10 @@ function buildIncidentCharts(card,group,queue,example){
  bar.append(label);
  if(!example)bar.append(modeLabel);
  bar.append(reload);
+ bar.append(uiButton('返回证据',()=>{
+  const panel=incidentPanel?.evidence;
+  if(panel){panel.querySelector('button')?.focus({preventScroll:true});panel.scrollIntoView({block:'start'});}
+ }));
  const rangeLabel=el('p',undefined,'caption'),legend=el('div',undefined,'legend');
  const metricBox=el('div',undefined,'chart incident-chart'),valueChart=el('canvas'),tooltip=el('div',undefined,'tooltip');
  const inputCharts=el('div',undefined,'monitor-input-charts');
@@ -196,7 +243,7 @@ function buildIncidentCharts(card,group,queue,example){
  scoreBox.append(scoreChart);
  const message=el('p','正在读取曲线…','caption'),notification=el('p',undefined,'incident-notification');
  body.append(bar,rangeLabel,legend,metricBox,scoreBox,inputCharts,message,notification);
- const range=incidentSeriesRange(card.member,queue.at);
+ const range=incidentSeriesRange(card.member,group,queue.at);
  let result=null,plottedRange=range,request=0,loaded=false,reading=false;
  const review=incidentFeedback(card,()=>plottedRange,example);
  body.append(review.fold);
@@ -284,7 +331,8 @@ function buildIncidentCharts(card,group,queue,example){
    let report;
    if(example){
     const points=(queue.traces[card.member.id]||[]).filter(row=>row.t>=bounds.start&&row.t<=bounds.end);
-    report={points,input_observations:Object.fromEntries(inputs.map(field=>[field,
+    const episodes=card.member.phase==='pending'?[]:[{start:card.member.start,end:card.member.end}];
+    report={points,episodes,input_observations:Object.fromEntries(inputs.map(field=>[field,
      points.filter(row=>Number.isFinite(row.values[field])).map(({t,values})=>({t,values:{[field]:values[field]}}))]))};
    }
    else{
@@ -328,6 +376,13 @@ function buildIncidentCharts(card,group,queue,example){
  return {
   body,
   show:()=>{if(loaded||reading)paint();else load();},
+  showRecorded:()=>{
+   if(mode.value==='recorded'&&plottedRange===range)return;
+   mode.value='recorded';
+   plottedRange=range;
+   review.updateRange();
+   load();
+  },
   redraw:paint,
   reviewing:()=>review.fold.open,
   update:()=>{
@@ -405,16 +460,89 @@ function incidentMemberKey(member){
  return member.episode_id||member.id;
 }
 
+function showIncidentCurve(key){
+ const card=incidentPanel?.cards.get(key);
+ if(!card)return;
+ for(const [other,item] of incidentPanel.cards){
+  if(other!==key&&!item.charts?.reviewing())item.fold.open=false;
+ }
+ card.fold.open=true;
+ card.charts?.showRecorded();
+ card.fold.querySelector('summary').focus({preventScroll:true});
+ card.fold.scrollIntoView({block:'start'});
+}
+
+function incidentReading(key,value){
+ const unit=data.metrics[key]?.unit;
+ return fmt(value,2)+(unit?' '+unit:'');
+}
+
+function incidentEvidenceLines(member){
+ const point=member.decision;
+ if(!point)return ['未找到该时点的保存评分，可打开曲线查看附近观测。'];
+ const name=key=>metricNames[key]||key;
+ const lines=[];
+ const when=member.phase==='pending'?'候选点':'触发点';
+ lines.push(when+' '+tm(point.t)+' · 分数 '+fmt(point.score,2)+' / 阈值 '+fmt(point.threshold,2));
+ if(member.family==='scenario'){
+  const observed=point.values||{},expected=point.expected||{};
+  const conditions=(member.conditions||[]).filter(key=>Number.isFinite(observed[key]));
+  if(conditions.length)lines.push('参考工况 · '+conditions.map(key=>name(key)+' '+incidentReading(key,observed[key])).join('、'));
+  const directions={high:'偏高',low:'偏低',both:'双向偏离'};
+  const targets=member.metrics.map((key,index)=>{
+   const direction=directions[member.directions?.[index]];
+   const median=point.evidence?.residual_medians?.[key],slope=point.evidence?.residual_slope_per_hour?.[key];
+   if(Number.isFinite(median)&&Number.isFinite(slope))
+    return name(key)+(direction?'（查'+direction+'）':'')+' · 窗口残差中位数 '+incidentReading(key,median)+' · 每小时变化 '+incidentReading(key,slope);
+   if(Number.isFinite(observed[key])&&Number.isFinite(expected[key]))
+    return name(key)+(direction?'（查'+direction+'）':'')+' · 实测 '+incidentReading(key,observed[key])+' / 同工况参考 '+incidentReading(key,expected[key]);
+   return null;
+  }).filter(Boolean);
+  lines.push(...targets);
+ }else if(member.family==='multivariate'){
+  const contributions=Object.entries(point.contributions||{}).filter(([,value])=>Number.isFinite(value)&&value>0)
+   .sort((a,b)=>b[1]-a[1]).slice(0,3);
+  lines.push(contributions.length?'偏离较大的指标 · '+contributions.map(([key])=>name(key)).join('、'):
+   '此版本仅提供联合分数，暂无指标级贡献。');
+ }else if(member.family==='univariate'){
+  const key=member.metrics[0],actual=point.values?.[key],expected=point.expected?.[key];
+  if(Number.isFinite(actual))
+   lines.push(name(key)+' · 实测 '+incidentReading(key,actual)+(Number.isFinite(expected)?' / 参考 '+incidentReading(key,expected):''));
+ }
+ return lines;
+}
+
+function renderIncidentEvidence(panel,group,example){
+ const signature=JSON.stringify(group.members.map(row=>[row.id,row.phase,row.start,row.decision]));
+ if(panel.evidenceSignature===signature)return;
+ panel.evidenceSignature=signature;
+ const list=el('div',undefined,'incident-evidence-grid');
+ for(const member of group.members){
+  const card=el('article',undefined,'incident-evidence-card');
+  const method=member.decision?.algorithm;
+  const family=incidentFamilyLabels[member.family]||'检测任务';
+  card.append(badge(family),el('h4',method?algorithmLabel(method):member.name));
+  card.append(...incidentEvidenceLines(member).map(line=>el('p',line)));
+  if(member.decision?.model&&!example)card.append(el('p','当时模型 '+short(member.decision.model),'caption'));
+  const button=uiButton('查看曲线',()=>showIncidentCurve(incidentMemberKey(member)));
+  button.setAttribute('aria-label','查看'+(method?algorithmLabel(method):member.name)+'的曲线');
+  card.append(button);
+  list.append(card);
+ }
+ panel.evidence.replaceChildren(el('h3','本次异常的检测证据'),list);
+}
+
 function showIncident(detail,group,queue,example,scope,matched){
  const reuse=incidentPanel?.scope===scope&&sameIncident(group,incidentPanel.group);
  if(!reuse){
   const heading=el('div',undefined,'incident-detail-head'),identity=el('div');
   const title=el('h2'),subheading=el('p'),duration=badge('');
-  const banner=el('p',undefined,'notice'),body=el('div',undefined,'incident-members');
+  const banner=el('p',undefined,'notice'),evidence=el('section',undefined,'incident-evidence-overview');
+  const body=el('div',undefined,'incident-members');
   identity.append(title,subheading);
   heading.append(identity,duration);
-  detail.replaceChildren(heading,banner,body);
-  incidentPanel={scope,title,subheading,duration,banner,body,cards:new Map(),queue};
+  detail.replaceChildren(heading,banner,evidence,body);
+  incidentPanel={scope,title,subheading,duration,banner,evidence,body,cards:new Map(),queue};
  }
  const panel=incidentPanel;
  panel.group=group;
@@ -425,6 +553,7 @@ function showIncident(detail,group,queue,example,scope,matched){
  panel.duration.className='badge '+(group.phase==='confirmed'?'red':'gray');
  panel.banner.hidden=matched;
  panel.banner.textContent='该线索已离开当前队列，正在查看此前选中的时段。';
+ renderIncidentEvidence(panel,group,example);
  const ids=new Set(group.members.map(incidentMemberKey));
  for(const [key,card] of panel.cards)if(!ids.has(key)){
   if(card.charts?.reviewing()){
@@ -532,11 +661,20 @@ function renderIncidentQueue(selectedId){
  $('incidentPending').textContent=all.filter(group=>group.phase==='pending').length;
  $('incidentHeld').textContent=all.filter(group=>group.held>0).length;
  $('incidentRecovered').textContent=all.filter(group=>group.phase==='recovered').length;
- const archive=archived?incidentHistory(cluster):null;
+ const terms=$('incidentSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+ const query=terms.join(' ');
+ const range=incidentQueueRange;
+ const archive=archived?incidentHistory(cluster,query,range):null;
  const queue=archive?.queue||online;
- const groups=archive?(archive.queue?.groups||[]):all.filter(group=>filter==='all'
-  ?example||group.phase!=='recovered':filter==='held'?group.held>0:filter===group.phase);
- const scope=(example?'example':'online')+'/'+cluster+'/'+filter;
+ const groups=archive?(archive.queue?.groups||[]):all.filter(group=>{
+  const device=group.entity;
+  const identity=[device.node,device.uuid,device.cluster,device.id].join(' ').toLowerCase();
+  const inRange=!range||group.members.some(row=>row.start<=range.end&&
+   (row.phase==='pending'?row.start:row.end??queue.at)>=range.start);
+  const inPhase=filter==='all'?example||group.phase!=='recovered':filter==='held'?group.held>0:filter===group.phase;
+  return inPhase&&inRange&&terms.every(term=>identity.includes(term));
+ });
+ const scope=JSON.stringify([example,cluster,filter,query,range]);
  const previous=incidentPanel?.scope===scope?incidentPanel.group:null;
  const selection=groups.find(group=>group.id===selectedId)
   ||(previous&&groups.find(group=>group.id===previous.id))
@@ -552,13 +690,13 @@ function renderIncidentQueue(selectedId){
   button.setAttribute('aria-pressed',String(group===selection));
   const row=el('span',undefined,'incident-row-top');
   row.append(badge(incidentPhaseLabels[group.phase],group.phase==='confirmed'?'red':group.phase==='recovered'?'green':''),el('small',incidentDetailText(group,queue.at)));
-  const signals=group.members.length+' 条检测线索'+(group.held?' · '+group.held+' 条因无有效输入等原因保持':'');
+  const signals=group.members.length+' 条检测线索'+(group.held?' · '+group.held+' 条异常保持':'');
   button.append(row,el('strong',incidentDevice(group.entity)),el('small',dateTime(group.start)+' · '+signals));
   button.onclick=()=>{renderIncidentQueue(group.id);roleAccess();};
   return button;
- }):[el('p',archive?(archive.error?'归档读取失败 · '+archive.error:
-  archive.busy?'正在读取归档…':'近 7 天暂无已归档的恢复记录。'):
-  !enabled?'当前范围还没有启用检测。':filter==='all'?
+ }):[el('p',archive?.error?'归档读取失败 · '+archive.error:archive?.busy?'正在读取归档…':
+  query||range?'未找到符合设备与时段的记录。':
+  archive?'近 7 天暂无已归档的恢复记录。':!enabled?'当前范围还没有启用检测。':filter==='all'?
    (scored<enabled?'暂无异常记录，部分任务暂不可评分。':'当前没有待处理异常。'):
    '当前筛选下没有匹配记录。','empty')]));
  if(focused)Array.from(list.children).find(button=>button.dataset.group===focused)?.focus({preventScroll:true});

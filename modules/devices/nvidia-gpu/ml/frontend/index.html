@@ -70,6 +70,21 @@
           <option value="history" hidden>恢复归档</option>
         </select>
       </div>
+      <div class="incident-filters">
+        <label>设备 <input type="search" id="incidentSearch" maxlength="200" placeholder="节点名或 GPU UUID"></label>
+        <div class="incident-time-controls">
+          <details id="incidentTimeFilter">
+            <summary id="incidentTimeLabel">按时段查找</summary>
+            <form id="incidentTimeForm">
+              <label>开始 <input type="datetime-local" id="incidentFrom" step="1" required></label>
+              <label>结束 <input type="datetime-local" id="incidentTo" step="1" required></label>
+              <button type="submit">应用时段</button>
+              <p class="caption error-text" id="incidentTimeError" role="status"></p>
+            </form>
+          </details>
+          <button type="button" class="text-button" id="incidentClearTime" hidden>清除时段</button>
+        </div>
+      </div>
       <div id="incidentList" class="incident-list"></div>
     </section>
     <section class="panel incident-detail" id="incidentDetail" aria-label="所选设备及其检测证据"></section>
@@ -105,7 +120,7 @@
     <section aria-labelledby="baselineMethodsHeading">
       <h3 id="baselineMethodsHeading">检测方法</h3>
       <div class="table-scroll method-board-wrap" tabindex="0" aria-label="检测方法列表"><table class="association-table method-board">
-        <thead><tr><th>方法</th><th>运行状态</th><th>最近评分</th><th>操作</th></tr></thead>
+        <thead><tr><th>方法</th><th>运行状态</th><th>检测结果</th><th>通知配置</th><th>操作</th></tr></thead>
         <tbody id="baselineMethodRows"></tbody>
       </table></div>
     </section>
@@ -203,7 +218,7 @@
     <section aria-labelledby="associationMethodsHeading">
       <h3 id="associationMethodsHeading">检测方法</h3>
       <div class="table-scroll method-board-wrap" tabindex="0" aria-label="关联检测方法列表"><table class="association-table method-board">
-        <thead><tr><th>方法</th><th>运行状态</th><th>输入与评分</th><th>操作</th></tr></thead>
+        <thead><tr><th>方法</th><th>运行状态</th><th>检测结果与输入</th><th>通知配置</th><th>操作</th></tr></thead>
         <tbody id="associationRows"></tbody>
       </table></div>
     </section>

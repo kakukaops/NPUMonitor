@@ -25,7 +25,7 @@ from .source import Source
 from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
 from .sre_preview import build_incident_example, build_preview
-from .incident_queue import build_incident_queue, build_recovered_queue
+from .incident_queue import attach_incident_evidence, build_incident_queue, build_recovered_queue
 from .monitor_view import monitor_view
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
@@ -223,11 +223,13 @@ def state(request:Request):
         if item['quality']=='valid' and now-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
     tasks=STORE.list('task')
     bindings=STORE.list('binding')
+    models=STORE.list('model')
     nightingale=STORE.get('system','nightingale_events') or {'connected':False,'events':[]}
     inference_enabled=(STORE.get('system','inference') or {'enabled':True})['enabled']
     incident_queue=build_incident_queue(entities,tasks,states,TEMPLATES,bindings,nightingale,now,inference_enabled)
+    attach_incident_evidence(incident_queue, STORE.incident_points, models)
     return {'role':role,'time':now,'simulation':SIMULATION,'production_admitted':False,
-            'entities':entities,'tasks':tasks,'states':states,'models':STORE.list('model'),
+            'entities':entities,'tasks':tasks,'states':states,'models':models,
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
@@ -529,15 +531,31 @@ def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metr
     return {'points':ENGINE.source.history(entity,start,end,step,keys),'source':'existing-prometheus-readonly'}
 
 @app.get('/api/gpu-ml/v1/incident-history')
-def incident_history(request: Request, cluster: str = ''):
+def incident_history(request: Request, cluster: str = '', q: str = '',
+                     start: Optional[float] = None, end: Optional[float] = None):
     user(request)
     now = time.time()
     entities = [entity for entity in STORE.list('entity') if not cluster or entity['cluster'] == cluster]
-    episodes = STORE.recovered_episodes(now - 7 * 86400, now, limit=201, cluster=cluster)
+    terms = q.casefold().split()
+    if len(q) > 200:
+        raise ValueError('设备搜索最长支持 200 个字符')
+    if terms:
+        entities = [entity for entity in entities if all(
+            term in ' '.join(str(entity.get(key) or '') for key in ('node', 'uuid', 'cluster', 'id')).casefold()
+            for term in terms)]
+    overlap = None
+    if start is not None or end is not None:
+        if start is None or end is None or not now - 7 * 86400 <= start < end <= now:
+            raise ValueError('归档查询支持最近 7 天内的时段')
+        overlap = start, end
+    episodes = STORE.recovered_episodes(now - 7 * 86400, now, limit=201, cluster=cluster,
+                                        entity_ids=[entity['id'] for entity in entities] if terms else None,
+                                        overlap=overlap)
     nightingale = STORE.get('system', 'nightingale_events') or {}
-    return {**build_recovered_queue(entities, STORE.list('task'), episodes[:200], TEMPLATES,
-                                    STORE.list('binding'), nightingale, now),
-            'truncated': len(episodes) > 200}
+    queue = build_recovered_queue(entities, STORE.list('task'), episodes[:200], TEMPLATES,
+                                  STORE.list('binding'), nightingale, now)
+    attach_incident_evidence(queue, STORE.incident_points, STORE.list('model'))
+    return {**queue, 'truncated': len(episodes) > 200}
 
 @app.post('/api/gpu-ml/v1/replays')
 async def replay(request:Request):
