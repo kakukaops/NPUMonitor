@@ -365,8 +365,11 @@ def update(engine, scope, target, method, operation, actor, end=0, version_id=No
         return saved
 
 
-def selected_model(engine, scope, target, method, review, version_id=None):
+def selected_model(engine, scope, target, method, review, version_id=None, reference=False):
     with TRAINING_LOCK:
+        if reference:
+            model, record = reference_model(engine, scope, target, method)
+            return model, record
         config = configuration(engine, scope, target, method)
         version = (compatible_version(engine, scope, target, method, version_id) if version_id else
                    config.get('candidate') if review else config.get('active') if config['enabled'] else None)
@@ -409,15 +412,17 @@ def number(value):
     return float(value) if np.isfinite(value) else None
 
 
-def replay(engine, scope, target, method, start, end, at=None, review=False, version_id=None):
+def replay(engine, scope, target, method, start, end, at=None, review=False, version_id=None, reference=False):
     if method not in methods_for(target):
         raise ValueError('模型与所选指标不匹配')
     scope.window(start, end)
     if at is not None and not start <= at <= end:
         raise ValueError('选中时刻须位于回放范围内')
+    if reference and (scope.source != 'public' or method not in SINGLE or review or version_id):
+        raise ValueError('样例仅支持公开数据的留出节点模型回放')
     issue = None
     try:
-        model, version = selected_model(engine, scope, target, method, review, version_id)
+        model, version = selected_model(engine, scope, target, method, review, version_id, reference)
     except ValueError as exc:
         if review or version_id:
             raise
@@ -451,7 +456,7 @@ def replay(engine, scope, target, method, start, end, at=None, review=False, ver
                     if other == method and issue:
                         raise ValueError(issue)
                     other_model, other_version = (model, version) if other == method else selected_model(
-                        engine, scope, target, other, False)
+                        engine, scope, target, other, False, reference=reference)
                     if other_model and other_version.get('through'):
                         return {**other_model, 'trained_through': other_version['through']}
                     return other_model

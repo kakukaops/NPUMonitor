@@ -556,10 +556,10 @@ def dcgm_workbench_state(request: Request, source: str, target: str, collection:
 @app.get('/api/gpu-ml/v1/dcgm/workbench/replay')
 def dcgm_workbench_replay(request: Request, source: str, target: str, method: str, start: int, end: int,
                           collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
-                          at: Optional[int] = None, version_id: Optional[str] = None):
+                          at: Optional[int] = None, version_id: Optional[str] = None, reference: bool = False):
     user(request)
     scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
-    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, version_id=version_id)
+    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, version_id=version_id, reference=reference)
 
 
 @app.post('/api/gpu-ml/v1/dcgm/workbench/{operation}')

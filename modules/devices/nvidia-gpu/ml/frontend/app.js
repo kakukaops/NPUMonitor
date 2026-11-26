@@ -66,6 +66,7 @@ function switchWorkspaceSource(source){
   monitorShown=null;
   dcgmView.at=null;
   dcgmView.pinned=null;
+  clearDcgmExample();
   resetDcgmReplay();
   if(workspaceDataSource==='public'&&source==='simulated'&&monitorPrefs[page])dcgmView.simBoard[page]=true;
  }
@@ -164,7 +165,10 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
   const params=new URLSearchParams(window.location?.search||'');
   const changedSource=workspaceDataSource&&params.get('source')!==workspaceDataSource;
   if(changedSource)params.set('source',workspaceDataSource);
-  if(existing!==hash||changedSource)window.history.pushState?.(context,'',(params.size?'?'+params:'')+hash);
+  const selectedExample=dcgmCases[params.get('case')];
+  const leaveExample=selectedExample&&(selectedExample.page!==next||workspaceDataSource!=='public');
+  if(leaveExample){params.delete('case');dcgmView.example='';}
+  if(existing!==hash||changedSource||leaveExample)window.history.pushState?.(context,'',(params.size?'?'+params:'')+hash);
   else if(context)window.history.replaceState?.(context,'',hash);
  }
  if(data){
@@ -182,6 +186,18 @@ function openReplayFromLocation(){
  workspaceDataSource='';
  initializeWorkspaceSource();
  const hash=window.location?.hash;
+ const key=new URLSearchParams(window.location?.search||'').get('case');
+ const example=workspaceDataSource==='public'?dcgmCases[key]:null;
+ dcgmView.example='';
+ if(example?.page&&hash===liveHashes[example.page]){
+  if(example.kind==='node'){
+   selectDcgmExample(key);
+   if(example.page==='scenarios')setAssociationView('all');
+  }else if(example.kind==='xid')xidStudyExample=example.selection;
+  choosePage(example.page,false,false,false);
+  if(example.kind==='card')openNodeReviewExample(example);
+  return true;
+ }
  if(hash==='#incident-demo'&&data?.simulation){
   $('incidentFilter').value='all';
   choosePage('incidents',false,true,false);

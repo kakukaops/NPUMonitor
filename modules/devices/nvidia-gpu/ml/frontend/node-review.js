@@ -76,7 +76,7 @@ function renderNodeReview(){
  }
 }
 
-async function runNodeReview(at){
+async function runNodeReview(at,focus){
  const v=nodeReviewView,pick=v.choices.find(c=>nodeReviewTargetId(c.target)===v.target);
  if(!pick)return;
  const time=$('nodeReviewTime').value;
@@ -96,7 +96,7 @@ async function runNodeReview(at){
   $('nodeReviewStatus').textContent=(
    result.source_unavailable?'所选范围内没有取得有效采集。':'已复核 '+result.node
   )+' · '+dcgmTime(result.at);
-  paintNodeReview();
+  paintNodeReview(focus);
  }catch(e){
   if(id===v.generation)$('nodeReviewStatus').textContent=e.message;
  }finally{
@@ -132,23 +132,28 @@ function openNodeReviewForIncident(group,queue,slot){
  runNodeReview(at);
 }
 
-function openPublicNodeReview(){
- const collection=dcgmView.collection,at=dcgmView.pointAt??dcgmView.at;
- if(!collection)return;
- choosePage('incidents');
+function openNodeReviewExample({collection,at,gpu,metric}){
  const v=nodeReviewView;
  const open=()=>{
+  restoreNodeReview();
   renderNodeReview();
   v.target=collection;$('nodeReviewTarget').value=collection;
   if(Number.isFinite(at))$('nodeReviewTime').value=nodeReviewTimeInput(at);
   $('nodeReviewPanel').open=true;
-  runNodeReview(at??undefined);
+  runNodeReview(at??undefined,{gpu,metric});
  };
  if(v.catalog)open();
  else v.pending?.then(()=>{if(page==='incidents'&&v.source==='public'&&v.catalog)open();});
 }
 
-function paintNodeReview(){
+function openPublicNodeReview(){
+ const collection=dcgmView.collection,at=dcgmView.pointAt??dcgmView.at;
+ if(!collection)return;
+ choosePage('incidents');
+ openNodeReviewExample({collection,at});
+}
+
+function paintNodeReview(focus){
  const result=nodeReviewView.result;
  if(!result)return;
  $('nodeReviewResult').hidden=false;
@@ -176,16 +181,17 @@ function paintNodeReview(){
  }
  box.replaceChildren(tree,cards);
  const old=$('nodeReviewCard').value;
- const selected=result.cards.find(c=>c.gpu===old)||result.cards[0];
+ const selected=result.cards.find(c=>c.gpu===(focus?.gpu||old))||result.cards[0];
  dcgmRows(result.cards.map(c=>[c.gpu,c.gpu]),'nodeReviewCard',selected?.gpu??'');
- paintNodeReviewCurve(true);
+ paintNodeReviewCurve(true,focus?.metric);
 }
 
-function paintNodeReviewCurve(selectAlarm=false){
+function paintNodeReviewCurve(selectAlarm=false,preferred){
  const card=nodeReviewView.result?.cards.find(c=>c.gpu===$('nodeReviewCard').value);
  const canvas=$('nodeReviewCurve'),metrics=Object.keys(card?.trends||{});
  let metric=$('nodeReviewMetric').value;
  if(selectAlarm)metric=metrics.find(s=>card.trends[s].state==='alarm')||metric;
+ if(metrics.includes(preferred))metric=preferred;
  if(!metrics.includes(metric))metric=metrics[0];
  dcgmRows(metrics.map(key=>[key,dcgmMetricName(key)]),'nodeReviewMetric',metric??'');
  const trend=card?.trends[metric];
@@ -193,6 +199,10 @@ function paintNodeReviewCurve(selectAlarm=false){
  const chart=dcgmCanvas(canvas,165);
  const labels={alarm:'连续偏离 '+trend?.duration+' 分钟',scored:'当前处于预测区间或尚未连续偏离',missing:'连续输入不足',insufficient_history:'当前来源参考历史不足'};
  $('nodeReviewTrend').textContent=trend?labels[trend.state]+(trend.fit?' · 拟合 '+trend.fit+' 分钟 · 校准 '+trend.calibration+' 分钟':''):'暂无 GPU 观测。';
+ const condition=card?.condition?.find(row=>row.metric===metric);
+ $('nodeReviewConditionDetail').hidden=!condition;
+ $('nodeReviewConditionDetail').textContent=condition?'独立的负载关系评分 · 实际 '+fmt(condition.observed,2)+
+  ' / 同负载参考 '+fmt(condition.expected,2)+' · 残差为判定边界的 '+fmt(condition.ratio,2)+' 倍':'';
  if(!chart||!rows.length)return;
  const {ctx,width}=chart,left=43,right=width-12;
  const vals=rows.flatMap(r=>[r.lower,r.upper,r.value]).filter(Number.isFinite);

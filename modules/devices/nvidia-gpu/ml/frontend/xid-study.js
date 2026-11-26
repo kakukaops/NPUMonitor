@@ -13,6 +13,7 @@ const xidStudyCases = {
 };
 const xidTraceMetrics = {util:'util',power:'power',clock:'sm_clock',temp:'gpu_temp'};
 let xidStudyData, xidStudyLoading, xidStudyTableKey, xidStudyChartKey;
+let xidStudyExample;
 
 async function loadXidStudy(){
  if(xidStudyData){paintXidStudy();return;}
@@ -54,6 +55,15 @@ function paintXidStudy(){
  }
  monitorOptions($('xidTraceCase'),xidStudyData.cases.map((entry,index)=>
   [String(index),xidStudyCases[entry.kind]||entry.gpu]));
+ if(xidStudyExample){
+  const index=xidStudyData.cases.findIndex(entry=>entry.kind===xidStudyExample);
+  xidStudyExample=null;
+  if(index>=0){
+   $('xidTraceCase').value=String(index);
+   $('xidTraceMethod').value='combined';
+   requestAnimationFrame(()=>$('xidTraceStatus').scrollIntoView({block:'nearest'}));
+  }
+ }
  paintXidTrace();
 }
 

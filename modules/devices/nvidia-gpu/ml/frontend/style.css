@@ -421,6 +421,10 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 #dcgmScoreBox { margin-top: 12px; }
 #dcgmScore { display: block; width: 100%; height: 110px; cursor: crosshair; }
 .dcgm-reference-color { color: #456aa7; }
+.dcgm-examples { margin-block: 12px; padding: 12px 14px; border: 1px solid #d8e5f4; border-radius: 8px; background: #f3f7fd; }
+.dcgm-examples label { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dcgm-examples select { max-width: 100%; }
+.dcgm-examples .caption { margin: 8px 0 0; }
 .dcgm-legend { margin-top: 10px; }
 .dcgm-legend .dcgm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .dcgm-legend .dcgm-band { display: inline-block; width: 13px; height: 8px; border-radius: 2px; }

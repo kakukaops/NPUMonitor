@@ -81,6 +81,11 @@
     <button type="button" id="publicTrend">看单指标趋势</button>
     <button type="button" id="publicAssociation">看多指标关联</button>
   </div>
+  <div id="dcgmExamples" class="dcgm-examples" hidden>
+    <label>回放示例 <select id="dcgmExample" aria-label="公开数据回放示例"></select></label>
+    <p id="dcgmExampleNote" class="caption" aria-live="polite"></p>
+    <div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级实验方法 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级实验方法 ↗</a></div>
+  </div>
   <a class="panel-link xid-study-link" href="/?source=public#association-compare">查看同卡 XID 预警评测 ↗</a>
   <div class="controls" id="dcgmTimeControl" hidden>
     <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
@@ -132,6 +137,7 @@
           <label>指标 <select id="nodeReviewMetric" aria-label="复核指标"></select></label>
         </div>
         <p id="nodeReviewTrend" class="caption" role="status"></p>
+        <p id="nodeReviewConditionDetail" class="caption" hidden></p>
         <div class="legend node-review-legend">
           <span><i class="blue"></i>分钟观测</span>
           <span><i class="node-review-band"></i>校准预测区间</span>
@@ -286,7 +292,7 @@
 <details class="panel metric-archive" id="baselineArchive"><summary>全部指标快捷视图</summary><div id="baselineCards" class="gpu-grid"></div></details>
 <details class="panel">
   <summary>单指标方法说明</summary>
-  <a class="panel-link" href="/assets/dcgm-method-guide.html#models">DCGM 单指标模型与趋势区间 ↗</a>
+  <div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级趋势与提前预警 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级异常检测 ↗</a></div>
   <div class="model-routes trend-routes">
     <div><strong>滞后回归</strong><p>学习历史连续观测，检测预测残差和水平偏移。</p></div>
     <div><strong>滚动中位数预测</strong><p>用前 5 个连续采样点预测当前点，检查残差。</p></div>
@@ -297,7 +303,7 @@
 <section id="page-scenarios" class="page" hidden>
 <div class="panel monitoring-panel" id="associationTasks">
   <div class="panel-heading">
-    <div><h2>方法监测看板</h2><p id="associationSummary"></p><a class="panel-link" href="/assets/dcgm-method-guide.html#models">DCGM 多指标方法说明 ↗</a></div>
+    <div><h2>方法监测看板</h2><p id="associationSummary"></p><div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级关联与提前预警 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级异常检测 ↗</a></div></div>
     <div class="controls monitoring-inputs">
       <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
       <label>类型 <select id="associationKind" aria-label="关联任务类型">

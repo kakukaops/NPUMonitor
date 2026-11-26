@@ -284,6 +284,8 @@ _MISSING_FEATURES = (*_NUMERIC_FEATURES[:6], '近 5 分钟全缺测的时间占�
 def alarm_evidence(model, raw, z):
     """Identify threshold violations, the fitted tree path, or positive T² drivers."""
     method = model['method']
+    if method not in MULTI:
+        return []
     if method == 'shallow_tree':
         ranked = [(feature, '高于分裂阈值' if above else '低于或等于分裂阈值')
                   for _, _, feature, above in tree_path(model, z)]

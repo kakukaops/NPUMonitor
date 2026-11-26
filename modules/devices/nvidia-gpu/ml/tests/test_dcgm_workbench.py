@@ -141,6 +141,29 @@ class WorkbenchTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '不可用于'):
             workbench.compatible_version(self.engine, self.simulated, 'core', method, prepared['id'])
 
+    def test_public_examples_use_holdout_models_without_changing_pause(self):
+        scope = workbench.scope_for(self.engine, 'public', 'collection_e3975dd627073b0d')
+        at = 1749657490
+        workbench.update(self.engine, scope, 'all', 'pca_t2', 'pause', 'operator')
+        result = workbench.replay(self.engine, scope, 'all', 'pca_t2', at - 300, at + 300, at, reference=True)
+        point = next(p for p in result['points'] if p['t'] == at)
+        self.assertEqual(point['state'], 'alarm')
+        self.assertEqual(result['xid'][30], 1)
+        self.assertTrue(all(row['state'] == 'alarm' and row['evidence'] for row in result['comparison']['methods']))
+        self.assertFalse(workbench.board_state(self.engine, scope, 'all')['methods']['pca_t2']['enabled'])
+        with self.assertRaisesRegex(ValueError, '仅支持公开数据'):
+            workbench.replay(self.engine, self.simulated, 'all', 'pca_t2',
+                             self.simulated.end - 60, self.simulated.end, reference=True)
+
+    def test_power_boosting_case_reports_alarm_without_tree_path(self):
+        scope = workbench.scope_for(self.engine, 'public', 'collection_e20c94de837a5a7c')
+        at = 1747739900
+        result = workbench.replay(self.engine, scope, 'DCGM_FI_DEV_POWER_USAGE',
+                                  'hist_gradient_boosting', at - 100, at + 100, at, reference=True)
+        self.assertEqual(result['points'][10]['state'], 'alarm')
+        self.assertEqual(result['xid'][9:11], [0, 1])
+        self.assertEqual(result['evidence'], [])
+
 
 if __name__ == '__main__':
     unittest.main()
