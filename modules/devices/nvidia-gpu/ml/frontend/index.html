@@ -11,6 +11,7 @@
       <button class="nav active" id="replayNav" data-page="incidents" aria-current="page"><span aria-hidden="true">◫</span>异常队列</button>
       <button class="nav" data-page="baseline"><span aria-hidden="true">⌁</span>单指标趋势</button>
       <button class="nav" data-page="scenarios"><span aria-hidden="true">◇</span>多指标关联预警</button>
+      <button class="nav" data-page="rules"><span aria-hidden="true">▣</span>规则预警</button>
       <button class="nav" data-page="overview"><span aria-hidden="true">◈</span>GPU 设备</button>
       <button class="nav nav-subentry" id="detectionShortcut" data-page="detection"><span aria-hidden="true">↳</span>监测详情</button>
       <button class="nav" data-page="events"><span aria-hidden="true">◎</span>通知与复核</button>
@@ -365,6 +366,56 @@
 <div class="panel monitor-focus association-selection" id="associationStatus" hidden></div>
 <div id="associationMonitorSlot"></div>
 </section>
+<section id="page-rules" class="page" hidden>
+  <section class="panel monitoring-panel" aria-labelledby="ruleBoardHeading">
+    <div class="panel-heading">
+      <div><h2 id="ruleBoardHeading">规则监测看板</h2><p id="ruleBoardStatus" role="status"></p></div>
+      <div class="controls monitoring-inputs">
+        <label>对象 <select id="ruleBoardEntity" aria-label="规则监测对象"></select></label>
+        <button type="button" id="ruleBoardExamples" hidden>看回放样例</button>
+      </div>
+    </div>
+    <div class="controls monitoring-inputs board-filters">
+      <label>搜索 <input type="search" id="ruleBoardSearch" placeholder="规则名、编号或指标"></label>
+      <label>级别 <select id="ruleBoardSeverity"><option value="">全部级别</option><option value="1">紧急</option><option value="2">重要</option><option value="3">次要</option></select></label>
+      <label>状态 <select id="ruleBoardState">
+        <option value="">全部状态</option><option value="active">有告警</option><option value="enabled">已启用</option>
+        <option value="paused">已暂停</option><option value="catalog">规则目录</option><option value="blocked">输入受限</option>
+        <option value="example">可回放</option>
+      </select></label>
+      <button type="button" id="ruleBoardClear" hidden>清除筛选</button>
+    </div>
+    <div class="method-board-layout">
+      <section aria-labelledby="ruleBoardCategoriesHeading">
+        <h3 id="ruleBoardCategoriesHeading">规则类别</h3>
+        <ul class="method-targets" id="ruleBoardCategories"></ul>
+      </section>
+      <section aria-labelledby="ruleBoardListHeading">
+        <h3 id="ruleBoardListHeading">规则列表</h3>
+        <div class="table-scroll method-board-wrap" tabindex="0" aria-label="规则预警列表">
+          <table class="association-table method-board">
+            <thead><tr><th>规则</th><th>运行状态</th><th>判定输入</th><th>告警级别</th><th>操作</th></tr></thead>
+            <tbody id="ruleBoardRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section class="panel monitor-view" id="ruleBoardDetail" aria-labelledby="ruleBoardTitle" hidden>
+    <div class="panel-heading"><div><h2 id="ruleBoardTitle"></h2><p id="ruleBoardContext"></p></div></div>
+    <div class="rule-board-evidence" id="ruleBoardEvidence"></div>
+    <p id="ruleBoardCriterion" class="monitor-focus" hidden></p>
+    <h3>输入曲线</h3>
+    <p class="caption" id="ruleBoardCurveStatus" role="status"></p>
+    <div class="legend" id="ruleBoardLegend" hidden></div>
+    <div class="monitor-input-charts" id="ruleBoardInputs"></div>
+    <h3>当前与最近结束事件</h3>
+    <div id="ruleBoardEvents"></div>
+    <details id="ruleBoardPromql" class="rule-board-expression" hidden>
+      <summary>查看目录判定表达式</summary><pre id="ruleBoardExpression"></pre>
+    </details>
+  </section>
+</section>
 <section id="page-study" class="page" hidden>
   <div class="detail-path"><a class="panel-link" href="/methods">← 返回方法与评测</a><a class="panel-link" id="associationReplayLink" href="/#joint-replay" hidden>用工作台模型回放模拟数据</a></div>
   <section class="panel" id="xidStudy" aria-labelledby="xidStudyTitle">
@@ -476,4 +527,4 @@
 <div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
 <div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/node-review.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/node-review.js"></script><script src="/assets/rule-board.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

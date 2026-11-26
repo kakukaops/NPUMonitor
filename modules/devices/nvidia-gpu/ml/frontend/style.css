@@ -488,6 +488,16 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 .dcgm-examples label { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .dcgm-examples select { max-width: 100%; }
 .dcgm-examples .caption { margin: 8px 0 0; }
+.rule-board-evidence { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.rule-board-evidence code { max-width: 100%; overflow-wrap: anywhere; background: #f3f7fc; padding: 2px 6px; border-radius: 5px; }
+#ruleBoardDetail { scroll-margin-top: 70px; }
+#ruleBoardDetail > h3 { margin: 16px 0 5px; font-size: 13px; }
+#ruleBoardEvents { display: grid; gap: 5px; }
+.rule-board-event { display: flex; align-items: center; flex-wrap: wrap; text-align: left; gap: 6px 12px; }
+.rule-board-event[aria-pressed="true"] { background: #eef5ff; border-color: #a9c3ee; }
+.rule-board-expression { margin-top: 12px; }
+.rule-board-expression summary { color: #315e9c; cursor: pointer; }
+.rule-board-expression pre { max-height: 250px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .dcgm-legend { margin-top: 10px; }
 .dcgm-legend .dcgm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .dcgm-legend .dcgm-band { display: inline-block; width: 13px; height: 8px; border-radius: 2px; }

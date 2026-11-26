@@ -40,6 +40,7 @@ run(readFileSync(new URL('../frontend/dcgm-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/xid-study.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/node-review.js',import.meta.url),'utf8'));
+run(readFileSync(new URL('../frontend/rule-board.js',import.meta.url),'utf8'));
 run(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'));
 await new Promise(r=>setImmediate(r));
 assert.equal(run('page'),'incidents');

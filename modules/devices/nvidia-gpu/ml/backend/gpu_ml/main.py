@@ -33,6 +33,7 @@ from .dcgm_review import node_review
 from . import dcgm_workbench
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
+from .rule_board import RuleBoard
 from . import __version__
 from .models import ALGORITHMS,build_model
 from gpu_ml_runtime.detectors import ADDITIONAL_ALGORITHMS, available_algorithms
@@ -41,7 +42,7 @@ from .dcgm_scenarios import CATALOG as DCGM_SCENARIOS,template_name
 from .model_backends.contracts import BackendError,BackendUnavailable,BackendProtocolError,BackendUnsupported
 from .model_backends.training import Deferred
 
-STORE=None;ENGINE=None;N9E=None
+STORE=None;ENGINE=None;N9E=None;RULE_BOARD=None
 SIM=Simulator()
 SESSIONS={};ROLE_ORDER={'viewer':0,'operator':1,'admin':2}
 
@@ -77,7 +78,7 @@ def required_body_value(body,key):
 
 @asynccontextmanager
 async def lifespan(app):
-    global STORE,ENGINE,N9E
+    global STORE,ENGINE,N9E,RULE_BOARD
     DATA.mkdir(parents=True,exist_ok=True)
     # Single-process/single-active lease: refuse a second writer on the same volume.
     import fcntl
@@ -91,7 +92,7 @@ async def lifespan(app):
         if schema.get('kind')=='multivariate':TEMPLATES[schema['id']]['algorithms']=['joint_pca','joint_iforest']
     source=Source()
     STORE.bind_source(hashlib.sha256(json.dumps({'url':source.url,'metrics':METRICS},sort_keys=True).encode()).hexdigest())
-    ENGINE=Engine(STORE,source);N9E=Nightingale(STORE)
+    ENGINE=Engine(STORE,source);N9E=Nightingale(STORE);RULE_BOARD=RuleBoard(N9E)
     if SIMULATION:
         for record in STORE.list('simulation'):
             if record['id'] in SIM.modes:SIM.modes[record['id']]={'scenario':record['scenario'],'since':record['since']}
@@ -543,6 +544,18 @@ def review_dcgm(request: Request, source: str, cluster: str = '', node: str = ''
                 collection: str = '', at: Optional[int] = None, scenario: str = 'normal'):
     user(request)
     return node_review(ENGINE, source, cluster, node, gpu, collection, at, scenario)
+
+
+@app.get('/api/gpu-ml/v1/rule-board')
+def rule_board(request: Request, source: str):
+    user(request)
+    return RULE_BOARD.board(source)
+
+
+@app.get('/api/gpu-ml/v1/rule-board/{rule_id}')
+def rule_board_detail(request: Request, rule_id: str, source: str, entity: str = '', event: str = ''):
+    user(request)
+    return RULE_BOARD.detail(ENGINE, source, rule_id, entity, event)
 
 
 @app.get('/api/gpu-ml/v1/dcgm/workbench/state')

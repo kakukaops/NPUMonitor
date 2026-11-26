@@ -4,11 +4,12 @@ let data=null,page='incidents',selectedTask=null,selectedEntity=null,points=[],r
 let detailReport=null;
 const baselinePreviewCache=new Map(),baselinePreviewBusy=new Set();
 const PRIMARY=['gpu_temp','memory_temp','power','util','mem_util'];
-const names={incidents:'异常队列',baseline:'单指标趋势',scenarios:'多指标关联预警',overview:'GPU 设备',detection:'监测详情',tasks:'检测任务',models:'模型库',events:'通知与复核',health:'系统状态',study:'多指标对照实验'};
+const names={incidents:'异常队列',baseline:'单指标趋势',scenarios:'多指标关联预警',rules:'规则预警',overview:'GPU 设备',detection:'监测详情',tasks:'检测任务',models:'模型库',events:'通知与复核',health:'系统状态',study:'多指标对照实验'};
 const pageDescriptions={
  incidents:'查看当前异常，打开记录复核。',
  baseline:'查看各指标下的方法状态，选中一项查看详情。',
  scenarios:'在同一看板查看白盒和黑盒任务，选中一项查看关联证据。',
+ rules:'选择规则，查看判定输入、运行状态和告警事件。',
  overview:'查看 GPU 的采集和检测覆盖。',
  tasks:'设置检测范围、模型和确认条件。',
  models:'查看模型版本、训练进度和回放评估。',
@@ -29,11 +30,11 @@ async function api(path,options={}){const r=await fetch(API+path,{...options,hea
 async function action(fn){try{await fn();await refresh(true);}catch(e){toast(e.message);}}
 function roleAccess(){const writer=data&&data.role!=='viewer',admin=data&&data.role==='admin';document.querySelectorAll('.write').forEach(b=>b.disabled=!writer);document.querySelectorAll('.admin').forEach(b=>b.disabled=!admin);}
 const replayHashes={incidents:'#replay',baseline:'#trend-replay',scenarios:'#joint-replay'};
-const liveHashes={incidents:'#incidents',baseline:'#trend',scenarios:'#association',overview:'#gpus',detection:'#detection',tasks:'#tasks',models:'#models',events:'#notifications',health:'#system',study:'#association-compare'};
+const liveHashes={incidents:'#incidents',baseline:'#trend',scenarios:'#association',rules:'#rules',overview:'#gpus',detection:'#detection',tasks:'#tasks',models:'#models',events:'#notifications',health:'#system',study:'#association-compare'};
 const detectionSources=new Set(['baseline','scenarios','overview','tasks']);
 let detectionOrigin=null,dialogTrigger=null;
 let replayMode=false,incidentExampleActive=false;
-const sourcePages=new Set(['incidents','baseline','scenarios']);
+const sourcePages=new Set(['incidents','baseline','scenarios','rules']);
 const workspaceSourceNames={simulated:'模拟采集',synthetic:'人工构造',real_unverified:'真实采集',public:'公开数据'};
 let workspaceDataSource='';
 
@@ -70,6 +71,7 @@ function switchWorkspaceSource(source){
   clearDcgmExample();
   resetDcgmReplay();
   if(workspaceDataSource==='public'&&source==='simulated'&&monitorPrefs[page])dcgmView.simBoard[page]=true;
+  if(page==='rules'&&workspaceDataSource==='synthetic'&&$('ruleBoardState').value==='example')$('ruleBoardState').value='';
  }
  workspaceDataSource=source;
  if(page==='incidents'&&source==='synthetic')$('incidentFilter').value='all';
@@ -78,7 +80,7 @@ function switchWorkspaceSource(source){
 
 function updatePageVisibility(){
  const active=Boolean(data?.simulation)&&replayMode;
- const publicView=workspaceDataSource==='public'&&sourcePages.has(page);
+ const publicView=workspaceDataSource==='public'&&sourcePages.has(page)&&page!=='rules';
  const simSwitch=Boolean(data?.dcgm_workbench)&&workspaceDataSource==='simulated'&&Boolean(monitorPrefs[page]);
  const simDcgm=simSwitch&&dcgmView.simBoard[page];
  const synthetic=workspaceDataSource==='synthetic';
@@ -96,7 +98,7 @@ function updatePageVisibility(){
  const sourceNotice=$('workspaceSourceNotice');
  sourceNotice.textContent=synthetic&&monitorPrefs[page]
   ?'人工构造的曲线仅用于离线回放。可使用已训练的模拟设备模型查看评分。'
-  :data&&sourcePages.has(page)&&!publicView&&!synthetic&&!sourceEntities().length
+  :data&&sourcePages.has(page)&&page!=='rules'&&!publicView&&!synthetic&&!sourceEntities().length
    ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
  sourceNotice.hidden=!sourceNotice.textContent;
  $('dcgmWorkspaceSwitch').hidden=!simSwitch;
@@ -109,7 +111,7 @@ function updatePageVisibility(){
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
  const chartPage=Boolean(monitorPrefs[page]);
  $('cluster').hidden=!showCluster;
- $('liveControls').hidden=active||incidentExampleActive||publicView||simDcgm||page==='study'||(chartPage&&!showCluster);
+ $('liveControls').hidden=active||incidentExampleActive||publicView||simDcgm||page==='study'||page==='rules'||(chartPage&&!showCluster);
  $('refresh').hidden=chartPage;
  $('window').hidden=page!=='detection';
  if(active)$('integratedReplay').setAttribute('view','all');
@@ -154,7 +156,7 @@ function choosePage(next, showReplay=false, example=false, updateUrl=true){
  $('title').textContent=title;
  $('subtitle').textContent=showReplay?'用人工构造曲线查看模型的评分过程。':
   incidentExampleActive?'在人工构造的样例中查看证据和复核。':
-  workspaceDataSource==='public'&&sourcePages.has(next)?'查看公开 GPU 历史观测、实际 XID 与检测结果。':
+  workspaceDataSource==='public'&&sourcePages.has(next)&&next!=='rules'?'查看公开 GPU 历史观测、实际 XID 与检测结果。':
   workspaceDataSource==='synthetic'&&monitorPrefs[next]?'选择场景，查看观测和所选方法的回放结果。':pageDescriptions[next]||'';
  $('subtitle').hidden=!$('subtitle').textContent;
  const hash=showReplay?replayHashes[next]:incidentExampleActive?'#incident-demo':
@@ -360,7 +362,7 @@ updatePageVisibility();
  ]:entity?[badge('原始观测','gray')]:[]));
  renderEvidence(task,entity);$('simulationPanel').hidden=!data.simulation||entity?.source_type!=='simulated'||!entity?.uuid.startsWith('GPU-ML-SIM-');
  if(!$('simulationPanel').hidden)$('scenarioButtons').replaceChildren(...data.scenarios.map(mode=>{const b=el('button',scenarioNames[mode]||mode,'write');b.onclick=()=>action(async()=>{await api('/simulation',{method:'POST',body:JSON.stringify({uuid:entity.uuid,scenario:mode})});toast('已设置：'+scenarioNames[mode]+'，等待采集与持续确认');});return b;}));
- renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();renderNodeReview();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
+ renderBaselines();renderAssociationView();renderAssociationTasks();renderMonitorView();renderDcgmView();renderScenarios();renderTasks();renderModels();renderModelServices();renderJobs();renderEvents();renderHealth();renderIncidentQueue();renderNodeReview();renderRuleBoard();roleAccess();$('updated').textContent='最后刷新 '+tm(data.time);
  if(page==='detection')drawCharts();
 }
 function renderGpuCards(entities){
@@ -1517,6 +1519,7 @@ window.addEventListener('popstate',openReplayFromLocation);
 bindMonitorView();
 bindDcgmView();
 bindNodeReview();
+bindRuleBoard();
 bindAssociationView();
 bindIncidentFilters();
 bindXidStudy();
