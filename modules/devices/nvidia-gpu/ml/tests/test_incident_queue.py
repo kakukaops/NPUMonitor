@@ -13,6 +13,7 @@ class IncidentQueueTests(unittest.TestCase):
     def test_example_groups_same_card_but_keeps_same_node_cards_separate(self):
         queue = build_incident_example(NOW)
         self.assertEqual([row['phase'] for row in queue['groups']], ['confirmed', 'confirmed', 'pending', 'recovered'])
+        self.assertEqual([row['severity'] for row in queue['groups']], [2, 1, 4, 3])
         grouped = next(row for row in queue['groups'] if len(row['members']) == 3)
         self.assertEqual(grouped['start'], NOW - 11 * 60)
         self.assertEqual({row['family'] for row in grouped['members']}, {'univariate', 'multivariate', 'scenario'})
@@ -71,7 +72,7 @@ class IncidentQueueTests(unittest.TestCase):
         task = {'id': 't', 'entity': entity['id'], 'active_model': 'm', 'enabled': True, 'template': 't'}
         state = {'id': 't', 'active': True, 'opened_at': NOW - 20, 'last_source': NOW - 2,
                  'quality': 'valid', 'model_id': 'm', 'score': 1.2, 'threshold': 1.}
-        bindings = [{'id': 't', 'rule_id': 7}]
+        bindings = [{'id': 't', 'rule_id': 7, 'severity': 3}]
         templates = {'t': {'name': 'GPU detector', 'kind': 'univariate', 'required': ['util'], 'targets': ['util']}}
         nightingale = {'connected': True, 'checked_at': NOW - 5, 'events': [
             {'id': 1, 'rule_id': 7, 'first_trigger_time': NOW - 40, 'trigger_time': NOW - 3},
@@ -84,8 +85,11 @@ class IncidentQueueTests(unittest.TestCase):
             return queue['groups'][0]['members'][0]
 
         self.assertEqual(member()['notification']['status'], 'no_event')
-        nightingale['events'].append({'rule_id': 7, 'id': 3, 'trigger_time': NOW - 5, 'tags': ['UUID=GPU']})
+        self.assertEqual(member()['notification']['severity'], 3)
+        nightingale['events'].append({'rule_id': 7, 'id': 3, 'trigger_time': NOW - 5, 'tags': ['UUID=GPU'],
+                                     'severity': '1'})
         self.assertEqual(member()['notification']['event_id'], 3)
+        self.assertEqual(member()['notification']['severity'], 1)
         nightingale['checked_at'] = NOW - 60
         self.assertEqual(member()['notification']['status'], 'unavailable')
         self.assertEqual(member(False)['phase'], 'confirmed')

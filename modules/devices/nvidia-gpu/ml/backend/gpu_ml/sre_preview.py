@@ -222,7 +222,11 @@ def build_incident_example(now):
     for state in states:
         state.update(last_source=end - 2, quality='valid', model_id='example')
     states[3].update(last_source=end - 130, quality='missing')
-    bindings = [{'id': key, 'rule_id': i} for i, key in enumerate(('trend', 'held', 'recovered'), 100)]
+    bindings = [
+        {'id': 'trend', 'rule_id': 100, 'severity': 1},
+        {'id': 'held', 'rule_id': 101, 'severity': 2},
+        {'id': 'recovered', 'rule_id': 102, 'severity': 3},
+    ]
     nightingale = {
         'connected': True, 'checked_at': end - 4,
         'events': [{'id': 412, 'rule_id': 100, 'trigger_time': end - 11 * 60 + 8, 'hash': 'example-a'}],

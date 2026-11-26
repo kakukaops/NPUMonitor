@@ -8,6 +8,7 @@ from .settings import FRESHNESS
 DAY = 86400
 SYNC_MAX_AGE = 45
 PHASE_ORDER = {'confirmed': 0, 'pending': 1, 'recovered': 2}
+RULE_SEVERITIES = {'1': 1, '2': 2, '3': 3}
 
 
 def timestamp(value):
@@ -25,9 +26,10 @@ def event_tags(event):
 def notification(task, member, entity, binding, records, connected, now):
     policy = task.get('notification_mode', 'alert')
     rule_id = binding.get('rule_id') if binding else None
-    result = {'policy': policy, 'rule_id': rule_id}
+    rule_severity = RULE_SEVERITIES.get(str(binding.get('severity'))) if rule_id is not None else None
+    result = {'policy': policy, 'rule_id': rule_id, 'severity': rule_severity}
     if member['phase'] == 'pending':
-        return dict(result, status='pending')
+        return dict(result, status='pending', severity=None)
     if connected and rule_id is not None:
         for event in records.get(str(rule_id), []):
             start = timestamp(event.get('first_trigger_time')) or timestamp(event.get('trigger_time'))
@@ -40,9 +42,10 @@ def notification(task, member, entity, binding, records, connected, now):
             ) if key in tags):
                 continue
             return dict(result, status='recorded', event_id=event['id'], at=start,
-                        hash=event.get('hash'), recovered=bool(event.get('is_recovered')))
+                        hash=event.get('hash'), recovered=bool(event.get('is_recovered')),
+                        severity=RULE_SEVERITIES.get(str(event.get('severity')), rule_severity))
     if policy == 'evidence':
-        return dict(result, status='evidence_only')
+        return dict(result, status='evidence_only', severity=None)
     if rule_id is None:
         return dict(result, status='unbound')
     return dict(result, status='no_event' if connected else 'unavailable')
@@ -233,6 +236,8 @@ def incident_groups(per_entity, by_entity, now):
                 'entity': {key: entity.get(key) for key in ('id', 'uuid', 'cluster', 'node', 'source_type')},
                 'phase': lead['phase'], 'start': min(row['start'] for row in signals),
                 'end': max(row['end'] for row in signals) if lead['phase'] == 'recovered' else None,
+                'severity': min(row['notification']['severity'] or 4
+                                for row in signals if row['phase'] == lead['phase']),
                 'pending': len(pending), 'confirmed': len(confirmed), 'held': len(held),
                 'members': sorted(signals, key=lambda row: (PHASE_ORDER[row['phase']], row['start'])),
             })

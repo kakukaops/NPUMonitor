@@ -39,6 +39,30 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
+<section id="incidentAlertBoard" class="incident-alert-board" aria-labelledby="incidentAlertHeading" hidden>
+  <div class="incident-alert-head">
+    <div><h2 id="incidentAlertHeading">告警看板</h2><p id="incidentAlertScope"></p></div>
+    <button type="button" id="incidentSeverityClear" class="text-button" hidden>清除级别筛选</button>
+  </div>
+  <div class="incident-alert-grid" role="group" aria-label="按告警级别筛选">
+    <button type="button" id="incidentSeverity1" class="incident-alert-card incident-level-1" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">!</span>紧急</span>
+      <strong id="incidentSeverityCount1">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity2" class="incident-alert-card incident-level-2" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">↑</span>重要</span>
+      <strong id="incidentSeverityCount2">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity3" class="incident-alert-card incident-level-3" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">−</span>次要</span>
+      <strong id="incidentSeverityCount3">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity4" class="incident-alert-card incident-level-4" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">i</span>提示</span>
+      <strong id="incidentSeverityCount4">—</strong>
+    </button>
+  </div>
+</section>
 <div class="controls dcgm-workspace-switch" id="dcgmWorkspaceSwitch" role="group" aria-label="模拟采集监测视图" hidden>
   <button type="button" id="dcgmWorkspaceCard" aria-pressed="true">GPU 卡级任务</button>
   <button type="button" id="dcgmWorkspaceBench" aria-pressed="false">DCGM 方法看板</button>

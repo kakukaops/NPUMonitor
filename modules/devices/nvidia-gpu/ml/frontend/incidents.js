@@ -2,8 +2,10 @@
 
 const incidentPhaseLabels={confirmed:'已确认',pending:'待确认',recovered:'已恢复'};
 const incidentFamilyLabels={univariate:'单指标趋势',multivariate:'黑盒模型',scenario:'白盒场景',legacy:'历史模型'};
+const incidentSeverityLabels={1:'紧急',2:'重要',3:'次要',4:'提示'};
 let incidentExample=null,incidentExampleError='',incidentExampleLoading=false,incidentPanel=null;
 let incidentCurrentFilter='all';
+let incidentSeverityFilter=0;
 let incidentQueueRange=null;
 let incidentSearchTimer=null;
 let coverageFilter='';
@@ -19,6 +21,7 @@ function openTaskIncident(group,taskId){
  workspaceDataSource=group.entity.source_type||workspaceDataSource;
  if(cluster.value&&cluster.value!==group.entity.cluster)cluster.value='';
  $('incidentFilter').value=group.phase==='recovered'?'recovered':'all';
+ incidentSeverityFilter=0;
  $('incidentSearch').value='';
  resetIncidentTimeFilter();
  choosePage('incidents');
@@ -28,6 +31,7 @@ function openTaskIncident(group,taskId){
 }
 
 function switchIncidentQueue(archived){
+ incidentSeverityFilter=0;
  $('incidentFilter').value=archived?'history':incidentCurrentFilter;
  choosePage('incidents');
 }
@@ -68,6 +72,14 @@ function resetIncidentTimeFilter(){
 
 function bindIncidentFilters(){
  const redraw=()=>{renderIncidentQueue();roleAccess();};
+ for(const level of [1,2,3,4]){
+  $('incidentSeverity'+level).onclick=()=>{
+   incidentSeverityFilter=incidentSeverityFilter===level?0:level;
+   incidentCurrentFilter=$('incidentFilter').value='all';
+   choosePage('incidents');
+  };
+ }
+ $('incidentSeverityClear').onclick=()=>{incidentSeverityFilter=0;redraw();};
  $('incidentSearch').oninput=()=>{
   clearTimeout(incidentSearchTimer);
   if($('incidentFilter').value==='history')incidentSearchTimer=setTimeout(redraw,250);
@@ -89,6 +101,32 @@ function bindIncidentFilters(){
   redraw();
  };
  $('incidentClearTime').onclick=()=>{resetIncidentTimeFilter();redraw();};
+}
+
+function incidentSeverity(group){
+ return Object.hasOwn(incidentSeverityLabels,group.severity)?Number(group.severity):4;
+}
+
+function renderIncidentAlertBoard(groups,description){
+ const counts={1:0,2:0,3:0,4:0};
+ for(const group of groups||[])counts[incidentSeverity(group)]++;
+ $('incidentAlertScope').textContent=description;
+ $('incidentSeverityClear').hidden=!groups||!incidentSeverityFilter;
+ for(const [level,label] of Object.entries(incidentSeverityLabels)){
+  const card=$('incidentSeverity'+level);
+  const count=groups?String(counts[level]):'—';
+  $('incidentSeverityCount'+level).textContent=count;
+  card.disabled=!groups;
+  card.setAttribute('aria-pressed',String(Boolean(groups)&&incidentSeverityFilter===Number(level)));
+  card.setAttribute('aria-label',label+' '+(groups?count+' 条':'暂无统计'));
+ }
+}
+
+function incidentMatches(group,terms,range,now){
+ const device=group.entity;
+ const identity=[device.node,device.uuid,device.cluster,device.id].join(' ').toLowerCase();
+ return terms.every(term=>identity.includes(term))&&(!range||group.members.some(row=>row.start<=range.end&&
+  (row.phase==='pending'?row.start:row.end??now)>=range.start));
 }
 
 async function loadIncidentExample(){
@@ -632,7 +670,13 @@ function renderDeviceCoverage(devices,cluster){
 }
 
 function renderIncidentQueue(selectedId){
- if(!data||page!=='incidents'||replayMode||workspaceDataSource==='public')return;
+ const board=$('incidentAlertBoard');
+ board.hidden=!data||page!=='incidents'||replayMode;
+ if(board.hidden)return;
+ if(workspaceDataSource==='public'){
+  renderIncidentAlertBoard(null,'公开数据用于回放，当前来源无在线告警统计。');
+  return;
+ }
  const example=incidentExampleActive,online=example?incidentExample:data.incident_queue;
  const source=$('incidentSource'),list=$('incidentList'),detail=$('incidentDetail');
  const layout=$('incidentLayout'),filterInput=$('incidentFilter');
@@ -644,6 +688,7 @@ function renderIncidentQueue(selectedId){
  $('incidentSummary').hidden=archived;
  filterInput.hidden=archived;
  if(!online){
+  renderIncidentAlertBoard(null,incidentExampleError?'样例暂不可用。':'正在读取当前告警…');
   restoreNodeReview();
   renderDeviceCoverage(null);
   source.textContent=incidentExampleError?'样例读取失败 · '+incidentExampleError:'正在读取异常队列…';
@@ -675,22 +720,24 @@ function renderIncidentQueue(selectedId){
  const range=incidentQueueRange;
  const archive=archived?incidentHistory(cluster,query,range):null;
  const queue=archive?.queue||online;
- const groups=archive?(archive.queue?.groups||[]):all.filter(group=>{
-  const device=group.entity;
-  const identity=[device.node,device.uuid,device.cluster,device.id].join(' ').toLowerCase();
-  const inRange=!range||group.members.some(row=>row.start<=range.end&&
-   (row.phase==='pending'?row.start:row.end??queue.at)>=range.start);
-  const inPhase=filter==='all'?example||group.phase!=='recovered':filter==='held'?group.held>0:filter===group.phase;
-  return inPhase&&inRange&&terms.every(term=>identity.includes(term));
+ const matching=all.filter(group=>incidentMatches(group,terms,range,online.at));
+ const active=matching.filter(group=>group.phase!=='recovered');
+ renderIncidentAlertBoard(active,(example?'人工构造样例':workspaceSourceNames[workspaceDataSource])+
+  ' · 合并后的待处理记录，按最高级别计一次 · 待确认或未分级归入提示');
+ const groups=archive?(archive.queue?.groups||[]):matching.filter(group=>{
+  const inPhase=filter==='all'?(example&&!incidentSeverityFilter)||group.phase!=='recovered':
+   filter==='held'?group.held>0:filter===group.phase;
+  return inPhase&&(!incidentSeverityFilter||incidentSeverity(group)===incidentSeverityFilter);
  });
- const scope=JSON.stringify([workspaceDataSource,cluster,filter,query,range]);
+ const scope=JSON.stringify([workspaceDataSource,cluster,filter,query,range,incidentSeverityFilter]);
  const previous=incidentPanel?.scope===scope?incidentPanel.group:null;
  const selection=groups.find(group=>group.id===selectedId)
   ||(previous&&groups.find(group=>group.id===previous.id))
   ||(previous&&groups.find(group=>sameIncident(group,previous)))
   ||previous||(example&&groups.find(group=>group.members.length>1))||groups[0];
  const matched=groups.includes(selection);
- $('incidentCount').textContent=(archive?'近 7 天 · ':'')+groups.length+' 条记录'+(queue.truncated?' · 显示最新 200 条':'');
+ const scopeLabel=archive?'近 7 天 · ':incidentSeverityFilter?incidentSeverityLabels[incidentSeverityFilter]+' · ':'';
+ $('incidentCount').textContent=scopeLabel+groups.length+' 条记录'+(queue.truncated?' · 显示最新 200 条':'');
  const focused=document.activeElement?.dataset?.group;
  list.replaceChildren(...(groups.length?groups.map(group=>{
   const button=el('button',undefined,'incident-row');
@@ -698,13 +745,17 @@ function renderIncidentQueue(selectedId){
   button.dataset.group=group.id;
   button.setAttribute('aria-pressed',String(group===selection));
   const row=el('span',undefined,'incident-row-top');
-  row.append(badge(incidentPhaseLabels[group.phase],group.phase==='confirmed'?'red':group.phase==='recovered'?'green':''),el('small',incidentDetailText(group,queue.at)));
+  const level=incidentSeverity(group);
+  const badges=el('span',undefined,'incident-row-badges');
+  badges.append(badge(incidentPhaseLabels[group.phase],group.phase==='confirmed'?'red':group.phase==='recovered'?'green':''),
+   badge(incidentSeverityLabels[level],'incident-level-badge incident-level-'+level));
+  row.append(badges,el('small',incidentDetailText(group,queue.at)));
   const signals=group.members.length+' 条检测线索'+(group.held?' · '+group.held+' 条异常保持':'');
   button.append(row,el('strong',incidentDevice(group.entity)),el('small',dateTime(group.start)+' · '+signals));
   button.onclick=()=>{renderIncidentQueue(group.id);roleAccess();};
   return button;
  }):[el('p',archive?.error?'归档读取失败 · '+archive.error:archive?.busy?'正在读取归档…':
-  query||range?'未找到符合设备与时段的记录。':
+  incidentSeverityFilter?'当前范围没有此级别的告警。':query||range?'未找到符合设备与时段的记录。':
   archive?'近 7 天暂无已归档的恢复记录。':!enabled?'当前范围还没有启用检测。':filter==='all'?
    (scored<enabled?'暂无异常记录，部分任务暂不可评分。':'当前没有待处理异常。'):
    '当前筛选下没有匹配记录。','empty')]));

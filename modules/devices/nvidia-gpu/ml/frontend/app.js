@@ -58,6 +58,7 @@ function switchWorkspaceSource(source){
   $('incidentTimeFilter').open=false;
   resetIncidentTimeFilter();
   incidentPanel=null;
+  incidentSeverityFilter=0;
   for(const section of Object.keys(monitorPrefs)){
    clearMethodBoardFilters(section);
    methodSelection[section]=null;
@@ -1505,6 +1506,7 @@ $('workspaceSource').onchange=event=>switchWorkspaceSource(event.target.value);
 $('incidentCurrent').onclick=()=>switchIncidentQueue(false);
 $('incidentArchive').onclick=()=>switchIncidentQueue(true);
 $('incidentFilter').onchange=()=>{
+ incidentSeverityFilter=0;
  if(!incidentExampleActive&&$('incidentFilter').value!=='history')incidentCurrentFilter=$('incidentFilter').value;
  renderIncidentQueue();
  roleAccess();
