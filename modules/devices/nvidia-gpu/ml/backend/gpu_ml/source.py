@@ -38,13 +38,15 @@ class Source(PrometheusClient):
             if entity:
                 key=(entity,labels.get('source_metric'),tuple(sorted((k,v) for k,v in labels.items() if k not in ('__name__','source_metric'))))
                 time_map[key]=float(row['value'][1])
-        entities={}
+        entities={};nodes={}
         for row in values:
             labels=row['metric'];eid=self.identity(labels);name=labels.get('__name__');key=BY_NAME.get(name)
             if not eid or not key:continue
             entity=entities.setdefault(eid,{'id':eid,'cluster':eid.split('|',1)[0],'uuid':labels['UUID'],
                 'name':labels.get('modelName','unverified'),'source_type':'simulated' if labels.get('simulated')=='true' else 'real_unverified',
                 'values':{},'times':{},'quality':{},'seen_at':time.time()})
+            for label in ('Hostname','hostname','node'):
+                if labels.get(label):nodes.setdefault(eid,set()).add(labels[label])
             signature=(eid,name,tuple(sorted((k,v) for k,v in labels.items() if k not in ('__name__','source_metric'))))
             stamp=time_map.get(signature)
             value=float(row['value'][1]);spec=METRICS[key]
@@ -56,18 +58,21 @@ class Source(PrometheusClient):
             entity['quality'][key]=quality
             if quality=='valid':entity['values'][key]=value;entity['times'][key]=stamp
             else:entity['values'].pop(key,None);entity['times'].pop(key,None)
+        for eid,candidates in nodes.items():
+            if len(candidates)==1:entities[eid]['node']=next(iter(candidates))
         return entities
 
-    def history(self,entity,start,end,step=2,required=None):
+    def history_samples(self, entity, start, end, step, metrics=None):
         cluster,uid=entity.split('|',1)
         filters='UUID='+json.dumps(uid)
         if cluster!=DEFAULT_CLUSTER:filters+=',cluster_id='+json.dumps(cluster)
-        selector=SELECTOR[:-1]+','+filters+'}'
-        stamps=' or '.join('label_replace(timestamp('+v['name']+'{'+filters+'}),"source_metric","'+v['name']+'","",".*")' for v in METRICS.values())
+        names = [METRICS[key]['name'] for key in metrics] if metrics else list(BY_NAME)
+        selector = '{__name__=~' + json.dumps('|'.join(names)) + ',' + filters + '}'
+        stamps=' or '.join('label_replace(timestamp('+name+'{'+filters+'}),"source_metric","'+name+'","",".*")' for name in names)
         rows=self.query(selector+' or '+stamps,start,end,step)
         values=[r for r in rows if 'source_metric' not in r['metric']]
         stamps=[r for r in rows if 'source_metric' in r['metric']]
-        times={};data={};duplicates=set()
+        times, data, duplicates = {}, {}, {}
         for rows,is_time in [(stamps,True),(values,False)]:
             seen=set()
             for row in rows:
@@ -76,12 +81,19 @@ class Source(PrometheusClient):
                 name=labels.get('source_metric') if is_time else labels.get('__name__')
                 key=BY_NAME.get(name)
                 if key is None:continue
-                if key in seen:duplicates.add(key)
-                seen.add(key)
                 target=times if is_time else data
-                target[key]={float(t):float(v) for t,v in row['values']}
+                current=target.setdefault(key,{})
+                series={float(t):float(v) for t,v in row['values']}
+                if key in seen:
+                    duplicates.setdefault(key,set()).update(current.keys()&series.keys())
+                seen.add(key)
+                current.update(series)
+        return times, data, duplicates
+
+    def history(self,entity,start,end,step=2,required=None):
+        times, data, duplicates = self.history_samples(entity, start, end, step, required)
         required=required or list(data)
-        if set(required)&duplicates:raise ValueError('历史输入包含重复实体序列')
+        if set(required).intersection(duplicates):raise ValueError('历史输入包含重复实体序列')
         if any(k not in data or k not in times for k in required):raise ValueError('历史缺少必需指标')
         grid=sorted(set.intersection(*(set(data[k]) for k in required))) if required else []
         output={}
@@ -96,3 +108,64 @@ class Source(PrometheusClient):
                 if max(source_times)-min(source_times)<=2:
                     output[min(source_times)]={'t':min(source_times),'values':sample}
         return [output[k] for k in sorted(output)]
+
+    def rolling_history(self, entity, current, cadence, required, window):
+        if not window:
+            return [current]
+        stamp = current['t']
+        # Query just after each historical cadence boundary so a scrape arriving a
+        # few milliseconds later is not replaced by the preceding scrape.
+        phase = min(cadence / 8, .5)
+        try:
+            history = self.history(
+                entity, stamp - (window + 3) * cadence + phase, stamp - cadence + phase, cadence, required,
+            )
+        except ValueError as exc:
+            if str(exc) != '历史缺少必需指标':
+                raise
+            history = []
+        # Use the already validated current observation at its exact source time.
+        return [*history, current]
+
+    def monitor_history(self, entity, start, end, step, required, show):
+        """Keep each evaluation opportunity and each displayed metric's observations."""
+        keys = list(dict.fromkeys([*required, *show]))
+        start = math.ceil(start * 1000) / 1000
+        times, data, duplicates = self.history_samples(entity, start, end, step, keys)
+        observations, frames = {key: {} for key in show}, []
+        for index in range(int((end - start) / step) + 1):
+            evaluation = round(start + index * step, 3)
+            values, stamps, issues = {}, {}, {}
+            for key in keys:
+                value = data.get(key, {}).get(evaluation)
+                stamp = times.get(key, {}).get(evaluation)
+                spec = METRICS[key]
+                if evaluation in duplicates.get(key, ()):
+                    issues[key] = 'duplicate'
+                elif value is None or stamp is None:
+                    issues[key] = 'missing'
+                elif (not math.isfinite(value) or not spec['min'] <= value <= spec['max']
+                      or (key == 'job_running' and value not in (0, 1))):
+                    issues[key] = 'invalid'
+                elif not 0 <= evaluation - stamp <= FRESHNESS:
+                    issues[key] = 'stale'
+                else:
+                    values[key], stamps[key] = value, stamp
+            for key in show:
+                if key in stamps and start <= stamps[key] <= end:
+                    observations[key][stamps[key]] = values[key]
+            blocking = sorted({issues[key] for key in required if key in issues})
+            frame = {'t': evaluation, 'values': values}
+            if blocking:
+                frame['quality'] = ','.join(blocking)
+                frame['input_issues'] = {key: issues[key] for key in required if key in issues}
+            else:
+                selected_times = [stamps[key] for key in required]
+                if max(selected_times) - min(selected_times) > 2:
+                    frame['quality'] = 'unaligned'
+                else:
+                    frame['source_time'] = min(selected_times)
+            frames.append(frame)
+        observed = {key: [{'t': stamp, 'values': {key: value}, 'cadence_seconds': step}
+                          for stamp, value in sorted(series.items())] for key, series in observations.items()}
+        return frames, observed

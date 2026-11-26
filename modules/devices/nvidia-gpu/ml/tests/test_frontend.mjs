@@ -11,15 +11,24 @@ class Element {
  set value(value){this._value=String(value);}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value||'':'');}
  append(...children){this.children.push(...children);}
  replaceChildren(...children){this.children=[...children];if(this.tagName==='select'&&!children.some(c=>c.value===this._value))this._value=null;}
+ setAttribute(){}
  getBoundingClientRect(){return {width:800,height:300,left:0};}
  getContext(){return context2d;}
  click(){}
 }
 const document={createElement:tag=>new Element(tag),getElementById:id=>{if(!nodes.has(id)){const element=new Element(['cluster','window','taskSelect','metricSelect','feedbackTask','feedbackKind'].includes(id)?'select':'div');element.id=id;}return nodes.get(id);},querySelectorAll:()=>[]};
 document.getElementById('window').value='900';
-const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,devicePixelRatio:1,
+const sandbox={document,console,Date,Math,JSON,Number,String,Object,Array,Set,Promise,Error,encodeURIComponent,URLSearchParams,devicePixelRatio:1,
  window:{addEventListener(){}},setTimeout(){},setInterval(){},fetch:async url=>({ok:true,status:200,json:async()=>url.endsWith('/state')?fixture.state:url.includes('/series/')?fixture.series:url.endsWith('/audit')?[]:{points:fixture.series.points}})};
 vm.createContext(sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/incidents.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/comparisons.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/association.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/dcgm-view.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/monitor-view.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/xid-study.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/node-review.js',import.meta.url),'utf8'),sandbox);
+vm.runInContext(readFileSync(new URL('../frontend/rule-board.js',import.meta.url),'utf8'),sandbox);
 vm.runInContext(readFileSync(new URL('../frontend/app.js',import.meta.url),'utf8'),sandbox);
 await new Promise(resolve=>setImmediate(resolve));
 for(const name of [...(fixture.state.dcgm_scenarios?['scenarios']:[]),'overview','detection','tasks','models','events','health']){

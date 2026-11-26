@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 import tempfile
+import threading
 import time
+from types import SimpleNamespace
 import unittest
 import numpy as np
 from gpu_ml.models import GPUModel
@@ -17,6 +19,33 @@ def rows(start=0,count=900,seed=5):
 
 
 class ModelTests(unittest.TestCase):
+    def test_independent_method_does_not_replace_primary_or_write_after_pause(self):
+        from gpu_ml.engine import Engine
+        with tempfile.TemporaryDirectory() as directory:
+            engine = Engine.__new__(Engine)
+            engine.lock = threading.RLock()
+            engine.store = Store(Path(directory) / 'method.sqlite')
+            engine.load = lambda version: SimpleNamespace(cadence=2)
+            model_scope = {'entity': 'c|GPU', 'template': 'uni_gpu_temp', 'source_type': 'simulated'}
+            for key, algorithm in [('primary', 'rolling_median'), ('alternative', 'level_mad')]:
+                engine.store.put('model', key, {**model_scope, 'algorithm': algorithm, 'status': 'validated'})
+            engine.store.put('task', 'root', {'entity': 'c|GPU', 'template': 'uni_gpu_temp', 'scope': 'simulated',
+                                              'name': 'GPU 温度', 'enabled': True, 'active_model': 'primary'})
+            selected = engine.set_method_enabled('root', 'level_mad', True, 'alternative', 'operator')
+            self.assertTrue(selected['enabled'])
+            self.assertEqual(selected['notification_mode'], 'evidence')
+            self.assertEqual(engine.store.get('task', 'root')['active_model'], 'primary')
+            with self.assertRaises(ValueError):
+                engine.publish(selected['id'], 'primary', 'operator')
+            with self.assertRaises(ValueError):
+                engine.publish('root', 'alternative', 'operator')
+            engine.set_method_enabled('root', 'level_mad', False, 'alternative', 'operator')
+            engine.store.apply(selected['id'], quality='missing', task_revision=selected['revision'])
+            self.assertIsNone(engine.store.get('state', selected['id']))
+            resumed = engine.set_method_enabled('root', 'level_mad', True, 'alternative', 'operator')
+            self.assertEqual(resumed['id'], selected['id'])
+            self.assertEqual(len(engine.store.list('task')), 2)
+
     def test_gpu_anomalies_and_normal_high_load(self):
         train=rows()
         for template,signals in [('thermal',('gpu_temp','memory_temp')),('relation',('power','sm_clock')),('activity',('util',))]:
@@ -84,6 +113,35 @@ class LifecycleTests(unittest.TestCase):
 
 
 class SourceTests(unittest.TestCase):
+    def test_online_history_accepts_scrape_jitter_without_filling_missing_samples(self):
+        class Fake(Source):
+            samples = [100., 102.001, 104., 106., 106.001]
+
+            def query(self, expression, start=None, end=None, step=2):
+                name = METRICS['gpu_temp']['name']
+                labels = {'cluster_id': 'c', 'UUID': 'GPU-1'}
+                selected = []
+                for index in range(round((end-start)/step)+1):
+                    tick = round(start+index*step, 3)
+                    prior = [stamp for stamp in self.samples if stamp <= tick]
+                    if prior:
+                        selected.append((tick, prior[-1]))
+                return [
+                    {'metric': {**labels, '__name__': name}, 'values': [(tick, 60.) for tick, _ in selected]},
+                    {'metric': {**labels, 'source_metric': name}, 'values': selected},
+                ]
+
+        source = Fake()
+        current = {'t': 106., 'values': {'gpu_temp': 62.}}
+        previous = source.history('c|GPU-1', 100, 106, 2, ['gpu_temp'])
+        self.assertEqual([row['t'] for row in previous], [100., 104., 106.])
+        result = source.rolling_history('c|GPU-1', current, 2, ['gpu_temp'], 3)
+        self.assertEqual([row['t'] for row in result], [100., 102.001, 104., 106.])
+        self.assertIs(result[-1], current)
+        source.samples = [100., 104., 106.]
+        result = source.rolling_history('c|GPU-1', current, 2, ['gpu_temp'], 3)
+        self.assertEqual([row['t'] for row in result], [100., 104., 106.])
+
     def test_quality_duplicate_stale_and_mig_exclusion(self):
         now=time.time();name=METRICS['gpu_temp']['name']
         def observation(uid,val,ts,replica=None,mig=False):

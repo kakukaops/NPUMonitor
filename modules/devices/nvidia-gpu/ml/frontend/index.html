@@ -1,18 +1,530 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPU 监控 · 机器学习</title><link rel="stylesheet" href="/assets/style.css"></head>
-<body><aside class="sidebar"><div class="brand"><span class="brand-icon">G</span><div>GPU 监控<small>ML OBSERVATORY</small></div></div><div class="nav-label">监控工作台</div><nav><button class="nav active" data-page="baseline">⌁ 动态基线</button><button class="nav" data-page="scenarios">◇ DCGM 场景</button><button class="nav" data-page="overview">◈ GPU 总览</button><button class="nav" data-page="detection">⌁ 在线检测</button><button class="nav" data-page="tasks">⊞ 智能任务</button><button class="nav" data-page="models">▧ 基线与训练</button><button class="nav" data-page="events">◎ 事件与反馈</button><button class="nav" data-page="health">◷ 平台与审计</button></nav><div class="sidebar-bottom"><span class="led"></span> 夜莺 + 既有 Prometheus<br><small>单指标 / 多指标 · 夜莺告警处理</small></div></aside>
-<div class="main"><header><div><span class="breadcrumb">监控 / </span><strong id="pageName">单指标动态基线</strong></div><div class="header-actions"><span id="connection" class="muted">等待连接</span><span class="badge" id="role">未登录</span><button id="logout" class="text-button">退出</button></div></header>
-<main><div class="title-row"><div><span class="eyebrow">GPU MACHINE LEARNING</span><h1 id="title">单指标动态基线</h1><p id="subtitle">首批5项指标 · 选择模型（已训练基线），或重新学习历史基线。</p></div><div class="controls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">↻ 刷新</button></div></div>
-<div id="error" class="notice error" hidden role="alert"></div><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
-<div class="stats"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>正在监测的任务</span><strong id="countTasks">—</strong><small>独立版本与有效输入</small></div><div class="stat"><span>已确认 ML 异常</span><strong id="countAlerts">—</strong><small>持久保持 · 有效证据恢复</small></div><div class="stat"><span>输入未知 / 不可评估</span><strong id="countUnknown">—</strong><small>缺数不代表健康</small></div></div>
-<section id="page-baseline" class="page"><div class="panel"><div class="panel-heading"><div><h2>首批5项指标 · 动态基线曲线</h2><p class="muted">GPU/HBM温度、实际功耗、GPU利用率、显存控制器活动。每张GPU、每个指标独立训练。下方直接展示实际曲线与动态参考，可放大查看异常详情。</p></div><button id="prepareBaseline" class="primary write">准备模拟演示基线</button></div><p class="hint">模拟演示先生成明确标记的1小时正常参考数据，经独立模型平台训练，完成后手动“选择模型（已训练基线）”启用。它不是Prometheus已采集的历史，也不会填入在线曲线。实际在线观测仍来自Prometheus。</p><div class="controls"><label>演示GPU <select id="baselineEntity" aria-label="动态基线GPU"></select></label><label>指标 <select id="baselineMetric" aria-label="选择模型的指标"></select></label><button id="baselineChooseModel" class="primary write">选择模型（已训练基线）</button><button id="importRemoteModel" class="write">登记远程已有模型</button><button id="baselineTrainModel" class="write">重新学习历史基线</button><button id="createBaseline" class="write">配置首批5项（不训练）</button></div><p class="caption">两种路径：①选择模型（已训练基线）：查看设备、来源与验证结果后启用；②重新学习历史基线：选择可信历史，使用默认方法生成新版本，再查看结果启用。高低变化只代表行为偏离，不等于硬件故障。</p></div><div id="baselineCards" class="gpu-grid"></div></section>
-<section id="page-scenarios" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>让 ML 检测 DCGM 中的关系与长期变化</h2><p class="muted">当前只有 DCGM 指标。无作业、吞吐、环境温度或变更信息，不推断卡坏或剩余寿命。</p></div><button id="newScenario" class="primary write">＋ 按场景配置</button></div><p>新场景默认仅记录证据；需管理员登记依据、负责人和处置动作后才能允许夜莺通知。生产参考历史与加速模拟实验严格分开。</p></div><div id="scenarioCards" class="gpu-grid"></div><div class="panel"><h2>当前不覆盖</h2><div id="scenarioUnavailable"></div></div></section>
-<section id="page-overview" class="page" hidden><div class="section-heading"><h2>GPU 设备</h2><span class="muted">点击设备查看同源曲线与检测结果</span></div><div id="gpuCards" class="gpu-grid"></div><div class="panel"><h2>监控覆盖与边界</h2><div class="coverage"><div><b>单指标时序</b><p>按GPU与指标维护独立检测配置，批量创建并训练。</p></div><div><b>机器学习</b><p>可选多指标联合行为检测，学习所选指标组的正常分布。</p></div><div><b>数据质量</b><p>唯一性、源时间、字段有效性与缺失分别检查。</p></div></div></div></section>
-<section id="page-detection" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>GPU 时序与检测</h2><div class="controls"><button id="detectChoose" class="write">选择模型（已训练基线）</button><button id="detectTrain" class="write">重新学习历史基线</button><button id="detectRuntime" class="write">运行参数</button></div><p class="muted" id="entityInfo"></p></div><div class="controls"><select id="taskSelect" aria-label="检测任务"></select><select id="metricSelect" aria-label="展示指标"></select></div></div><div class="legend"><span><i class="blue"></i>实际观测</span><span id="referenceLegend"><i class="gray"></i><span id="referenceLabel">模型参考</span></span><span id="bandLegend"><i class="band"></i>残差参考带（适用时）</span><span><i class="red"></i>模型异常点</span></div><div class="chart"><canvas id="metricChart" role="img" aria-label="GPU原始曲线、模型预期和异常点"></canvas><div class="tooltip" id="chartTip" hidden></div></div><div class="caption" id="chartCaption">展示已持久化的在线模型版本结果，缺口断线；参考范围不是故障概率。</div></div><div class="split"><div class="panel"><div class="panel-heading"><h2>异常分数</h2><span class="badge" id="scoreBadge">—</span></div><div class="chart score-chart"><canvas id="scoreChart" role="img" aria-label="异常分数和阈值"></canvas></div></div><div class="panel"><h2>当前检测证据</h2><dl id="evidence"></dl></div></div><div id="simulationPanel" class="panel" hidden><div class="panel-heading"><div><h2>GPU 模拟故障注入（仅实验）</h2><p class="muted">只影响当前选中的模拟 GPU，尖峰类90秒后结束；加速退化与缺数需手动恢复正常。</p></div><span class="badge">SIMULATED</span></div><div id="scenarioButtons" class="scenario-buttons"></div></div></section>
-<section id="page-tasks" class="page" hidden><div class="panel"><div class="panel-heading"><h2>智能检测任务</h2><button class="primary write" id="newTask">配置单指标 / 多指标</button></div><div class="table-scroll"><table><thead><tr><th>任务 / GPU</th><th>模板</th><th>状态</th><th>模型版本</th><th>操作</th></tr></thead><tbody id="taskRows"></tbody></table></div></div></section>
-<section id="page-models" class="page" hidden><div class="panel"><div class="panel-heading"><div><h2>模型服务连接</h2><p class="muted">本地文件、本机参考服务和用户登记的远程服务分别标识。远程模型可以直接登记，无需先在本系统训练。公司原生接口需标准协议桥接。</p></div><button id="addModelService" class="primary admin">接入远程模型服务</button></div><div id="modelServiceList"></div></div><div class="panel"><div class="panel-heading"><div><h2>已训练的基线</h2><p class="muted">这里保存此前训练的结果。按设备、指标、来源和时间识别版本；模拟参考与实际采集历史分别标记，内部ID收在详情中。</p></div></div><div class="table-scroll"><table><thead><tr><th>基线版本 / 设备 / 状态</th><th>检测方法</th><th>训练来源 / 历史范围</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div></div><div class="panel"><h2>训练与回放作业</h2><div class="table-scroll"><table><thead><tr><th>作业</th><th>任务</th><th>状态</th><th>结果 / 原因</th><th>操作</th></tr></thead><tbody id="jobRows"></tbody></table></div></div><div class="panel" id="replayPanel" hidden><h2>离线回放 · 与在线事件隔离</h2><div class="chart"><canvas id="replayChart" aria-label="历史回放曲线"></canvas></div><p id="replaySummary" class="caption"></p></div></section>
-<section id="page-events" class="page" hidden><div class="panel"><div class="panel-heading"><h2>夜莺活动告警</h2><span class="badge" id="n9eStatus">未对接</span></div><div id="n9eEvents"></div><p class="caption">本地检测状态不等同已通知；仅展示夜莺实际返回的事件。</p></div><div class="panel"><h2>人工反馈</h2><p class="muted">选择任务后针对当前时间范围记录真实故障、正常变化或采集问题；反馈不会自动触发重训练。</p><div class="controls feedback-form"><select id="feedbackTask"></select><select id="feedbackKind"><option value="fault">真实异常</option><option value="normal_change">正常负载变化</option><option value="collection_problem">采集问题</option><option value="unconfirmed">尚未确认</option></select><input id="feedbackNote" placeholder="记录观察证据与处理结论" maxlength="2000"><button id="feedbackSave" class="primary write">保存反馈</button></div><div id="feedbackList"></div></div></section>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="brand"><span class="brand-icon" aria-hidden="true"></span><div>NPUMonitor<small>GPU 监控</small></div></div>
+    <button type="button" id="workspaceNavToggle" aria-expanded="false" aria-controls="workspaceNav">全部功能</button>
+  </div>
+  <nav class="workspace-nav" id="workspaceNav" aria-label="工作台">
+    <div class="nav-group" role="group" aria-label="值班">
+      <div class="nav-label">值班</div>
+      <button class="nav active" id="replayNav" data-page="incidents" aria-current="page"><span aria-hidden="true">◫</span>异常队列</button>
+      <button class="nav" data-page="baseline"><span aria-hidden="true">⌁</span>单指标趋势</button>
+      <button class="nav" data-page="scenarios"><span aria-hidden="true">◇</span>多指标关联预警</button>
+      <button class="nav" data-page="rules"><span aria-hidden="true">▣</span>规则预警</button>
+      <button class="nav" data-page="overview"><span aria-hidden="true">◈</span>GPU 设备</button>
+      <button class="nav nav-subentry" id="detectionShortcut" data-page="detection"><span aria-hidden="true">↳</span>监测详情</button>
+      <button class="nav" data-page="events"><span aria-hidden="true">◎</span>通知与复核</button>
+    </div>
+    <div class="nav-group" role="group" aria-label="配置">
+      <div class="nav-label">配置</div>
+      <button class="nav" data-page="tasks"><span aria-hidden="true">⊞</span>检测任务</button>
+      <button class="nav" data-page="models"><span aria-hidden="true">▧</span>模型库</button>
+      <button class="nav" data-page="health"><span aria-hidden="true">◷</span>系统状态</button>
+    </div>
+    <div class="nav-group" role="group" aria-label="参考">
+      <div class="nav-label">参考</div>
+      <a class="nav preview-link" href="/methods"><span aria-hidden="true">↗</span>方法与评测</a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">Prometheus <span>·</span> 夜莺</div>
+</aside>
+<div class="main"><header class="workspace-header"><div><span class="breadcrumb" id="pageTrail">监控 / </span><strong id="pageName">异常队列</strong></div><div class="header-actions"><span class="badge environment" id="sourceMode" hidden>模拟环境</span><span id="connection" class="muted">等待连接</span><span class="badge" id="role">未登录</span><button id="logout" class="text-button">退出</button></div></header>
+<main><div class="title-row"><div><h1 id="title">异常队列</h1><p id="subtitle">查看当前异常，打开记录复核。</p></div><div class="title-tools">
+<label class="source-picker" id="workspaceSourceControl">数据来源 <select id="workspaceSource" aria-label="数据来源">
+  <option value="simulated">模拟采集</option><option value="synthetic">人工构造</option>
+  <option value="real_unverified">真实采集</option><option value="public">公开数据</option>
+</select></label>
+<div class="controls" id="liveControls"><select id="cluster" aria-label="集群"></select><select id="window" aria-label="时间范围"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select><button id="refresh">刷新</button></div><div id="replaySwitch" class="sample-tools" hidden>
+  <button type="button" id="liveMode" hidden>返回值班样例</button>
+  <button type="button" id="replayMode">曲线样例</button>
+</div></div></div>
+<p class="notice" id="workspaceSourceNotice" hidden></p>
+<section id="incidentAlertBoard" class="incident-alert-board" aria-labelledby="incidentAlertHeading" hidden>
+  <div class="incident-alert-head">
+    <div><h2 id="incidentAlertHeading">告警看板</h2><p id="incidentAlertScope"></p></div>
+    <button type="button" id="incidentSeverityClear" class="text-button" hidden>清除级别筛选</button>
+  </div>
+  <div class="incident-alert-grid" role="group" aria-label="按告警级别筛选">
+    <button type="button" id="incidentSeverity1" class="incident-alert-card incident-level-1" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">!</span>紧急</span>
+      <strong id="incidentSeverityCount1">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity2" class="incident-alert-card incident-level-2" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">↑</span>重要</span>
+      <strong id="incidentSeverityCount2">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity3" class="incident-alert-card incident-level-3" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">−</span>次要</span>
+      <strong id="incidentSeverityCount3">—</strong>
+    </button>
+    <button type="button" id="incidentSeverity4" class="incident-alert-card incident-level-4" aria-pressed="false">
+      <span class="incident-alert-label"><span class="incident-alert-mark" aria-hidden="true">i</span>提示</span>
+      <strong id="incidentSeverityCount4">—</strong>
+    </button>
+  </div>
+</section>
+<div class="controls dcgm-workspace-switch" id="dcgmWorkspaceSwitch" role="group" aria-label="模拟采集监测视图" hidden>
+  <button type="button" id="dcgmWorkspaceCard" aria-pressed="true">GPU 卡级任务</button>
+  <button type="button" id="dcgmWorkspaceBench" aria-pressed="false">DCGM 方法看板</button>
+</div>
+<section class="panel monitoring-panel" id="publicMethodBoard" aria-labelledby="publicMethodHeading" hidden>
+  <div class="panel-heading">
+    <div><h2 id="publicMethodHeading">方法监测看板</h2><p id="publicMethodSummary"></p></div>
+    <div class="controls" id="dcgmScope">
+      <label>节点 <select id="dcgmNode"></select></label>
+      <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
+      <label id="dcgmGpuControl">GPU <select id="dcgmGpu"></select></label>
+    </div>
+  </div>
+  <div class="controls monitoring-inputs board-filters" id="publicMethodFilters">
+    <label>搜索 <input type="search" id="publicTargetSearch" aria-label="搜索公开数据指标" placeholder="指标名或 DCGM 字段"></label>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="publicTargetHeading">
+      <h3 id="publicTargetHeading">指标</h3>
+      <ul class="method-targets" id="publicTargets"></ul>
+    </section>
+    <section aria-labelledby="publicMethodsHeading">
+      <h3 id="publicMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="DCGM 检测方法">
+        <table class="association-table method-board">
+          <thead><tr><th>方法</th><th>范围与训练</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="publicMethodRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div id="dcgmLibrarySelection" class="notice" hidden></div>
+  <p class="caption" id="dcgmMethodStatus" role="status"></p>
+</section>
+<section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
+  <div class="panel-heading">
+    <div><h2 id="publicDataName">GWDG v2 · 节点 XID 检测</h2><p id="publicDataContext"></p></div>
+  </div>
+  <div class="controls" id="publicDataActions" hidden>
+    <button type="button" id="publicTrend">看单指标趋势</button>
+    <button type="button" id="publicAssociation">看多指标关联</button>
+  </div>
+  <div id="dcgmExamples" class="dcgm-examples" hidden>
+    <label>回放示例 <select id="dcgmExample" aria-label="公开数据回放示例"></select></label>
+    <p id="dcgmExampleNote" class="caption" aria-live="polite"></p>
+    <div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级实验方法 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级实验方法 ↗</a></div>
+  </div>
+  <a class="panel-link xid-study-link" href="/?source=public#association-compare">查看同卡 XID 预警评测 ↗</a>
+  <div class="controls" id="dcgmTimeControl" hidden>
+    <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
+      <button type="button" id="dcgmPrevious" aria-label="上一窗口" title="上一窗口" disabled>‹</button>
+      <output id="dcgmWindowRange" aria-live="polite"></output>
+      <button type="button" id="dcgmNext" aria-label="下一窗口" title="下一窗口" disabled>›</button>
+    </div>
+    <button type="button" id="dcgmRefresh">重新运行检测</button>
+    <button type="button" id="dcgmReviewSelected">联合复核所选时刻</button>
+  </div>
+  <p class="caption" id="publicDataRange" role="status"></p>
+  <div id="dcgmResults" hidden>
+    <div class="legend dcgm-legend">
+      <span><i class="dcgm-band xid"></i>实际 XID</span>
+      <span><i class="dcgm-band alarm"></i>算法报警</span>
+      <span><i class="dcgm-dot gap"></i>当前无有效监测数据</span>
+      <span><i class="dcgm-dot unknown"></i>XID 未知</span>
+    </div>
+    <canvas id="dcgmEvents" role="img" tabindex="0" aria-label="节点实际 XID、算法报警和数据缺失时间轴，按左右方向键选择时刻"></canvas>
+    <p id="dcgmPoint" class="caption" aria-live="polite"></p>
+    <div id="dcgmSummary" aria-label="当前时刻各算法的检测结果" hidden></div>
+    <div id="publicInputCharts" class="dcgm-charts"></div>
+    <div class="monitor-input-card" id="dcgmScoreBox" hidden>
+      <h3>异常分数与阈值</h3>
+      <div class="legend"><span><i class="public-score-line"></i>异常分数</span><span><i class="red"></i>阈值</span></div>
+      <canvas id="dcgmScore" role="img" aria-label="异常分数与阈值"></canvas>
+    </div>
+  </div>
+</section>
+<div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>
+<div class="stats" aria-label="当前集群概况"><div class="stat"><span>已发现 GPU</span><strong id="countGPU">—</strong><small>按集群 + UUID 识别</small></div><div class="stat"><span>已启用检测的任务</span><strong id="countTasks">—</strong><small>已启用任务和模型</small></div><div class="stat"><span>持续异常任务</span><strong id="countAlerts">—</strong><small>尚未收到恢复证据</small></div><div class="stat"><span>启用后暂不可评估</span><strong id="countUnknown">—</strong><small>暂无有效在线评分</small></div></div>
+</div>
+<section id="page-incidents" class="page">
+  <div id="nodeReviewHome">
+    <details class="panel node-review" id="nodeReviewPanel">
+      <summary>节点联合复核</summary>
+      <a class="panel-link" href="/assets/dcgm-method-guide.html#workflow">节点联合复核方法说明 ↗</a>
+      <div class="controls node-review-controls">
+        <label>范围 <select id="nodeReviewTarget" aria-label="复核节点或采集区间"></select></label>
+        <label id="nodeReviewScenarioLabel" hidden>场景 <select id="nodeReviewScenario"><option value="normal">正常</option><option value="drift">温度漂移</option><option value="relation">功耗与时钟偏离</option><option value="gap">采集中断</option></select></label>
+        <label>时刻 <input id="nodeReviewTime" type="datetime-local" step="1"></label>
+        <button id="nodeReviewRun" type="button">运行复核</button>
+      </div>
+      <p id="nodeReviewStatus" class="caption" role="status"></p>
+      <div id="nodeReviewResult" hidden>
+        <div id="nodeReviewEvidence" class="node-review-evidence"></div>
+        <div class="controls">
+          <label>GPU <select id="nodeReviewCard" aria-label="复核 GPU"></select></label>
+          <label>指标 <select id="nodeReviewMetric" aria-label="复核指标"></select></label>
+        </div>
+        <p id="nodeReviewTrend" class="caption" role="status"></p>
+        <p id="nodeReviewConditionDetail" class="caption" hidden></p>
+        <div class="legend node-review-legend">
+          <span><i class="blue"></i>分钟观测</span>
+          <span><i class="node-review-band"></i>校准预测区间</span>
+          <span><i class="red"></i>连续偏离</span>
+        </div>
+        <canvas id="nodeReviewCurve" role="img" aria-label="GPU 分钟观测与预测区间"></canvas>
+      </div>
+    </details>
+  </div>
+  <div id="legacyIncidentContent">
+  <div class="notice" id="incidentSource" role="status">正在读取异常…</div>
+  <details class="panel coverage-panel" id="incidentCoverage" hidden>
+    <summary><span>检测覆盖</span><small id="coverageSummary"></small></summary>
+    <div class="coverage-buttons" id="coverageButtons"></div>
+    <div class="coverage-details" id="coverageDetails" hidden></div>
+  </details>
+  <div class="incident-summary stats" id="incidentSummary" aria-label="当前异常汇总">
+    <div class="stat"><span>已确认异常</span><strong id="incidentConfirmed">—</strong></div>
+    <div class="stat"><span>待确认</span><strong id="incidentPending">—</strong></div>
+    <div class="stat" title="采集或评分中断时，保留此前已确认的异常"><span>异常保持</span><strong id="incidentHeld">—</strong></div>
+    <div class="stat"><span>最近恢复</span><strong id="incidentRecovered">—</strong></div>
+  </div>
+  <div class="incident-layout" id="incidentLayout">
+    <section class="panel incident-queue">
+      <div class="queue-switch" id="incidentViews" role="group" aria-label="异常记录范围">
+        <button type="button" id="incidentCurrent" aria-pressed="true">当前异常</button>
+        <button type="button" id="incidentArchive" aria-pressed="false">恢复归档</button>
+      </div>
+      <div class="panel-heading queue-heading"><p id="incidentCount"></p>
+        <select id="incidentFilter" aria-label="筛选异常状态">
+          <option value="all">全部异常</option>
+          <option value="confirmed">已确认异常</option>
+          <option value="pending">待确认</option>
+          <option value="held">异常保持</option>
+          <option value="recovered">最近恢复</option>
+          <option value="history" hidden>恢复归档</option>
+        </select>
+      </div>
+      <div class="incident-filters">
+        <label>设备 <input type="search" id="incidentSearch" maxlength="200" placeholder="节点名或 GPU UUID"></label>
+        <div class="incident-time-controls">
+          <details id="incidentTimeFilter">
+            <summary id="incidentTimeLabel">按时段查找</summary>
+            <form id="incidentTimeForm">
+              <label>开始 <input type="datetime-local" id="incidentFrom" step="1" required></label>
+              <label>结束 <input type="datetime-local" id="incidentTo" step="1" required></label>
+              <button type="submit">应用时段</button>
+              <p class="caption error-text" id="incidentTimeError" role="status"></p>
+            </form>
+          </details>
+          <button type="button" class="text-button" id="incidentClearTime" hidden>清除时段</button>
+        </div>
+      </div>
+      <div id="incidentList" class="incident-list"></div>
+    </section>
+    <section class="panel incident-detail" id="incidentDetail" aria-label="所选设备及其检测证据"></section>
+  </div>
+  <p class="caption incident-scope">同一张 GPU 的重叠时段合为一条记录。恢复归档保留近 7 天。</p>
+  </div>
+</section>
+<section id="page-replay" class="page" hidden>
+<gpu-replay-panel id="integratedReplay"><p class="notice">正在读取曲线样例…</p></gpu-replay-panel>
+<p class="replay-standalone"><a id="srePreviewLink" class="panel-link" href="/sre">独立打开曲线样例 ↗</a></p>
+</section>
+<section id="page-baseline" class="page" hidden>
+<div class="panel monitoring-panel">
+  <div class="panel-heading">
+    <div><h2>方法监测看板</h2><p id="baselineMethodSummary"></p></div>
+    <div class="controls monitoring-inputs">
+      <label>GPU <select id="baselineEntity" aria-label="单指标 GPU"></select></label>
+    </div>
+  </div>
+  <div class="controls monitoring-inputs board-filters">
+    <label>搜索 <input type="search" id="baselineTargetSearch" aria-label="搜索单指标" placeholder="指标名或 DCGM 字段"></label>
+    <label>方法 <select id="baselineAlgorithmFilter" aria-label="筛选单指标方法"></select></label>
+    <label>状态 <select id="baselineStatusFilter" aria-label="筛选单指标状态">
+      <option value="">全部状态</option><option value="anomaly">有异常</option><option value="enabled">已启用</option>
+      <option value="paused">已暂停</option><option value="ready">待启用</option><option value="untrained">尚无可用版本</option>
+    </select></label>
+    <button type="button" id="baselineClearFilters" hidden>清除筛选</button>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="baselineTargetHeading">
+      <h3 id="baselineTargetHeading">指标</h3>
+      <ul class="method-targets" id="baselineTargets"></ul>
+    </section>
+    <section aria-labelledby="baselineMethodsHeading">
+      <h3 id="baselineMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="检测方法列表"><table class="association-table method-board">
+        <thead><tr><th>方法</th><th id="baselineRuntimeHeading">运行状态</th><th>检测结果</th><th>通知配置</th><th>操作</th></tr></thead>
+        <tbody id="baselineMethodRows"></tbody>
+      </table></div>
+    </section>
+  </div>
+  <details class="monitor-tools" id="baselineTools">
+    <summary>批量配置与模型导入</summary>
+    <div class="controls">
+      <button id="baselineChooseModel" class="write">切换模型</button>
+      <button id="baselineTrainModel" class="write">训练模型</button>
+      <button id="importRemoteModel" class="write">导入模型</button>
+      <button id="createBaseline" class="write">批量添加 5 项指标</button>
+      <button id="prepareBaseline" class="write">训练样例模型</button>
+    </div>
+
+  </details>
+</div>
+<section id="baselineMethodSelection" class="panel" hidden></section>
+<div class="panel" id="baselineLiveSelection">
+  <div class="panel-heading"><h2>所选方法</h2></div>
+  <div id="baselineStatus" class="monitor-focus" aria-live="off"></div>
+</div>
+<div id="baselineMonitorSlot">
+  <section class="panel monitor-view" id="monitorView" aria-labelledby="monitorViewTitle">
+    <div class="panel-heading">
+      <div><h2 id="monitorViewTitle">曲线与评分</h2><p id="monitorViewIdentity"></p></div>
+      <button type="button" id="monitorRefresh">刷新曲线</button>
+    </div>
+    <div class="controls monitoring-inputs monitor-view-controls">
+      <label id="monitorMetricControl" hidden>显示指标 <select id="monitorMetric" aria-label="关联曲线指标"></select></label>
+      <label id="monitorModeControl">查看方式 <select id="monitorMode" aria-label="查看方式"><option value="online">实时</option><option value="replay">历史回放</option></select></label>
+      <label id="monitorSpanControl">时长 <select id="monitorSpan" aria-label="监测时间范围">
+        <option value="300">5 分钟</option><option value="900" selected>15 分钟</option><option value="1800">30 分钟</option><option value="3600">1 小时</option>
+      </select></label>
+      <button type="button" id="monitorDatesToggle" aria-expanded="false" hidden>指定时段</button>
+      <button type="button" id="monitorUseRecent" hidden>改用最近时段</button>
+      <label id="monitorScenarioControl" hidden>样例 <select id="monitorScenario" aria-label="内置样例场景">
+        <option value="normal">正常波动</option><option value="drift">所选指标偏移</option><option value="relation">功耗与时钟失配</option><option value="gap">采集缺口</option>
+      </select></label>
+    </div>
+    <form class="controls monitor-dates" id="monitorDates" hidden>
+      <label>开始 <input type="datetime-local" id="monitorFrom" step="1" required></label>
+      <label>结束 <input type="datetime-local" id="monitorTo" step="1" required></label>
+      <button type="submit">应用时段</button>
+      <span id="monitorDateError" class="error-text" role="status"></span>
+    </form>
+    <p class="caption monitor-view-note" id="monitorViewStatus" role="status">等待任务和数据</p>
+    <div class="legend" id="monitorViewLegend"></div>
+    <div class="chart monitor-view-chart" id="monitorValueBox" hidden><canvas id="monitorValueChart" role="img" aria-label="观测与模型参考"></canvas><div class="tooltip" id="monitorViewTip" hidden></div></div>
+    <div class="chart score-chart monitor-view-score" id="monitorScoreBox" hidden><canvas id="monitorScoreChart" role="img" aria-label="分数与阈值"></canvas></div>
+    <div class="monitor-view-evidence" id="monitorViewEvidence"></div>
+    <details id="associationEvidence" class="association-evidence" hidden><summary id="associationEvidenceTitle">评分依据</summary><div id="associationEvidenceBody"></div></details>
+    <details id="xidMonitorPreview" class="association-evidence" hidden>
+      <summary>查看 XID 候选分数</summary>
+      <p class="caption" id="xidMonitorNote"></p>
+      <div class="chart monitor-view-score" id="xidMonitorPlot"><canvas id="xidMonitorChart" role="img" aria-label="所选条件关系与利用率波动的候选分数"></canvas></div>
+      <a class="panel-link" href="/#association-compare">同卡 XID 预警评测 ↗</a>
+    </details>
+    <div class="monitor-input-charts" id="monitorInputCharts" aria-label="按同一时间轴展示全部输入指标" hidden></div>
+  </section>
+</div>
+<section class="panel comparison-panel" id="baselineComparison" aria-label="单指标同源比较" hidden></section>
+<details class="panel metric-archive" id="baselineArchive"><summary>全部指标快捷视图</summary><div id="baselineCards" class="gpu-grid"></div></details>
+<details class="panel">
+  <summary>单指标方法说明</summary>
+  <div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级趋势与提前预警 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级异常检测 ↗</a></div>
+  <div class="model-routes trend-routes">
+    <div><strong>滞后回归</strong><p>学习历史连续观测，检测预测残差和水平偏移。</p></div>
+    <div><strong>滚动中位数预测</strong><p>用前 5 个连续采样点预测当前点，检查残差。</p></div>
+    <div><strong>历史水平偏离</strong><p>对比训练期正常水平，输出异常分数。</p></div>
+  </div>
+</details>
+</section>
+<section id="page-scenarios" class="page" hidden>
+<div class="panel monitoring-panel" id="associationTasks">
+  <div class="panel-heading">
+    <div><h2>方法监测看板</h2><p id="associationSummary"></p><div class="detail-path"><a class="panel-link" href="/assets/dcgm-method-guide.html#card-methods">卡级关联与提前预警 ↗</a><a class="panel-link" href="/assets/dcgm-method-guide.html#node-experiment">节点级异常检测 ↗</a></div></div>
+    <div class="controls monitoring-inputs">
+      <label>GPU <select id="associationEntity" aria-label="关联监测 GPU"></select></label>
+      <label>类型 <select id="associationKind" aria-label="关联任务类型">
+        <option value="all">全部类型</option>
+        <option value="white">白盒场景</option>
+        <option value="black">黑盒模型</option>
+      </select></label>
+      <button id="newAssociation" class="write" type="button">新建关联任务</button>
+    </div>
+  </div>
+  <div class="controls monitoring-inputs board-filters">
+    <label>搜索 <input type="search" id="associationTargetSearch" aria-label="搜索关联指标组" placeholder="指标名、DCGM 字段或 GPU UUID"></label>
+    <label>方法 <select id="associationAlgorithmFilter" aria-label="筛选多指标方法"></select></label>
+    <label>状态 <select id="associationStatusFilter" aria-label="筛选多指标状态">
+      <option value="">全部状态</option><option value="anomaly">有异常</option><option value="enabled">已启用</option>
+      <option value="paused">已暂停</option><option value="ready">待启用</option><option value="untrained">尚无可用版本</option>
+    </select></label>
+    <button type="button" id="associationClearFilters" hidden>清除筛选</button>
+  </div>
+  <div class="method-board-layout">
+    <section aria-labelledby="associationTargetHeading">
+      <h3 id="associationTargetHeading">指标组</h3>
+      <ul class="method-targets" id="associationTargets"></ul>
+    </section>
+    <section aria-labelledby="associationMethodsHeading">
+      <h3 id="associationMethodsHeading">检测方法</h3>
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="关联检测方法列表"><table class="association-table method-board">
+        <thead><tr><th>方法</th><th id="associationRuntimeHeading">运行状态</th><th>检测结果与输入</th><th>通知配置</th><th>操作</th></tr></thead>
+        <tbody id="associationRows"></tbody>
+      </table></div>
+    </section>
+  </div>
+</div>
+<section id="associationMethodSelection" class="panel" hidden></section>
+<div class="panel monitor-focus association-selection" id="associationStatus" hidden></div>
+<div id="associationMonitorSlot"></div>
+</section>
+<section id="page-rules" class="page" hidden>
+  <section class="panel monitoring-panel" aria-labelledby="ruleBoardHeading">
+    <div class="panel-heading">
+      <div><h2 id="ruleBoardHeading">规则监测看板</h2><p id="ruleBoardStatus" role="status"></p></div>
+      <div class="controls monitoring-inputs">
+        <label>对象 <select id="ruleBoardEntity" aria-label="规则监测对象"></select></label>
+        <button type="button" id="ruleBoardExamples" hidden>看回放样例</button>
+      </div>
+    </div>
+    <div class="controls monitoring-inputs board-filters">
+      <label>搜索 <input type="search" id="ruleBoardSearch" placeholder="规则名、编号或指标"></label>
+      <label>级别 <select id="ruleBoardSeverity"><option value="">全部级别</option><option value="1">紧急</option><option value="2">重要</option><option value="3">次要</option></select></label>
+      <label>状态 <select id="ruleBoardState">
+        <option value="">全部状态</option><option value="active">有告警</option><option value="enabled">已启用</option>
+        <option value="paused">已暂停</option><option value="catalog">规则目录</option><option value="blocked">输入受限</option>
+        <option value="example">可回放</option>
+      </select></label>
+      <button type="button" id="ruleBoardClear" hidden>清除筛选</button>
+    </div>
+    <div class="method-board-layout">
+      <section aria-labelledby="ruleBoardCategoriesHeading">
+        <h3 id="ruleBoardCategoriesHeading">规则类别</h3>
+        <ul class="method-targets" id="ruleBoardCategories"></ul>
+      </section>
+      <section aria-labelledby="ruleBoardListHeading">
+        <h3 id="ruleBoardListHeading">规则列表</h3>
+        <div class="table-scroll method-board-wrap" tabindex="0" aria-label="规则预警列表">
+          <table class="association-table method-board">
+            <thead><tr><th>规则</th><th>运行状态</th><th>判定输入</th><th>告警级别</th><th>操作</th></tr></thead>
+            <tbody id="ruleBoardRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section class="panel monitor-view" id="ruleBoardDetail" aria-labelledby="ruleBoardTitle" hidden>
+    <div class="panel-heading"><div><h2 id="ruleBoardTitle"></h2><p id="ruleBoardContext"></p></div></div>
+    <div class="rule-board-evidence" id="ruleBoardEvidence"></div>
+    <p id="ruleBoardCriterion" class="monitor-focus" hidden></p>
+    <h3>输入曲线</h3>
+    <p class="caption" id="ruleBoardCurveStatus" role="status"></p>
+    <div class="legend" id="ruleBoardLegend" hidden></div>
+    <div class="monitor-input-charts" id="ruleBoardInputs"></div>
+    <h3>当前与最近结束事件</h3>
+    <div id="ruleBoardEvents"></div>
+    <details id="ruleBoardPromql" class="rule-board-expression" hidden>
+      <summary>查看目录判定表达式</summary><pre id="ruleBoardExpression"></pre>
+    </details>
+  </section>
+</section>
+<section id="page-study" class="page" hidden>
+  <div class="detail-path"><a class="panel-link" href="/methods">← 返回方法与评测</a><a class="panel-link" id="associationReplayLink" href="/#joint-replay" hidden>用工作台模型回放模拟数据</a></div>
+  <section class="panel" id="xidStudy" aria-labelledby="xidStudyTitle">
+    <div class="panel-heading">
+      <div><h2 id="xidStudyTitle">同卡 XID 提前预警</h2><p id="xidStudyScope">正在读取公开数据评测…</p></div>
+      <div class="controls monitoring-inputs xid-study-controls">
+        <label>验证 <select id="xidValidation"><option value="held_out_node">节点留出</option><option value="later_half">时间与节点留出</option></select></label>
+        <label>预算 <select id="xidBudget"><option value="50">约 50 条</option><option value="75">约 75 条</option><option value="100" selected>约 100 条</option></select></label>
+      </div>
+    </div>
+    <div class="table-scroll" tabindex="0" aria-label="两小时 XID 评测结果"><table>
+      <thead><tr><th>方法</th><th>实际告警数</th><th>事件召回</th><th>观察到后续 XID</th><th>后续不可判定</th><th>提前量中位数</th></tr></thead>
+      <tbody id="xidStudyRows"></tbody>
+    </table></div>
+    <p class="caption" id="xidStudyNote"></p>
+    <a class="panel-link xid-study-link" href="https://doi.org/10.5281/zenodo.21932615">GWDG v2 原始数据 ↗</a>
+    <div class="panel-heading xid-trace-heading">
+      <div><h3>真实曲线回放</h3><p id="xidTraceIdentity"></p></div>
+      <div class="controls monitoring-inputs xid-study-controls">
+        <label>记录 <select id="xidTraceCase" aria-label="XID 回放记录"></select></label>
+        <label>方法 <select id="xidTraceMethod" aria-label="XID 回放方法"><option value="combined">条件关系 + 利用率波动</option><option value="condition">仅条件关系</option><option value="multi">原多指标组</option></select></label>
+      </div>
+    </div>
+    <p class="caption" id="xidTraceStatus"></p>
+    <div class="legend"><span><i class="public-score-line"></i>回放评分</span><span><i class="red"></i>留出阈值／确认点</span><span><i class="incident-marker"></i>XID 首次观测</span></div>
+    <div class="chart monitor-view-score"><canvas id="xidTraceScore" role="img" aria-label="XID 预警回放评分和阈值"></canvas></div>
+    <div class="monitor-input-charts" id="xidTraceInputs"></div>
+  </section>
+  <section class="panel" id="associationSampleStudy" hidden>
+    <div class="panel-heading">
+      <div><h2>同一批曲线上的方法对照</h2><p>模拟样例 · 每种方法使用自己的阈值，连续 3 点确认。</p></div>
+      <label>样例 <select id="associationCase" aria-label="同窗对照样例">
+        <option value="joint">轻微联合失配</option>
+        <option value="rule">功耗与时钟失配</option>
+        <option value="drift">单指标温度偏移</option>
+        <option value="normal">正常对照</option>
+        <option value="gap">采集缺口</option>
+      </select></label>
+    </div>
+    <div id="associationCaseContents" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <div class="panel-heading"><div><h2>公开 DCGM 配对实验</h2><p>GWDG v2 · 21 个真实轨迹窗口 · 对同一后段施加配对人工扰动</p></div></div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>扰动（20 分钟）</th><th>条件输入</th><th>新检出 / 21</th><th>全程可评分 / 21</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="2">温度 +4 °C</td><td>GPU 与显存活动</td><td>15</td><td>19</td></tr>
+        <tr><td>GPU 与显存活动 + 功耗</td><td>16</td><td>19</td></tr>
+        <tr><td rowspan="2">温度 +4 °C、功耗 +40 W</td><td>GPU 与显存活动</td><td>15</td><td>19</td></tr>
+        <tr><td>GPU 与显存活动 + 功耗</td><td>5</td><td>8</td></tr>
+      </tbody>
+    </table></div>
+    <p class="caption">加功耗条件时，同步变化的触发减少，可评分覆盖也下降。原始配对窗口两种方法均未触发。这里衡量对已知扰动的响应，尚未测得真实故障召回率或误报率。</p>
+  </section>
+</section>
+<section id="page-overview" class="page" hidden><div class="section-heading"><h2>GPU 设备</h2><span class="muted">从已发现的设备进入监测详情</span></div><div id="gpuCards" class="gpu-grid"></div><div class="panel"><h2>监控覆盖与边界</h2><div class="coverage"><div><b>单指标时序</b><p>按GPU与指标维护独立检测配置，批量创建并训练。</p></div><div><b>机器学习</b><p>可选多指标联合行为检测，学习所选指标组的正常分布。</p></div><div><b>数据质量</b><p>唯一性、源时间、字段有效性与缺失分别检查。</p></div></div></div></section>
+<section id="page-detection" class="page" hidden>
+<div class="detail-path"><button type="button" id="detectionBack">← 返回 GPU 设备</button></div>
+<div class="panel"><div class="panel-heading"><div><h2>曲线与检测证据</h2><div class="controls"><button id="detectChoose" class="write">切换模型</button><button id="detectTrain" class="write">训练模型</button><button id="detectRuntime" class="write">运行参数</button></div><p class="muted" id="entityInfo"></p><div id="detectionContext" class="detection-context"></div></div><div class="controls monitoring-inputs"><label>GPU <select id="detailEntity" aria-label="详情 GPU"></select></label><label>检测任务 <select id="taskSelect" aria-label="检测任务"></select></label><label>指标 <select id="metricSelect" aria-label="展示指标"></select></label></div></div><div class="legend"><span><i class="blue"></i>实际观测</span><span id="referenceLegend"><i class="gray"></i><span id="referenceLabel">模型参考</span></span><span id="bandLegend"><i class="band"></i>残差参考带（适用时）</span><span id="detectionAnomalyLegend" hidden><i class="red"></i><span id="detectionAnomalyLabel">模型异常点</span></span><span id="detailQualityLegend" hidden><i class="is-quality"></i>不可评分</span></div><div id="detailInputCharts" class="monitor-input-charts" hidden></div><div id="detailMetricBox" class="chart"><canvas id="metricChart" role="img" aria-label="GPU原始曲线、模型预期和异常点"></canvas><div class="tooltip" id="chartTip" hidden></div></div><div class="caption" id="chartCaption">展示已持久化的在线模型版本结果，缺口断线；参考范围不是故障概率。</div></div><div class="split detection-evidence" id="detectionEvidence"><div class="panel" id="detectionScorePanel" hidden><div class="panel-heading"><h2>异常分数</h2><span class="badge" id="scoreBadge">—</span></div><div class="chart score-chart"><canvas id="scoreChart" role="img" aria-label="异常分数和阈值"></canvas></div></div><div class="panel"><h2>当前检测证据</h2><dl id="evidence"></dl></div></div><details id="simulationPanel" class="panel" hidden><summary>模拟异常</summary><p class="caption">作用于当前模拟 GPU。持续场景需手动恢复。</p><div id="scenarioButtons" class="scenario-buttons"></div></details></section>
+<section id="page-tasks" class="page" hidden><div class="panel">
+  <div class="panel-heading"><div class="controls task-filters">
+    <input id="taskSearch" type="search" aria-label="搜索检测任务" placeholder="搜索 GPU 或任务">
+    <select id="taskTypeFilter" aria-label="检测任务类型"><option value="all">全部类型</option><option value="univariate">单指标趋势</option><option value="multivariate">黑盒模型</option><option value="scenario">白盒场景</option></select>
+  </div><button class="primary write" id="newTask">新建检测任务</button></div>
+  <div class="table-scroll"><table><thead><tr><th>检测任务</th><th>类型</th><th>在线状态</th><th>在线模型</th><th>操作</th></tr></thead><tbody id="taskRows"></tbody></table></div>
+</div>
+<details class="panel workspace-fold" id="associationScenarios">
+  <summary>白盒场景目录</summary>
+  <p class="caption">配置后使用正常历史训练条件基线。</p>
+  <div id="scenarioCards" class="gpu-grid"></div>
+  <details class="workspace-fold"><summary>当前未覆盖场景</summary><div id="scenarioUnavailable"></div></details>
+</details>
+<details class="panel workspace-fold" id="blackBoxPanel">
+  <summary>黑盒方法</summary>
+  <div class="model-routes">
+    <div><strong>逐点 PCA</strong><p>按同一时点的指标组合评分。</p></div>
+    <div><strong>窗口 PCA</strong><p>按连续 5 点的联合变化评分。</p></div>
+    <div><strong>Isolation Forest</strong><p>筛查历史中少见的指标组合。</p></div>
+  </div>
+</details>
+</section>
+<section id="page-models" class="page" hidden>
+  <section class="panel" id="dcgmLibraryPanel" aria-labelledby="dcgmLibraryHeading" hidden>
+    <div class="panel-heading">
+      <div><h2 id="dcgmLibraryHeading">DCGM 回放模型</h2><p id="dcgmLibraryCount"></p></div>
+      <div class="controls">
+        <label>适用来源 <select id="dcgmLibrarySource"><option value="">全部来源</option><option value="public">公开数据</option><option value="simulated">模拟采集</option></select></label>
+        <label>搜索 <input id="dcgmLibrarySearch" type="search" placeholder="方法、字段、节点或 GPU"></label>
+      </div>
+    </div>
+    <div class="table-scroll" tabindex="0" aria-label="已训练 DCGM 回放模型">
+      <table><thead><tr><th>方法与输入</th><th>适用范围</th><th>训练来源</th><th>状态</th><th>操作</th></tr></thead><tbody id="dcgmLibraryRows"></tbody></table>
+    </div>
+  </section>
+  <div class="panel"><div class="panel-heading"><h2>模型版本</h2></div>
+    <div class="table-scroll"><table><thead><tr><th>模型与设备</th><th>方法</th><th>训练数据</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div>
+  </div>
+  <details class="panel workspace-fold" id="modelJobs"><summary>训练与评估作业 <small id="modelJobCount"></small></summary>
+    <div class="table-scroll"><table><thead><tr><th>作业</th><th>任务</th><th>状态</th><th>结果</th><th>操作</th></tr></thead><tbody id="jobRows"></tbody></table></div>
+    <div id="replayPanel" hidden><h2>回放评估</h2><div class="chart"><canvas id="replayChart" aria-label="历史回放曲线"></canvas></div><div id="replaySummary" class="caption"></div></div>
+  </details>
+  <details class="panel workspace-fold" id="modelConnections"><summary>模型服务</summary>
+    <div class="panel-heading"><p>查看本地或远程服务。配置服务后可以导入已有模型。</p><button id="addModelService" class="admin" type="button">连接模型服务</button></div>
+    <div id="modelServiceList"></div>
+  </details>
+</section>
+<section id="page-events" class="page" hidden><div class="panel"><div class="panel-heading"><h2>夜莺通知</h2><span class="badge" id="n9eStatus">未对接</span></div><div id="n9eEvents"></div></div><div class="panel"><h2>复核记录</h2><p class="muted">有对应异常时，可从异常队列打开记录并复核。</p><details id="manualReview"><summary>手动登记复核</summary><div class="controls feedback-form"><label>检测任务<select id="feedbackTask"></select></label><label>结论 <select id="feedbackKind"><option value="fault">真实异常</option><option value="normal_change">正常负载变化</option><option value="collection_problem">采集问题</option><option value="unconfirmed">尚未确认</option></select></label><label>时长 <select id="feedbackSpan"><option value="300">最近 5 分钟</option><option value="900" selected>最近 15 分钟</option><option value="1800">最近 30 分钟</option><option value="3600">最近 1 小时</option></select></label><input id="feedbackNote" placeholder="记录观察证据与处理结论" maxlength="2000"><button id="feedbackSave" class="primary write">保存复核</button></div></details><div id="feedbackList"></div></div></section>
 <section id="page-health" class="page" hidden><div class="panel"><div class="panel-heading"><h2>数据与平台状态</h2><div class="controls"><button id="sync" class="admin">同步夜莺规则</button><button id="inference" class="admin">暂停推理</button><button id="backup" class="admin">创建备份</button></div></div><dl id="platformInfo"></dl><div class="hint">现有时序源仅查询；当前独立服务使用本地持久结果网关对接夜莺，不修改旧GPU规则。网关不是通用PromQL服务。</div></div><div class="panel"><h2>审计记录</h2><div id="auditList" class="audit-list"></div></div></section>
-<div id="toast" role="status" aria-live="polite" hidden></div><footer>GPU ML · 独立系统 / 同源数据 / 夜莺统一告警 <span id="updated"></span></footer></main></div>
+<div id="toast" role="status" aria-live="polite" hidden></div><footer class="workspace-footer"><span id="updated"></span></footer></main></div>
 <div id="loginOverlay" class="overlay"><form id="loginForm" class="modal login"><span class="eyebrow">GPU ML OBSERVATORY</span><h2>登录 GPU 监控工作台</h2><p>演示模式：选择登录类型即可进入。</p><label>登录类型<select id="loginRole" required><option value="admin">管理员</option><option value="operator">操作员</option><option value="viewer">只读用户</option></select></label><button class="primary" type="submit">进入工作台</button><p id="loginError" class="error-text"></p><small>Demo 角色自选登录，各角色操作权限仍分别生效。</small></form></div>
-<div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
-<script src="/assets/app.js"></script></body></html>
+<div id="dialogOverlay" class="overlay" hidden><form id="dialogForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-heading"><h2 id="dialogTitle"></h2><button type="button" id="dialogClose" class="text-button" aria-label="关闭对话框">✕</button></div><div id="dialogBody"></div><div class="dialog-footer"><button id="dialogSubmitButton" type="submit" class="primary">提交</button></div><p id="dialogError" class="error-text"></p></form></div>
+<script src="/assets/methods-data.js"></script><script src="/assets/incidents.js"></script><script src="/assets/comparisons.js"></script><script src="/assets/association.js"></script><script src="/assets/dcgm-view.js"></script><script src="/assets/monitor-view.js"></script><script src="/assets/xid-study.js"></script><script src="/assets/node-review.js"></script><script src="/assets/rule-board.js"></script><script src="/assets/app.js"></script><script type="module" src="/assets/sre.js"></script></body></html>

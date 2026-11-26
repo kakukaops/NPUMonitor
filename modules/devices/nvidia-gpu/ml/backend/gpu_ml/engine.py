@@ -15,6 +15,7 @@ from .evaluation import summarize,validate_labels
 from .settings import DATA,TEMPLATES,METRICS,SIMULATION,POLL,FRESHNESS
 from .simulation import UUIDS,CLUSTER,healthy
 from .baseline import diagnostics,reference_rows,PRIMARY_METRICS
+from .monitor_view import replay_input, replay_results, summarize_confirmations
 from .model_backends.http import HttpModelBackend,RemoteModel
 from .model_backends.training import TrainingCoordinator
 from .model_backends.services import ModelServices
@@ -61,13 +62,16 @@ class Engine:
         if publish:self.publish(task_id,version,'system')
         return version
 
+    @staticmethod
+    def validate_training_source(task,input_source):
+        if input_source not in ('prometheus','simulation-reference'):raise ValueError('未知训练数据来源')
+        if input_source=='simulation-reference' and (not SIMULATION or task['scope']!='simulated' or task['template'] not in ['uni_'+m for m in PRIMARY_METRICS]):
+            raise ValueError('参考数据仅用于显式模拟GPU的首批单指标任务')
     def queue_training(self,task_id,algorithm,start,end,step=2,config=None,labels=None,input_source="prometheus"):
         task=self.store.get('task',task_id)
         if not task or task.get('deleted'):raise ValueError('任务不存在或已退役')
         build_pipeline(task['template'],algorithm,config)
-        if input_source not in ('prometheus','simulation-reference'):raise ValueError('未知训练数据来源')
-        if input_source=='simulation-reference' and (not SIMULATION or task['scope']!='simulated' or task['template'] not in ['uni_'+m for m in PRIMARY_METRICS]):
-            raise ValueError('参考数据仅用于显式模拟GPU的首批单指标任务')
+        self.validate_training_source(task,input_source)
         if isinstance(step,bool) or not isinstance(step,int):raise ValueError('采样步长须为整数秒')
         if not math.isfinite(start+end) or end<=start or end>time.time()+2:raise ValueError('训练时间范围无效')
         if step<2 or (end-start)/step>12000 or end-start>86400*31:raise ValueError('训练窗口或采样点数超过配额')
@@ -116,6 +120,12 @@ class Engine:
             if scenario and scenario['profile']=='laboratory' and (not SIMULATION or task['scope']!='simulated'):raise ValueError('加速实验制品不能发布到真实GPU')
             spec=TEMPLATES[task['template']]
             if record.get('backend') and record.get('feature_schema')!=spec:raise ValueError('模型输入契约已变化，请重新训练')
+            algorithm = record.get('algorithm')
+            if task.get('method_algorithm') and task['method_algorithm'] != algorithm:
+                raise ValueError('独立方法任务只能使用同一方法的版本')
+            related = self.store.get('task', self.method_task_id(task_id, algorithm)) if algorithm else None
+            if related and not related.get('deleted') and related.get('active_model'):
+                raise ValueError('此方法已有独立任务，请在该方法下启用版本')
             model=self.load(model_id)
             if getattr(model,'cadence',2)<2:raise ValueError('模型采样周期无效')
             if record.get('backend'):
@@ -133,6 +143,58 @@ class Engine:
             record.update(status='published');self.store.put('model',model_id,record)
             # Existing active evidence is not cleared by a model version switch.
             self.store.audit(actor,'publish',task_id,{'old':old,'new':model_id})
+
+    @staticmethod
+    def method_task_id(task_id, algorithm):
+        return 'method-' + hashlib.sha256((task_id+'|'+algorithm).encode()).hexdigest()[:24]
+
+    def set_method_enabled(self, task_id, algorithm, enabled, model_id, actor):
+        with self.lock:
+            root = self.store.get('task', task_id)
+            if not root or root.get('deleted') or root.get('method_parent'):
+                raise ValueError('请选择有效的原始检测任务')
+            key = self.method_task_id(task_id, algorithm)
+            task = self.store.get('task', key)
+            current = self.store.get('model', root['active_model']) if root.get('active_model') else None
+            if current and current['algorithm'] == algorithm:
+                task = root
+            elif not task or task.get('deleted'):
+                if not enabled:
+                    return root
+                else:
+                    model = self.store.get('model', model_id) if model_id else None
+                    if (not model or model['algorithm'] != algorithm or model['status'] not in ('validated', 'published')
+                        or (model['entity'], model['template'], model['source_type']) != (root['entity'], root['template'], root['scope'])):
+                        raise ValueError('启用前请选择与任务及方法兼容的模型')
+                    if not current and not task:
+                        task = root
+                    else:
+                        if root.get('scenario_id'):
+                            raise ValueError('白盒场景只能启用该场景对应的方法')
+                        # Allocate a detector and its event history independently. Secondary
+                        # methods contribute evidence through the workbench by default.
+                        inherited = {field: root[field] for field in (
+                            'entity', 'template', 'scope', 'policy_kind', 'sensitivity',
+                            'confirmation_samples', 'recovery_samples',
+                        ) if field in root}
+                        task = self.store.put('task', key, {
+                            **inherited, 'name': root['name']+' · '+algorithm,
+                            'algorithm': algorithm, 'method_algorithm': algorithm, 'method_parent': task_id,
+                            'active_model': None, 'enabled': False, 'notification_mode': 'evidence',
+                            'created_at': time.time(),
+                        }, expected=task['revision'] if task else 0)
+            if enabled and not task.get('active_model'):
+                model = self.store.get('model', model_id) if model_id else None
+                if not model or model['algorithm'] != algorithm:
+                    raise ValueError('此方法尚无可用模型')
+                self.publish(task['id'], model_id, actor)
+                task = self.store.get('task', task['id'])
+            if task['enabled'] != enabled:
+                task = self.store.put('task', task['id'], {**task, 'enabled': enabled}, expected=task['revision'])
+                if not enabled:
+                    self.store.administrative_close(task['id'], 'task_paused_by_operator')
+                self.store.audit(actor, 'method_enabled' if enabled else 'method_paused', task['id'], {'algorithm': algorithm})
+            return task
 
     def score(self,model,rows,factor=1.):
         if isinstance(model,RemoteModel):return model.evaluate(rows,factor).points
@@ -172,17 +234,18 @@ class Engine:
         if len({r['platform_id'] for r in refs})!=1 or len({r['dataset_sha256'] for r in records})!=1 or len({json.dumps(r['report'].get('partitions'),sort_keys=True) for r in records})!=1:raise ValueError('成员必须来自同一模型平台、快照和时间切分')
         return self.training.operation(member_ids[0],'ensemble',{'models':[r['model_ref'] for r in refs],'factor':factor})
 
-    def queue_comparison(self,task_id,algorithms,start,end,step=2,config=None,labels=None):
+    def queue_comparison(self,task_id,algorithms,start,end,step=2,config=None,labels=None,input_source="prometheus"):
         task=self.store.get('task',task_id)
         if not task or task.get('deleted'):raise ValueError('任务不存在或已退役')
         if not isinstance(algorithms,list) or not 2<=len(algorithms)<=3 or len(set(algorithms))!=len(algorithms):raise ValueError('请选择2至3个不同候选算法')
+        self.validate_training_source(task,input_source)
         for algorithm in algorithms:
             model=build_pipeline(task['template'],algorithm,config)
             if not isinstance(model,DetectionPipeline):raise ValueError('候选比较仅支持新流水线检测器')
         if not 2<=step or not 0<end-start<=86400*31 or (end-start)/step>12000 or (end-start)/step<240 or end>time.time()+2:raise ValueError('比较时间范围或步长无效')
         if any(j['task']==task_id and j['status'] in ('queued','running','pending_sync') for j in self.store.list('job')):raise ValueError('该任务已有活动作业')
         key=uuid.uuid4().hex
-        self.store.put('job',key,{'task':task_id,'kind':'comparison','status':'queued','algorithms':algorithms,'start':start,'end':end,'step':step,'pipeline_config':config or {},'labels':validate_labels(labels or [],start,end),'created_at':time.time()})
+        self.store.put('job',key,{'task':task_id,'kind':'comparison','status':'queued','algorithms':algorithms,'start':start,'end':end,'step':step,'input_source':input_source,'pipeline_config':config or {},'labels':validate_labels(labels or [],start,end),'created_at':time.time()})
         self.futures[key]=self.executor.submit(self._comparison,key)
         return self.store.get('job',key)
 
@@ -191,17 +254,61 @@ class Engine:
         try:
             job.update(status='running');self.store.put('job',key,job)
             rows=self.read_job_rows(job);candidates=[]
+            task=self.store.get('task',job['task'])
+            spec=TEMPLATES[task['template']]
+            source=job.get('input_source','prometheus')
+            provenance='simulation-reference' if source=='simulation-reference' else 'prometheus-history'
+            parts={}
+            if spec.get('kind')=='univariate':
+                metric=spec['targets'][0]
+                # Same independent partitions as DetectionPipeline.fit.
+                a,b=int(len(rows)*.8),int(len(rows)*.9)
+                parts={name:{'rows':part,'observations':[[row['t'],row['values'][metric]] for row in part],'candidates':{}}
+                       for name,part in (('selection',rows[a:b]),('test',rows[b:]))}
             for algorithm in job['algorithms']:
                 try:
-                    ident=self.train_now(job['task'],rows,'prometheus-history',algorithm,config=job['pipeline_config'],labels=job['labels'])
+                    ident=self.train_now(job['task'],rows,provenance,algorithm,config=job['pipeline_config'],labels=job['labels'])
                     record=self.store.get('model',ident)
-                    candidates.append({'algorithm':algorithm,'model':ident,'status':record['status'],'dataset_sha256':record['dataset_sha256'],'report':record['report']})
-                except Exception as exc:candidates.append({'algorithm':algorithm,'status':'failed','error':str(exc)})
+                    candidate={'algorithm':algorithm,'model':ident,'status':record['status'],
+                               'dataset_sha256':record['dataset_sha256'],'report':record['report']}
+                except Exception as exc:
+                    candidates.append({'algorithm':algorithm,'status':'failed','error':str(exc)})
+                    continue
+                if parts:
+                    try:
+                        model=self.load(ident)
+                        traces={name:self.score(model,part['rows']) for name,part in parts.items()}
+                        for name,points in traces.items():
+                            parts[name]['candidates'][algorithm]=[
+                                {'t':point['t'],'expected':point.get('expected',{}).get(metric),
+                                 'score':point['score'],'threshold':point['threshold'],'anomaly':point['anomaly']}
+                                for point in points
+                            ]
+                    except Exception as exc:
+                        candidate['trace_error']=str(exc)
+                candidates.append(candidate)
+            if parts:
+                for part in parts.values():
+                    part.pop('rows')
+                    stamps=[{p['t'] for p in trace} for trace in part['candidates'].values()]
+                    common=set.intersection(*stamps) if len(stamps)>=2 else set()
+                    part['common_points']=len(common)
+                    part['common_metrics']={}
+                    observed=dict(part['observations'])
+                    for algorithm,points in part['candidates'].items():
+                        matched=[p for p in points if p['t'] in common]
+                        errors=[abs(observed[p['t']]-p['expected']) for p in matched if p['expected'] is not None]
+                        part['common_metrics'][algorithm]={
+                            'point_alert_rate':sum(p['anomaly'] for p in matched)/len(matched) if matched else None,
+                            'mae':sum(errors)/len(errors) if errors else None,
+                        }
+                self.store.put('comparison_trace',key,{'metric':metric,'parts':parts,'created_at':time.time()})
             self.store.put('comparison',key,{'task':job['task'],'candidates':candidates,'automatic_winner':None,
                 'selection_policy':'manual review of selection partition; final test is not a selector; no label-free best-model claim',
+                'input_source':source,'start':job['start'],'end':job['end'],
                 'created_at':time.time(),'online_model_unchanged':True})
             job.update(status='completed',candidate_count=len(candidates),completed_at=time.time())
-        except Exception as exc:job.update(status='failed',error=str(exc),completed_at=time.time())
+        except Exception as exc:job.update(status='failed',error=str(exc))
         self.store.put('job',key,job)
 
     def observation_is_fresh(self,stamp):
@@ -209,6 +316,7 @@ class Engine:
 
     def run(self):
         while not self.stop.is_set():
+            cycle_start = time.monotonic()
             try:
                 control=self.store.get('system','inference') or {'enabled':True}
                 if not control['enabled']:
@@ -219,51 +327,56 @@ class Engine:
                     if not task['enabled']:continue
                     entity=entities.get(task['entity']);required=TEMPLATES[task['template']]['required']
                     if not entity:
-                        self.store.apply(task['id'],quality='missing');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='missing');continue
                     invalid=[entity['quality'].get(k,'missing') for k in required if entity['quality'].get(k)!='valid']
                     if invalid:
-                        self.store.apply(task['id'],quality=','.join(sorted(set(invalid))));continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality=','.join(sorted(set(invalid))));continue
                     if max(entity['times'][k] for k in required)-min(entity['times'][k] for k in required)>2:
-                        self.store.apply(task['id'],quality='unaligned');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='unaligned');continue
                     if task['template']=='activity' and entity['values']['job_running']!=1:
-                        self.store.apply(task['id'],quality='context_inactive');continue
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='context_inactive');continue
                     try:
                         row={'t':min(entity['times'][k] for k in required),'values':{k:entity['values'][k] for k in required}}
                         if not self.observation_is_fresh(row['t']):
-                            self.store.apply(task['id'],quality='inference_stale');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='inference_stale');continue
                         prior=self.store.get('state',task['id'])
                         if prior and prior.get('quality')=='valid' and prior.get('last_source',0)>=row['t']:continue
                         if task.get('shadow_model'):
                             try:
                                 shadow_model=self.load(task['shadow_model'])
-                                shadow_rows=self.source.history(task['entity'],row['t']-(shadow_model.window+3)*shadow_model.cadence,row['t'],shadow_model.cadence,required) if getattr(shadow_model,'window',0) else [row]
+                                shadow_rows = self.source.rolling_history(
+                                    task['entity'], row, getattr(shadow_model, 'cadence', POLL), required,
+                                    getattr(shadow_model, 'window', 0),
+                                )
                                 shadow_predictions=self.score(shadow_model,shadow_rows)
                                 if shadow_predictions and shadow_predictions[-1]['t']==row['t']:
                                     shadow=shadow_predictions[-1];shadow['model']=task['shadow_model'];self.store.record_shadow(task['id'],shadow)
                             except Exception:logging.exception('Shadow scoring failed; primary remains independent')
                         if not task.get('active_model'):
-                            self.store.apply(task['id'],quality='untrained');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='untrained');continue
                         model=self.load(task['active_model'])
-                        rows=self.source.history(task['entity'],row['t']-(model.window+3)*model.cadence,row['t'],model.cadence,required) if getattr(model,'window',0) else [row]
+                        rows = self.source.rolling_history(
+                            task['entity'], row, getattr(model, 'cadence', POLL), required, getattr(model, 'window', 0),
+                        )
                         batch=self.score_batch(model,rows,task.get('sensitivity',1.))
                         if batch.quality!='valid':
-                            self.store.apply(task['id'],quality=batch.quality);continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality=batch.quality);continue
                         result=batch.points[-1]
                         if not self.observation_is_fresh(result['t']):
-                            self.store.apply(task['id'],quality='inference_stale');continue
+                            self.store.apply(task['id'],task_revision=task['revision'],quality='inference_stale');continue
                         result['decision_config_revision']=task['revision'];result['effective_task_factor']=task.get('sensitivity',1.)
-                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result,confirmation_samples=task.get('confirmation_samples',3),recovery_samples=task.get('recovery_samples',3))
+                        result['model']=task['active_model'];result['cadence_seconds']=getattr(model,'cadence',POLL);result['detector_kind']=TEMPLATES[task['template']].get('kind','legacy');self.store.apply(task['id'],result,task_revision=task['revision'],confirmation_samples=task.get('confirmation_samples',3),recovery_samples=task.get('recovery_samples',3))
                     except Exception as exc:
-                        self.store.apply(task['id'],quality='model_error');logging.exception('Model inference failed')
+                        self.store.apply(task['id'],task_revision=task['revision'],quality='model_error');logging.exception('Model inference failed')
                 self.last_poll=time.time();self.error=None
             except Exception as exc:
                 self.error=type(exc).__name__
                 for task in self.store.list('task'):
-                    if task['enabled']:self.store.apply(task['id'],quality='query_error')
+                    if task['enabled']:self.store.apply(task['id'],task_revision=task['revision'],quality='query_error')
                 # The loop is alive; valid normal evidence is still absent.
                 self.last_poll=time.time()
                 logging.warning('Input query failed: %s',self.error)
-            self.stop.wait(POLL)
+            self.stop.wait(max(0, POLL - (time.monotonic() - cycle_start)))
 
     def replay(self,task_id,model_id,start,end,step=2,labels=None):
         task=self.store.get('task',task_id);record=self.store.get('model',model_id)
@@ -279,13 +392,21 @@ class Engine:
             job=self.store.get('job',key)
             try:
                 job.update(status='running');self.store.put('job',key,job)
-                rows=self.source.history(task['entity'],start,end,step,TEMPLATES[task['template']]['required'])
-                if task['template']=='activity':rows=[r for r in rows if r['values'].get('job_running')==1]
-                if len(rows)<3:raise ValueError('回放有效样本不足')
-                started=time.perf_counter();points=self.score(model,rows)
+                required = TEMPLATES[task['template']]['required']
+                frames, _ = self.source.monitor_history(task['entity'], start, end, step, required, required[:1])
+                rows = replay_input(frames, required, task, start)
+                started=time.perf_counter()
+                points=self.score(model,rows,task.get('sensitivity',1.)) if rows else []
                 evaluation=summarize(points,rows,annotations,getattr(model,'cadence',step),time.perf_counter()-started)
+                replay, _, episodes = replay_results(frames, points, task, model_id, step, required)
+                evaluation['confirmation'] = summarize_confirmations(replay, episodes, annotations)
                 # Replay outputs remain separate from online result/incident tables.
-                self.store.put('replay',key,{'task':task_id,'model':model_id,'points':points,'evaluation':evaluation,'capabilities':capabilities_for(model),'labels':annotations,'created_at':time.time()})
+                self.store.put('replay',key,{'task':task_id,'model':model_id,'points':points,'evaluation':evaluation,
+                                             'capabilities':capabilities_for(model),'labels':annotations,'episodes':episodes,
+                                             'start':start,'end':end,'created_at':time.time(),
+                                             'decision':{'sensitivity':task.get('sensitivity',1.),
+                                                         'confirmation_samples':task.get('confirmation_samples',3),
+                                                         'recovery_samples':task.get('recovery_samples',3)}})
                 job.update(status='completed',point_count=len(points),anomaly_points=sum(p['anomaly'] for p in points),completed_at=time.time())
             except Exception as exc:job.update(status='failed',error=str(exc))
             self.store.put('job',key,job)

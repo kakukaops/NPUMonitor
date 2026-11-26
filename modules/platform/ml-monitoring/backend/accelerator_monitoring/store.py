@@ -18,6 +18,33 @@ def check_initialization(database,guard_file):
         raise ValueError('状态数据库缺失：请从备份恢复，不自动初始化健康状态')
 
 
+def advance_detector_state(state, result, quality, now, confirmation_samples, recovery_samples):
+    """Apply one observation in memory and report whether the source sample advanced."""
+    state['attempt_at']=now
+    if result is None or quality!='valid':
+        state.update(quality=quality,pending=0,clear_count=0)
+    elif result['t'] > state['last_source']:
+        if result.get('decision_config_revision') is not None and state.get('decision_config_revision')!=result['decision_config_revision']:
+            state.update(pending=0,clear_count=0)
+        gap=result['t']-state['last_source']
+        if gap>max(8,4*result.get('cadence_seconds',2)):
+            state.update(pending=0,clear_count=0)
+        state.update(last_source=result['t'],quality='valid',score=result['score'],threshold=result['threshold'],model_id=result['model'])
+        for key in ('raw_components','calibrated_components','expected','bounds','values','contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
+            if key in result:state[key]=result[key]
+        if result['anomaly']:
+            state['pending']+=1;state['clear_count']=0
+            if state['pending']>=confirmation_samples and not state['active']:
+                state.update(active=True,episode_id=uuid.uuid4().hex,opened_at=result['t'],reason='confirmed_anomaly')
+        else:
+            state['pending']=0
+            state['clear_count']+=1
+            if state['clear_count']>=recovery_samples and state['active']:
+                state.update(active=False,closed_at=result['t'],reason='fresh_normal_confirmed')
+        return True
+    return False
+
+
 class Store:
     def __init__(self, path):
         self.path = Path(path)
@@ -32,6 +59,8 @@ class Store:
             CREATE TABLE IF NOT EXISTS results(task TEXT,source_time REAL,model TEXT,payload TEXT,
               PRIMARY KEY(task,source_time,model));
             CREATE INDEX IF NOT EXISTS result_time ON results(source_time);
+        CREATE TABLE IF NOT EXISTS recovered_episode(id TEXT PRIMARY KEY,task TEXT,closed_at REAL,payload TEXT);
+        CREATE INDEX IF NOT EXISTS recovered_episode_time ON recovered_episode(closed_at);
             CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY,at REAL,actor TEXT,action TEXT,
               object_id TEXT,details TEXT);
             ''')
@@ -95,36 +124,68 @@ class Store:
                             (task,start,end or time.time()+1,limit)).fetchall()
             return list(reversed([json.loads(r['payload']) for r in rows]))
 
-    def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3):
+    def incident_points(self, members):
+        """Read the exact stored decision for each task, source time and episode."""
+        if not members:
+            return {}
+        keys = [(row['id'], row['start'], row.get('episode_id')) for row in members]
+        with self.db() as db:
+            rows = db.execute("""
+                SELECT r.task, r.source_time, r.payload, json_extract(k.value,'$[2]') AS episode
+                FROM json_each(?) k
+                JOIN results r ON r.task=json_extract(k.value,'$[0]')
+                              AND r.source_time=json_extract(k.value,'$[1]')
+                WHERE episode IS NULL OR json_extract(r.payload,'$.episode_id')=episode
+            """, (json.dumps(keys),)).fetchall()
+        return {(row['task'], row['source_time'], row['episode']): json.loads(row['payload']) for row in rows}
+
+    def recovered_episodes(self, start, end, limit=200, cluster='', entity_ids=None, overlap=None):
+        with self.db() as db:
+            query = 'SELECT r.payload FROM recovered_episode r'
+            args = [start, end]
+            if cluster:
+                query += (" JOIN documents t ON t.kind='task' AND t.id=r.task"
+                          " JOIN documents e ON e.kind='entity' AND e.id=json_extract(t.payload,'$.entity')")
+            query += ' WHERE r.closed_at BETWEEN ? AND ?'
+            if cluster:
+                query += " AND json_extract(e.payload,'$.cluster')=?"
+                args.append(cluster)
+            if entity_ids is not None:
+                query += (" AND EXISTS (SELECT 1 FROM documents task WHERE task.kind='task' AND task.id=r.task"
+                          " AND json_extract(task.payload,'$.entity') IN (SELECT value FROM json_each(?)))")
+                args.append(json.dumps(entity_ids))
+            if overlap:
+                query += " AND r.closed_at>=? AND json_extract(r.payload,'$.opened_at')<=?"
+                args.extend(overlap)
+            rows = db.execute(query + ' ORDER BY r.closed_at DESC LIMIT ?', (*args, limit)).fetchall()
+            return [json.loads(row['payload']) for row in rows]
+
+    def recovered_episode(self, key):
+        with self.db() as db:
+            row = db.execute('SELECT payload FROM recovered_episode WHERE id=?', (key,)).fetchone()
+            return json.loads(row['payload']) if row else None
+
+    def apply(self,task,result=None,quality='valid',now=None,confirmation_samples=3,recovery_samples=3,
+              task_revision=None):
         for count in (confirmation_samples,recovery_samples):
             if isinstance(count,bool) or not isinstance(count,int) or not 1<=count<=30:raise ValueError('确认/恢复样本数须为1至30的整数')
         now=time.time() if now is None else now
         with self.db() as db:
+            if task_revision is not None:
+                config=db.execute("SELECT revision FROM documents WHERE kind='task' AND id=?", (task,)).fetchone()
+                if not config or config['revision'] != task_revision:
+                    return None
             row=db.execute("SELECT payload,revision FROM documents WHERE kind='state' AND id=?",(task,)).fetchone()
             state=json.loads(row['payload']) if row else {'id':task,'active':False,'quality':'unverified','last_source':0,'pending':0,'clear_count':0,'episode_id':None}
-            state['attempt_at']=now
-            if result is None or quality!='valid':
-                state.update(quality=quality,pending=0,clear_count=0)
-            elif result['t'] > state['last_source']:
-                if result.get('decision_config_revision') is not None and state.get('decision_config_revision')!=result['decision_config_revision']:
-                    state.update(pending=0,clear_count=0)
-                gap=result['t']-state['last_source']
-                if gap>max(8,4*result.get('cadence_seconds',2)):
-                    state.update(pending=0,clear_count=0)
-                state.update(last_source=result['t'],quality='valid',score=result['score'],threshold=result['threshold'],model_id=result['model'])
-                for key in ('raw_components','calibrated_components','expected','bounds','values','contributions','reason_metric','reference_kind','joint_distance_score','detector_kind','capabilities','raw_score','calibrated_score','raw_score_semantics','pipeline_id','calibrator_id','decision_id','preprocessor_id','decision_config_revision','effective_task_factor','scenario','evidence'):
-                    if key in result:state[key]=result[key]
-                if result['anomaly']:
-                    state['pending']+=1;state['clear_count']=0
-                    if state['pending']>=confirmation_samples and not state['active']:
-                        state.update(active=True,episode_id=uuid.uuid4().hex,opened_at=result['t'],reason='confirmed_anomaly')
-                else:
-                    state['pending']=0
-                    state['clear_count']+=1
-                    if state['clear_count']>=recovery_samples and state['active']:
-                        state.update(active=False,closed_at=result['t'],reason='fresh_normal_confirmed')
-                result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'])
+            was_active = state['active']
+            if advance_detector_state(state,result,quality,now,confirmation_samples,recovery_samples):
+                result=dict(result,task=task,active=state['active'],episode_id=state['episode_id'],
+                            confirmation_samples=confirmation_samples,recovery_samples=recovery_samples)
                 db.execute('INSERT OR IGNORE INTO results VALUES(?,?,?,?)',(task,result['t'],result['model'],json.dumps(result,allow_nan=False)))
+                if was_active and not state['active'] and state.get('episode_id'):
+                    episode = {**state, 'confirmation_samples': confirmation_samples, 'recovery_samples': recovery_samples}
+                    db.execute('INSERT OR IGNORE INTO recovered_episode VALUES(?,?,?,?)',
+                               (state['episode_id'], task, state['closed_at'], json.dumps(episode, allow_nan=False)))
             # A repeated held source sample never advances confirmation or recovery.
             revision=row['revision']+1 if row else 1
             db.execute("INSERT INTO documents VALUES('state',?,?,?) ON CONFLICT(kind,id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision",
@@ -150,4 +211,7 @@ class Store:
             finally:output.close()
 
     def prune(self,days=7):
-        with self.db() as db:db.execute('DELETE FROM results WHERE source_time<?',(time.time()-days*86400,))
+        cutoff = time.time() - days * 86400
+        with self.db() as db:
+            db.execute('DELETE FROM results WHERE source_time<?', (cutoff,))
+            db.execute('DELETE FROM recovered_episode WHERE closed_at<?', (cutoff,))

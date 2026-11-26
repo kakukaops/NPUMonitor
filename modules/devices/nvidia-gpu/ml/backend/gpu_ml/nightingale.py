@@ -87,6 +87,7 @@ class Nightingale:
                 self.call('POST',f'/busi-group/{group["id"]}/alert-rules',[desired])
                 rule=self.one(self.call('GET',f'/busi-group/{group["id"]}/alert-rules'),rule_name)
             binding=self.store.put('binding',ident,{'rule_id':rule['id'],'source_id':source['id'],'group_id':group['id'],
+                                                    'severity':rule['rule_config']['queries'][0].get('severity'),
                                                     'expression':expression,'synced_at':time.time()})
             output.append(binding)
         self.store.put('system','sync_error',{'error':None,'at':time.time()})
@@ -116,4 +117,6 @@ class Nightingale:
             self.store.put('system','nightingale_events',result);return result
         except Exception as exc:
             self.last_error=type(exc).__name__
-            return dict(self.store.get('system','nightingale_events') or {'events':[]},connected=False,error=self.last_error)
+            result=dict(self.store.get('system','nightingale_events') or {'events':[]},connected=False,error=self.last_error)
+            self.store.put('system','nightingale_events',result)
+            return result

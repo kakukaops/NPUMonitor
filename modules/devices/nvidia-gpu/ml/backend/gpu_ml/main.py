@@ -11,6 +11,7 @@ import secrets
 import tarfile
 import threading
 import time
+from typing import Optional
 import uuid
 from urllib.parse import urlsplit
 
@@ -23,16 +24,25 @@ from .store import Store,Conflict,check_initialization
 from .source import Source
 from .engine import Engine
 from .simulation import Simulator,SCENARIOS,UUIDS,CLUSTER
+from .sre_preview import build_incident_example, build_preview
+from .incident_queue import attach_incident_evidence, build_incident_queue, build_recovered_queue
+from .monitor_view import monitor_view
+from .dcgm_detection import method_catalog, public_detection
+from .dcgm_sources import live_detection, train_live, activate_live
+from .dcgm_review import node_review
+from . import dcgm_workbench
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
+from .rule_board import RuleBoard
 from . import __version__
 from .models import ALGORITHMS,build_model
+from gpu_ml_runtime.detectors import ADDITIONAL_ALGORITHMS, available_algorithms
 from .pipeline import build_pipeline,describe_algorithms,capabilities_for
 from .dcgm_scenarios import CATALOG as DCGM_SCENARIOS,template_name
 from .model_backends.contracts import BackendError,BackendUnavailable,BackendProtocolError,BackendUnsupported
 from .model_backends.training import Deferred
 
-STORE=None;ENGINE=None;N9E=None
+STORE=None;ENGINE=None;N9E=None;RULE_BOARD=None
 SIM=Simulator()
 SESSIONS={};ROLE_ORDER={'viewer':0,'operator':1,'admin':2}
 
@@ -68,7 +78,7 @@ def required_body_value(body,key):
 
 @asynccontextmanager
 async def lifespan(app):
-    global STORE,ENGINE,N9E
+    global STORE,ENGINE,N9E,RULE_BOARD
     DATA.mkdir(parents=True,exist_ok=True)
     # Single-process/single-active lease: refuse a second writer on the same volume.
     import fcntl
@@ -82,7 +92,7 @@ async def lifespan(app):
         if schema.get('kind')=='multivariate':TEMPLATES[schema['id']]['algorithms']=['joint_pca','joint_iforest']
     source=Source()
     STORE.bind_source(hashlib.sha256(json.dumps({'url':source.url,'metrics':METRICS},sort_keys=True).encode()).hexdigest())
-    ENGINE=Engine(STORE,source);N9E=Nightingale(STORE)
+    ENGINE=Engine(STORE,source);N9E=Nightingale(STORE);RULE_BOARD=RuleBoard(N9E)
     if SIMULATION:
         for record in STORE.list('simulation'):
             if record['id'] in SIM.modes:SIM.modes[record['id']]={'scenario':record['scenario'],'since':record['since']}
@@ -149,6 +159,34 @@ def ready():
 @app.get('/')
 def index():return FileResponse(BASE/'frontend/index.html')
 
+@app.get('/methods')
+def methods():
+    return FileResponse(BASE / 'frontend/methods.html')
+
+
+@app.get('/sre')
+def sre_workbench():
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    return FileResponse(BASE / 'frontend/sre.html')
+
+
+@app.get('/api/gpu-ml/v1/sre-preview')
+def sre_preview(request: Request, scenario: str = 'fleet'):
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    user(request)
+    return build_preview(scenario)
+
+
+@app.get('/api/gpu-ml/v1/incident-example')
+def incident_example(request: Request):
+    if not SIMULATION:
+        raise HTTPException(404, '模拟回放未启用')
+    user(request)
+    return build_incident_example(time.time())
+
+
 app.mount('/assets',StaticFiles(directory=BASE/'frontend'),name='assets')
 
 
@@ -179,20 +217,32 @@ def logout(request:Request):
 @app.get('/api/gpu-ml/v1/state')
 def state(request:Request):
     role=user(request)
+    now=time.time()
     entities=STORE.list('entity')
     for entity in entities:
-        entity['fresh']=time.time()-entity['seen_at']<FRESHNESS
+        entity['fresh']=now-entity['seen_at']<FRESHNESS
         entity['quality']={k:entity['quality'].get(k,'missing') if entity['fresh'] else 'missing' for k in METRICS}
         entity['capabilities']={k:all(entity['quality'].get(m)=='valid' for m in t['required']) for k,t in TEMPLATES.items()}
     states=STORE.list('state')
     for item in states:
-        if item['quality']=='valid' and time.time()-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
-    return {'role':role,'time':time.time(),'simulation':SIMULATION,'production_admitted':False,
-            'entities':entities,'tasks':STORE.list('task'),'states':states,'models':STORE.list('model'),
-            'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':ALGORITHMS,
-            'bindings':STORE.list('binding'),'sync_error':STORE.get('system','sync_error'),'nightingale':STORE.get('system','nightingale_events') or {'connected':False,'events':[]},
+        if item['quality']=='valid' and now-item.get('last_source',0)>FRESHNESS:item['quality']='inference_stale'
+    tasks=STORE.list('task')
+    bindings=STORE.list('binding')
+    models=STORE.list('model')
+    nightingale=STORE.get('system','nightingale_events') or {'connected':False,'events':[]}
+    inference_enabled=(STORE.get('system','inference') or {'enabled':True})['enabled']
+    incident_queue=build_incident_queue(entities,tasks,states,TEMPLATES,bindings,nightingale,now,inference_enabled)
+    attach_incident_evidence(incident_queue, STORE.incident_points, models)
+    return {'role':role,'time':now,'simulation':SIMULATION,'production_admitted':False,
+            'entities':entities,'tasks':tasks,'states':states,'models':models,
+            'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
+            'dcgm_methods':method_catalog(),
+            'dcgm_workbench':dcgm_workbench.catalog(),
+            'dcgm_models':dcgm_workbench.library(ENGINE),
+            'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
+            'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
-                'enabled':(STORE.get('system','inference') or {'enabled':True})['enabled']},
+                'enabled':inference_enabled},
             'event_aggregation':'nightingale','scenarios':SCENARIOS if SIMULATION else [],'feedback':STORE.list('feedback')[-100:],'shadow':STORE.list('shadow')}
 
 
@@ -372,13 +422,17 @@ async def update_task(key:str,request:Request):
 
 @app.delete('/api/gpu-ml/v1/tasks/{key}')
 def delete_task(key:str,request:Request):
-    actor=user(request,'operator');task=STORE.get('task',key)
-    if not task:raise HTTPException(404,'任务不存在')
+    actor=user(request,'operator')
     expected=int(request.headers.get('if-match','-1'))
     if expected<1:raise HTTPException(428,'需要If-Match版本')
-    task.update(enabled=False,deleted=True)
-    STORE.put('task',key,task,expected=expected);STORE.administrative_close(key,'task_deleted_by_operator')
-    STORE.audit(actor,'task_delete',key)
+    with ENGINE.lock:
+        task=STORE.get('task',key)
+        if not task:raise HTTPException(404,'任务不存在')
+        if any(row.get('method_parent')==key and not row.get('deleted') for row in STORE.list('task')):
+            raise ValueError('请先退役该任务下的独立方法')
+        task.update(enabled=False,deleted=True)
+        STORE.put('task',key,task,expected=expected);STORE.administrative_close(key,'task_deleted_by_operator')
+        STORE.audit(actor,'task_delete',key)
     return {'deleted':True,'history_preserved':True}
 
 
@@ -410,20 +464,31 @@ async def ensemble(request:Request):
 @app.post('/api/gpu-ml/v1/comparisons')
 async def comparison(request:Request):
     actor=user(request,'operator');body=await request.json()
-    result=ENGINE.queue_comparison(required_body_value(body,'task'),body.get('algorithms'),float(body['start']),float(body['end']),int(body.get('step',2)),body.get('pipeline'),body.get('labels'))
+    result=ENGINE.queue_comparison(required_body_value(body,'task'),body.get('algorithms'),float(body['start']),float(body['end']),int(body.get('step',2)),body.get('pipeline'),body.get('labels'),body.get('input_source','prometheus'))
     STORE.audit(actor,'comparison_create',result['id']);return result
 
 @app.get('/api/gpu-ml/v1/comparisons/{key}')
 def comparison_detail(key:str,request:Request):
     user(request);result=STORE.get('comparison',key)
     if result is None:raise HTTPException(404,'比较尚未完成')
-    return result
+    return {**result,'trace':STORE.get('comparison_trace',key)}
 
 @app.post('/api/gpu-ml/v1/tasks/{key}/publish')
 async def publish(key:str,request:Request):
     actor=user(request,'operator');body=await request.json();await run_in_threadpool(ENGINE.publish,key,required_body_value(body,'model'),actor)
     return STORE.get('task',key)
 
+@app.post('/api/gpu-ml/v1/tasks/{key}/method')
+async def set_method_enabled(key: str, request: Request):
+    actor = user(request, 'operator')
+    body = await request.json()
+    if not isinstance(body.get('enabled'), bool):
+        raise ValueError('enabled需要布尔值')
+    algorithm = required_body_value(body, 'algorithm')
+    model_id = body.get('model')
+    if model_id is not None and not isinstance(model_id, str):
+        raise ValueError('模型版本无效')
+    return await run_in_threadpool(ENGINE.set_method_enabled, key, algorithm, body['enabled'], model_id, actor)
 @app.post('/api/gpu-ml/v1/tasks/{key}/shadow')
 async def shadow_model(key:str,request:Request):
     actor=user(request,'operator');body=await request.json();task=STORE.get('task',key)
@@ -455,6 +520,94 @@ def series(key:str,request:Request,start:float=0,end:float=0):
     return {'task':task,'points':points,'point_limit':12000,'truncated':len(points)>=12000,'source':'persisted-online-prometheus-input',
             'state':STORE.get('state',key),'capabilities':capabilities_for(ENGINE.load(task['active_model'])) if task.get('active_model') else None}
 
+@app.get('/api/gpu-ml/v1/monitor-view')
+def monitor_view_data(request: Request, entity: str, metric: str, task: str = '',
+                      source: str = 'prometheus', mode: str = 'online',
+                      span: int = 900, scenario: str = 'normal', start: Optional[float] = None,
+                      end: Optional[float] = None, include_inputs: bool = False, model: Optional[str] = None,
+                      observations_only: bool = False):
+    user(request)
+    return monitor_view(ENGINE, entity, task, metric, source, mode, span, scenario, start, end, include_inputs,
+                        model, observations_only)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/public/{collection}')
+def public_dcgm(request: Request, collection: str, metric: str, method: str, mode: str,
+                start: int, end: int, at: Optional[int] = None, compare: bool = False,
+                reference_mode: Optional[str] = None):
+    user(request)
+    return public_detection(collection, metric, method, mode, start, end, at, compare, reference_mode)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/review')
+def review_dcgm(request: Request, source: str, cluster: str = '', node: str = '', gpu: str = '',
+                collection: str = '', at: Optional[int] = None, scenario: str = 'normal'):
+    user(request)
+    return node_review(ENGINE, source, cluster, node, gpu, collection, at, scenario)
+
+
+@app.get('/api/gpu-ml/v1/rule-board')
+def rule_board(request: Request, source: str):
+    user(request)
+    return RULE_BOARD.board(source)
+
+
+@app.get('/api/gpu-ml/v1/rule-board/{rule_id}')
+def rule_board_detail(request: Request, rule_id: str, source: str, entity: str = '', event: str = ''):
+    user(request)
+    return RULE_BOARD.detail(ENGINE, source, rule_id, entity, event)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/workbench/state')
+def dcgm_workbench_state(request: Request, source: str, target: str, collection: str = '',
+                         cluster: str = '', node: str = '', gpu: str = ''):
+    user(request)
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    return dcgm_workbench.board_state(ENGINE, scope, target)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/workbench/replay')
+def dcgm_workbench_replay(request: Request, source: str, target: str, method: str, start: int, end: int,
+                          collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
+                          at: Optional[int] = None, version_id: Optional[str] = None, reference: bool = False):
+    user(request)
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, version_id=version_id, reference=reference)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/workbench/{operation}')
+def dcgm_workbench_update(request: Request, operation: str, source: str, target: str, method: str,
+                           collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
+                           start: int = 0, end: int = 0, at: Optional[int] = None, version_id: Optional[str] = None):
+    actor = user(request, 'operator')
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    if operation == 'review':
+        return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, review=True, version_id=version_id)
+    return dcgm_workbench.update(ENGINE, scope, target, method, operation, actor, end, version_id)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/live')
+def live_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+              start: int, end: int, at: Optional[int] = None, review: bool = False, scenario: str = 'normal',
+              compare: bool = False, reference_mode: Optional[str] = None):
+    user(request)
+    return live_detection(ENGINE, source, cluster, node, metric, method, mode, start, end, at,
+                          review, scenario, compare, reference_mode)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/train')
+def train_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str,
+               history_hours: int, end: int):
+    user(request, 'operator')
+    return train_live(ENGINE, source, cluster, node, metric, method, mode, history_hours, end)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/activate')
+def activate_dcgm(request: Request, source: str, cluster: str, node: str, metric: str, method: str, mode: str):
+    user(request, 'operator')
+    return activate_live(ENGINE, source, cluster, node, metric, method, mode)
+
+
 @app.get('/api/gpu-ml/v1/raw-series')
 def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metric:str='gpu_temp'):
     user(request)
@@ -463,6 +616,36 @@ def raw_series(request:Request,entity:str,start:float,end:float,step:int=10,metr
     keys=[metric] if STORE.get('entity',entity)['quality'].get(metric)=='valid' else []
     if not keys:return {'points':[],'quality':'missing'}
     return {'points':ENGINE.source.history(entity,start,end,step,keys),'source':'existing-prometheus-readonly'}
+
+@app.get('/api/gpu-ml/v1/incident-history')
+def incident_history(request: Request, cluster: str = '', q: str = '',
+                     start: Optional[float] = None, end: Optional[float] = None, source_type: str = ''):
+    user(request)
+    now = time.time()
+    if source_type not in ('', 'simulated', 'real_unverified'):
+        raise ValueError('采集来源无效')
+    entities = [entity for entity in STORE.list('entity') if (not cluster or entity['cluster'] == cluster)
+                and (not source_type or entity.get('source_type') == source_type)]
+    terms = q.casefold().split()
+    if len(q) > 200:
+        raise ValueError('设备搜索最长支持 200 个字符')
+    if terms:
+        entities = [entity for entity in entities if all(
+            term in ' '.join(str(entity.get(key) or '') for key in ('node', 'uuid', 'cluster', 'id')).casefold()
+            for term in terms)]
+    overlap = None
+    if start is not None or end is not None:
+        if start is None or end is None or not now - 7 * 86400 <= start < end <= now:
+            raise ValueError('归档查询支持最近 7 天内的时段')
+        overlap = start, end
+    episodes = STORE.recovered_episodes(now - 7 * 86400, now, limit=201, cluster=cluster,
+                                        entity_ids=[entity['id'] for entity in entities] if terms or source_type else None,
+                                        overlap=overlap)
+    nightingale = STORE.get('system', 'nightingale_events') or {}
+    queue = build_recovered_queue(entities, STORE.list('task'), episodes[:200], TEMPLATES,
+                                  STORE.list('binding'), nightingale, now)
+    attach_incident_evidence(queue, STORE.incident_points, STORE.list('model'))
+    return {**queue, 'truncated': len(episodes) > 200}
 
 @app.post('/api/gpu-ml/v1/replays')
 async def replay(request:Request):
@@ -483,8 +666,16 @@ async def feedback(request:Request):
     if not STORE.get('task',body.get('task','')):raise ValueError('任务不存在')
     start=float(body.get('start',time.time()-300));end=float(body.get('end',time.time()))
     if not 0<end-start<=86400*31 or end>time.time()+2:raise ValueError('反馈时间窗口无效')
+    episode_id = body.get('episode')
+    if episode_id is not None:
+        if not isinstance(episode_id, str) or not re.fullmatch('[a-f0-9]{32}', episode_id):
+            raise ValueError('异常事件标识无效')
+        episode = STORE.recovered_episode(episode_id) or STORE.get('state', body['task'])
+        if not episode or episode['id'] != body['task'] or episode.get('episode_id') != episode_id:
+            raise ValueError('异常事件与检测任务不匹配')
     note=str(body.get('note',''))[:2000];key=uuid.uuid4().hex
-    result=STORE.put('feedback',key,{'task':body['task'],'kind':body['kind'],'note':note,'at':time.time(),'actor':actor,'start':start,'end':end})
+    result=STORE.put('feedback',key,{'task':body['task'],'kind':body['kind'],'note':note,'at':time.time(),'actor':actor,
+                                     'start':start,'end':end,'episode':episode_id})
     STORE.audit(actor,'feedback',key);return result
 
 @app.get('/api/gpu-ml/v1/audit')
@@ -522,6 +713,8 @@ def backup(request:Request):
     with tarfile.open(archive,'w:gz') as tar:
         tar.add(folder/'gpu-ml.sqlite',arcname='gpu-ml.sqlite')
         tar.add(DATA/'models',arcname='models');tar.add(DATA/'snapshots',arcname='snapshots')
+        if (DATA/'dcgm-workbench').is_dir():
+            tar.add(DATA/'dcgm-workbench',arcname='dcgm-workbench')
     STORE.audit(actor,'backup',key)
     return {'id':key,'download':'/api/gpu-ml/v1/backups/'+key,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
             'remote_model_refs':[m['backend'] for m in STORE.list('model') if m.get('backend')],
