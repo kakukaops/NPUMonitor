@@ -414,6 +414,13 @@ button,select,input { border-color: #d6e0eb; border-radius: 7px; }
 }
 .dcgm-window-nav button { min-width: 2.3rem; font-size: 1.2rem; line-height: 1; }
 .dcgm-window-nav output { text-align: center; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.dcgm-workspace-switch { margin: 0 0 12px; }
+.dcgm-workspace-switch button[aria-pressed="true"] { background: #eaf1ff; color: #2451a1; border-color: #92aede; }
+#dcgmScope select { max-width: min(100%, 22rem); }
+#dcgmMethodStatus:empty { display: none; }
+#dcgmScoreBox { margin-top: 12px; }
+#dcgmScore { display: block; width: 100%; height: 110px; cursor: crosshair; }
+.dcgm-reference-color { color: #456aa7; }
 .dcgm-legend { margin-top: 10px; }
 .dcgm-legend .dcgm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .dcgm-legend .dcgm-band { display: inline-block; width: 13px; height: 8px; border-radius: 2px; }

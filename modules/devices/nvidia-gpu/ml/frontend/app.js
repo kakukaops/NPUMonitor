@@ -17,7 +17,7 @@ const pageDescriptions={
  study:'回放样例和公开数据配对实验。',
 };
 const metricNames={gpu_temp:'GPU 温度',memory_temp:'HBM 温度',power:'板卡功耗',sm_clock:'SM 时钟',mem_clock:'显存时钟',util:'GPU 利用率',mem_util:'显存控制器活动',fb_used:'显存使用',gpu_limit:'GPU 运行门槛',memory_limit:'HBM 运行门槛',job_running:'作业运行标志'};
-const scenarioNames={power_spike:'功耗突增（90秒）',memory_activity_drop:'显存活动下降（90秒）',thermal_aging:'加速热漂移（手动恢复）',clock_aging:'加速时钟漂移（手动恢复）',normal:'恢复正常',temperature_spike:'温度尖峰',thermal_drift:'缓慢热漂移',power_clock:'功耗时钟关系',activity_drop:'活动下降',idle:'正常空闲',high_load:'正常高负载',missing:'数据缺失',invalid:'无效温度',duplicate:'重复采集',stale:'陈旧数据'};
+const scenarioNames={xid_fault:'XID 模拟故障（90秒）',power_spike:'功耗突增（90秒）',memory_activity_drop:'显存活动下降（90秒）',thermal_aging:'加速热漂移（手动恢复）',clock_aging:'加速时钟漂移（手动恢复）',normal:'恢复正常',temperature_spike:'温度尖峰',thermal_drift:'缓慢热漂移',power_clock:'功耗时钟关系',activity_drop:'活动下降',idle:'正常空闲',high_load:'正常高负载',missing:'数据缺失',invalid:'无效温度',duplicate:'重复采集',stale:'陈旧数据'};
 const statusNames={pending_sync:'平台任务待同步',outside_reference:'超出参考负载/时钟模式',history_gap:'历史有缺口',reference_window_incomplete:'连续可比窗口不足',warmup:'连续窗口不足',unaligned:'指标时间不对齐',inference_stale:'推理结果已过期',valid:'有效',missing:'缺失',stale:'陈旧',duplicate:'重复',invalid:'无效',untrained:'尚未训练',unverified:'尚未验证',context_inactive:'运行上下文不适用',query_error:'源查询失败',paused:'已暂停',model_error:'模型错误',completed:'已完成',queued:'排队中',running:'运行中',failed:'失败',cancelled:'已取消'};
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 function badge(text,color=''){return el('span',text,'badge '+color);}
@@ -64,6 +64,9 @@ function switchWorkspaceSource(source){
   }
   $('associationEntity').value='';
   monitorShown=null;
+  dcgmView.at=null;
+  resetDcgmReplay();
+  if(workspaceDataSource==='public'&&source==='simulated'&&monitorPrefs[page])dcgmView.simBoard[page]=true;
  }
  workspaceDataSource=source;
  if(page==='incidents'&&source==='synthetic')$('incidentFilter').value='all';
@@ -73,8 +76,10 @@ function switchWorkspaceSource(source){
 function updatePageVisibility(){
  const active=Boolean(data?.simulation)&&replayMode;
  const publicView=workspaceDataSource==='public'&&sourcePages.has(page);
+ const simSwitch=Boolean(data?.dcgm_workbench)&&workspaceDataSource==='simulated'&&Boolean(monitorPrefs[page]);
+ const simDcgm=simSwitch&&dcgmView.simBoard[page];
  const synthetic=workspaceDataSource==='synthetic';
- const visible=publicView&&page!=='incidents'?'':active?'replay':page;
+ const visible=(simDcgm||(publicView&&page!=='incidents'))?'':active?'replay':page;
  document.querySelectorAll('.page').forEach(panel=>panel.hidden=panel.id!=='page-'+visible);
  $('workspaceSourceControl').hidden=!sourcePages.has(page);
  options($('workspaceSource'),Object.keys(workspaceSourceNames),key=>key,key=>
@@ -91,14 +96,17 @@ function updatePageVisibility(){
   :data&&sourcePages.has(page)&&!publicView&&!synthetic&&!sourceEntities().length
    ?(workspaceDataSource==='real_unverified'?'当前还没有真实 GPU 的采集数据。':'当前还没有模拟 GPU 的采集数据。'):'';
  sourceNotice.hidden=!sourceNotice.textContent;
- $('publicDataPanel').hidden=!publicView;
+ $('dcgmWorkspaceSwitch').hidden=!simSwitch;
+ $('dcgmWorkspaceCard').setAttribute('aria-pressed',String(!simDcgm));
+ $('dcgmWorkspaceBench').setAttribute('aria-pressed',String(Boolean(simDcgm)));
+ $('publicDataPanel').hidden=!publicView&&!simDcgm;
  $('legacyIncidentContent').hidden=publicView;
  $('liveScope').hidden=page!=='overview';
  const hasClusters=new Set((data?sourceEntities():[]).map(entity=>entity.cluster)).size>1;
  const showCluster=hasClusters&&['incidents','baseline','scenarios','overview'].includes(page);
  const chartPage=Boolean(monitorPrefs[page]);
  $('cluster').hidden=!showCluster;
- $('liveControls').hidden=active||incidentExampleActive||publicView||page==='study'||(chartPage&&!showCluster);
+ $('liveControls').hidden=active||incidentExampleActive||publicView||simDcgm||page==='study'||(chartPage&&!showCluster);
  $('refresh').hidden=chartPage;
  $('window').hidden=page!=='detection';
  if(active)$('integratedReplay').setAttribute('view','all');
@@ -415,30 +423,19 @@ const boardPrefix={baseline:'baseline',scenarios:'association'};
 const targetListSignatures={};
 let baselineMetric='';
 
-function registeredDcgmMethods(template){
- if(workspaceDataSource!=='simulated'||!data.dcgm_methods)return [];
- const spec=data.templates[template];
- if(spec?.kind==='univariate')return data.dcgm_methods.single;
- if(spec?.kind==='multivariate'&&!spec.scenario)return data.dcgm_methods.multi;
- return [];
-}
-
 function monitorMethods(entity,root,metric){
  const template=root?.template||'uni_'+metric;
  const primary=data.models.find(model=>model.id===root?.active_model);
  const shadow=data.models.find(model=>model.id===root?.shadow_model);
  const versions=root?compatibleModels(root):[];
  const supported=supportedAlgorithms(root||{template}).map(([key])=>key);
- const registered=new Set(registeredDcgmMethods(template));
  const siblings=root?data.tasks.filter(task=>task.method_parent===root.id&&!task.deleted):[];
- const methods=new Set([...supported,...registered,...versions.map(model=>model.algorithm),...siblings.map(task=>task.method_algorithm),
+ const methods=new Set([...supported,...versions.map(model=>model.algorithm),...siblings.map(task=>task.method_algorithm),
   primary?.algorithm,shadow?.algorithm].filter(Boolean));
  return Array.from(methods,algorithm=>{
   const runtime=primary?.algorithm===algorithm?root:siblings.find(task=>task.method_algorithm===algorithm);
   const online=data.models.find(model=>model.id===runtime?.active_model);
   const ready=versions.filter(model=>model.algorithm===algorithm);
-  const recipe=registered.has(algorithm)&&!supported.includes(algorithm)&&!ready.length&&!online
-   ?data.dcgm_methods.training[algorithm]:null;
   const active=Boolean(online),observing=shadow?.algorithm===algorithm;
   const task=runtime||root;
   const training=root&&data.jobs.some(job=>job.task===root.id&&['queued','running','pending_sync'].includes(job.status)
@@ -446,10 +443,10 @@ function monitorMethods(entity,root,metric){
   const state=active?stateFor(task):null;
   const shadowPoint=observing&&(data.shadow||[]).find(row=>row.task===root.id&&row.model===shadow.id);
   const [status,color]=active?monitoredStatus(task):observing?[root.enabled&&data.inference.enabled?'影子监测':'影子已暂停','']:
-   training?['训练中','']:ready.length?['待启用','gray']:root||recipe?['待训练','gray']:['未配置任务','gray'];
+   training?['训练中','']:ready.length?['待启用','gray']:root?['待训练','gray']:['未配置任务','gray'];
   const score=active&&associationHasScore(task,state)?{...state,t:state.last_source}:!active?shadowPoint:null;
   return {entity,root,task,metric,algorithm,active,observing,
-   ready,recipe,supported:supported.includes(algorithm),status,color,score,version:online||
+   ready,supported:supported.includes(algorithm),status,color,score,version:online||
     (observing&&ready.find(model=>model.id===shadow.id))||ready[0]};
  }).sort((a,b)=>Number(b.active)-Number(a.active)||Number(b.observing)-Number(a.observing));
 }
@@ -493,9 +490,7 @@ function renderMethodBoard(section,targets,preferred){
  const algorithmFilter=boardFilter(section,'AlgorithmFilter');
  const templates=new Set(targets.map(target=>target.root?.template||'uni_'+target.metric));
  const scopes=new Set(targets.filter(target=>target.root).map(({root})=>[root.entity,root.template,root.scope].join('|')));
- const algorithms=new Set(Array.from(templates).flatMap(template=>[
-  ...supportedAlgorithms({template}).map(([key])=>key),...registeredDcgmMethods(template),
- ]));
+ const algorithms=new Set(Array.from(templates).flatMap(template=>supportedAlgorithms({template}).map(([key])=>key)));
  for(const model of data.models){
   if(scopes.has([model.entity,model.template,model.source_type].join('|')))algorithms.add(model.algorithm);
  }
@@ -562,13 +557,6 @@ function openBoardMethod(section,method){
  rows.querySelector?.('.method-name[aria-pressed="true"]')?.focus({preventScroll:true});
 }
 
-function dcgmRecipeDescription(method){
- const labels=method.recipe==='reference'
-  ?'拟合和校准使用已确认 XID=0 的历史。'
-  :'拟合和校准需要已标注的正常窗口和独立异常事件。';
- return '已登记 · 节点级检测 · 每 10 秒处理过去 5 分钟的指标。'+labels+' 当前没有已训练版本。';
-}
-
 function renderBoardMethodDetail(section,method){
  const box=$(section==='baseline'?'baselineMethodSelection':'associationMethodSelection');
  box.hidden=!method;
@@ -579,7 +567,7 @@ function renderBoardMethodDetail(section,method){
  const actions=el('div',undefined,'controls');
  if(version)actions.append(uiButton('查看模型版本',()=>openReport(version)));
  if(task&&method.supported)actions.append(uiButton('训练此方法',()=>openTraining(task,algorithm),'write'));
- if(!task&&!method.recipe)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
+ if(!task)actions.append(btn('配置此指标',async()=>configureBaseline(entity.id,[metric]),'write'));
  actions.append(uiButton(task?.active_model?'返回在线方法':'查看原始曲线',()=>{
   methodSelection[section]=null;
   clearMethodBoardFilters(section);
@@ -589,7 +577,7 @@ function renderBoardMethodDetail(section,method){
  heading.append(title,actions);
  const target=task?taskDisplayName(task):metricNames[metric];
  box.replaceChildren(heading,el('p',target+' · '+entity.uuid,'caption'),
-  el('p',method.recipe?dcgmRecipeDescription(method):algorithmDescription(algorithm)));
+  el('p',algorithmDescription(algorithm)));
  if(version)box.append(el('p',modelTitle(version)+' · '+modelSource(version),'caption'));
  box.append(el('p',score?'影子评分 '+fmt(score.score,2)+' / 阈值 '+fmt(score.threshold,2)+' · '+dateTime(score.t):
   method.observing?'暂无有效影子评分。':'当前没有运行评分。','caption'));
@@ -654,7 +642,7 @@ function methodBoardRow(section,method,selected){
   }));
  }else if(method.root&&method.supported){
   controls.append(uiButton('训练',()=>openTraining(method.root,algorithm),'write'));
- }else if(!method.root&&!method.recipe){
+ }else if(!method.root){
   controls.append(btn('配置',()=>configureBaseline(entity.id,[metric]),'write'));
  }
  const incident=method.active&&incidentForTask(task.id);
@@ -675,8 +663,7 @@ function renderAssociationTasks(){
   return {key:root.id,root,entity,title:taskDisplayName(root),fields:data.templates[root.template].required,
    subtitle:(root.scenario_id?'白盒场景':'黑盒模型')+' · '+entity.uuid};
  });
- const selected=renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
- if(selected?.recipe)$('associationStatus').hidden=true;
+ renderMethodBoard('scenarios',targets,monitorPrefs.scenarios.task);
 }
 
 function deviceLabel(entity){return entity.uuid+' · '+(entity.source_type==='simulated'?'模拟采集':'真实采集 · 未核验');}

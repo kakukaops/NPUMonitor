@@ -338,14 +338,14 @@ def assess(capture, metric, model, start, end, at=None):
             'calibration_windows': model['calibration_windows'] if model else None}
 
 
-def joint_point(capture, at, load_model):
+def joint_point(capture, at, load_model, metric='all'):
     """Score each joint method once at the same point for all metric cards."""
-    point = assess(capture, 'all', None, at, at)['points']
+    point = assess(capture, metric, None, at, at)['points']
     if not point:
         return None
     state = point[0]['state']
     index = (at - capture.start) // STEP
-    inputs = features(capture, 'all', np.array([index])) if state == 'untrained' else None
+    inputs = features(capture, metric, np.array([index])) if state == 'untrained' else None
     comparisons = []
     for method in MULTI:
         mode = 'reference' if method in REFERENCE else 'supervised'
@@ -372,8 +372,7 @@ def joint_point(capture, at, load_model):
     return {'t': at, 'methods': comparisons}
 
 
-@lru_cache(maxsize=16)
-def public_model(fold, metric, method, mode):
+def fit_public_model(fold, metric, method, mode):
     catalog = public_catalog()['collections']
     validation, training = [], []
     for row in catalog:
@@ -388,6 +387,9 @@ def public_model(fold, metric, method, mode):
     model = fit_detector(method, mode, training, validation)
     model['feature_metrics'] = feature_metrics(metric)
     return model
+
+
+public_model = lru_cache(maxsize=16)(fit_public_model)
 
 
 def public_detection(collection, metric, method, mode, start, end, at, compare=False, reference_mode=None):

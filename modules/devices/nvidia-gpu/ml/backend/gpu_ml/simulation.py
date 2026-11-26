@@ -8,7 +8,8 @@ from .settings import METRICS
 UUIDS = tuple(f'GPU-ML-SIM-{i:04d}' for i in range(3))
 CLUSTER = 'gpu-ml-simulation'
 SCENARIOS = ('power_spike', 'memory_activity_drop', 'normal', 'temperature_spike', 'thermal_drift', 'power_clock', 'activity_drop',
-             'thermal_aging', 'clock_aging', 'idle', 'high_load', 'missing', 'invalid', 'duplicate', 'stale')
+             'thermal_aging', 'clock_aging', 'idle', 'high_load', 'missing', 'invalid', 'duplicate', 'stale', 'xid_fault')
+SIMULATED_XID = 'DCGM_FI_DEV_XID_ERRORS'
 
 
 def healthy(times, index=0, seed=71):
@@ -42,6 +43,7 @@ class Simulator:
         now = time.time() if now is None else now
         ts = math.floor(now/2)*2
         lines = [f'# TYPE {m["name"]} gauge' for m in METRICS.values()]
+        lines.append(f'# TYPE {SIMULATED_XID} gauge')
         with self.lock:
             modes = {u: dict(v) for u, v in self.modes.items()}
         for i, uuid in enumerate(UUIDS):
@@ -63,12 +65,14 @@ class Simulator:
             if mode=='power_spike':values['power']+=140
             if mode=='memory_activity_drop':values['mem_util']=3.
             if mode=='activity_drop': values['util']=5.; values['power']=90.; values['sm_clock']=650.
+            if mode=='xid_fault': values.update(util=0., power=70., sm_clock=210., mem_util=0.)
             if mode=='thermal_aging':
                 values['gpu_temp']+=min(16,age*.08);values['memory_temp']+=min(14,age*.07)
             if mode=='clock_aging':values['sm_clock']-=min(220,age*1.5)
             if mode=='invalid': values['gpu_temp']=float('nan')
             label=f'cluster_id="{CLUSTER}",UUID="{uuid}",gpu="{i}",modelName="SIMULATED-H100",simulated="true"'
             suffix = f' {int((ts-120)*1000)}' if mode=='stale' else ''
+            lines.append(f'{SIMULATED_XID}{{{label}}} {79 if mode == "xid_fault" else 0}{suffix}')
             for key,value in values.items():
                 lines.append(f'{METRICS[key]["name"]}{{{label}}} {value}{suffix}')
                 if mode=='duplicate':

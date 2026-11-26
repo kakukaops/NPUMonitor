@@ -159,6 +159,15 @@ def save_model(path, model):
                 os.unlink(stage)
 
 
+def fit_capture_detector(capture, metric, method, mode):
+    split = int(len(capture.xid) * .7)
+    rows = (
+        example_rows(capture, metric, mode, 0, split, stride=6),
+        example_rows(capture, metric, mode, split + WINDOW - 1, len(capture.xid), stride=6),
+    )
+    return fit_detector(method, mode, [rows[0]] if rows[0] else [], [rows[1]] if rows[1] else [])
+
+
 def train_live(engine, source_type, cluster, node, metric, method, mode, history_hours, end):
     candidate, _ = model_paths(engine, source_type, cluster, node, metric, method, mode)
     if not 3 <= history_hours <= 168 or not 0 < end <= int(time.time()):
@@ -168,13 +177,8 @@ def train_live(engine, source_type, cluster, node, metric, method, mode, history
     end = end // STEP * STEP
     start = end - history_hours * 3600
     capture, _ = source_capture(engine.source, source_type, cluster, node, start, end)
-    split = int(len(capture.xid) * .7)
-    rows = (
-        example_rows(capture, metric, mode, 0, split, stride=6),
-        example_rows(capture, metric, mode, split + WINDOW - 1, len(capture.xid), stride=6),
-    )
     with TRAINING_LOCK:
-        model = fit_detector(method, mode, [rows[0]] if rows[0] else [], [rows[1]] if rows[1] else [])
+        model = fit_capture_detector(capture, metric, method, mode)
         model.update(trained_through=end, version=uuid.uuid4().hex, feature_metrics=feature_metrics(metric))
         save_model(candidate, model)
     return {'status': 'candidate', 'trained_through': end, 'training_windows': model['training_windows'],

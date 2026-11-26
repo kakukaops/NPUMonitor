@@ -22,7 +22,7 @@ const ctx=new Proxy({
  },
 }, {get:(obj,key)=>obj[key]||(()=>{}),set:(obj,key,value)=>(obj[key]=value,true)});
 class Element{
- constructor(tag='div'){this.tagName=tag;this.children=[];this.hidden=false;this.disabled=false;this.style={};this.textContent='';this.classList={toggle(){}};this._value=null;}
+ constructor(tag='div'){this.tagName=tag;this.children=[];this.hidden=false;this.disabled=false;this.style={};this.dataset={};this.textContent='';this.classList={toggle(){}};this._value=null;}
  set id(v){this._id=v;nodes.set(v,this);}get id(){return this._id;}
  set value(v){this._value=String(v);}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value||'':'');}
  append(...c){this.children.push(...c);}replaceChildren(...c){this.children=c;if(this.tagName==='select'&&!c.some(n=>n.value===this._value))this._value=null;}
@@ -166,20 +166,29 @@ run('openModelChoice(data.tasks[0])');assert.ok(nodes.get('dialogBody').children
 run('data.tasks=[];renderBaselines()');
 for(const card of nodes.get('baselineCards').children)assert.ok(card.children.some(n=>n.className==='controls'&&n.children.some(b=>b.textContent==='切换模型')));
 run('$("baselineChooseModel").onclick()');assert.equal(nodes.get('dialogTitle').textContent,'当前指标尚未配置');
-// The simulated catalog keeps newly registered methods selectable before model creation.
+// The simulated DCGM board exposes the registered methods separately from card tasks.
 run(`data.dcgm_methods={
  single:['logistic_l2','pca_t2'],multi:['pca_t2'],
  training:{logistic_l2:'supervised',pca_t2:'reference'},
-}; choosePage('baseline');`);
-const pcaMethod=nodes.get('baselineMethodRows').children.find(row=>row.children[0].children[0]?.textContent==='PCA T²');
-assert.ok(pcaMethod,'Registered methods appear even without a configured task');
-assert.equal(pcaMethod.children[1].children[0].textContent,'待训练');
-pcaMethod.children[0].children[0].onclick();
-assert.equal(run('boardMethod.baseline.algorithm'),'pca_t2');
-assert.ok(nodes.get('baselineMethodSelection').children.some(node=>node.textContent.includes('XID=0')));
-assert.equal(findButton(nodes.get('baselineMethodSelection'),'训练此方法'),undefined);
+};
+data.dcgm_workbench={single:['temporal_mad','rolling_median','level_mad'],joint:['joint_pca'],scenes:{}};
+dcgmView.catalog={metrics:['DCGM_FI_DEV_GPU_TEMP'],collections:[]};
+choosePage('baseline');
+dcgmView.simBoard.baseline=true;
+updatePageVisibility();
+const simBench=dcgmSelection(false);
+const simStateKey=JSON.stringify([simBench.identity,simBench.target,simBench.gpu]);
+dcgmView.stateKey=simStateKey;
+dcgmView.config={key:simStateKey,methods:Object.fromEntries(simBench.methods.map(method=>[
+ method,{enabled:false,active:null,candidate:null},
+]))};
+renderPublicMethodBoard(simBench);`);
+const pcaMethod=nodes.get('publicMethodRows').children.find(row=>row.children[0].children[0]?.textContent==='PCA T²');
+assert.ok(pcaMethod,'Registered detector should appear in the shared DCGM board');
+assert.equal(pcaMethod.children[2].children[0].textContent,'待训练');
+assert.ok(findButton(pcaMethod,'训练'));
+assert.ok(findButton(pcaMethod,'启用 GWDG 参考'));
+assert.equal(nodes.get('dcgmWorkspaceSwitch').hidden,false);
+assert.equal(nodes.get('publicDataPanel').hidden,false);
 assert.equal(run("supportedAlgorithms({template:'uni_gpu_temp'}).some(([key])=>key==='pca_t2')"),false);
-assert.equal(run("registeredDcgmMethods('joint_gpu')[0]"),'pca_t2');
-assert.equal(run("workspaceDataSource='synthetic';registeredDcgmMethods('uni_gpu_temp').length"),0);
-assert.equal(run("workspaceDataSource='real_unverified';registeredDcgmMethods('joint_gpu').length"),0);
 console.log('PASS: fixed model entry, above-chart card controls, unconfigured empty state; readable baseline names, version ordering, source labels, training windows, visible method choice with collapsed tuning parameters, empty state, five drawn preview curves and trained-GPU default; 5 metric cards; model filtering/publish; history source, window/alpha/calibration; runtime revision; decision evidence. Browser visual QA not run.');

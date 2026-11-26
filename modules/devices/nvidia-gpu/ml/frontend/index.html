@@ -39,9 +39,18 @@
   <button type="button" id="replayMode">曲线样例</button>
 </div></div></div>
 <p class="notice" id="workspaceSourceNotice" hidden></p>
+<div class="controls dcgm-workspace-switch" id="dcgmWorkspaceSwitch" role="group" aria-label="模拟采集监测视图" hidden>
+  <button type="button" id="dcgmWorkspaceCard" aria-pressed="true">GPU 卡级任务</button>
+  <button type="button" id="dcgmWorkspaceBench" aria-pressed="false">DCGM 方法看板</button>
+</div>
 <section class="panel monitoring-panel" id="publicMethodBoard" aria-labelledby="publicMethodHeading" hidden>
   <div class="panel-heading">
     <div><h2 id="publicMethodHeading">方法监测看板</h2><p id="publicMethodSummary"></p></div>
+    <div class="controls" id="dcgmScope">
+      <label>节点 <select id="dcgmNode"></select></label>
+      <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
+      <label id="dcgmGpuControl">GPU <select id="dcgmGpu"></select></label>
+    </div>
   </div>
   <div class="controls monitoring-inputs board-filters" id="publicMethodFilters">
     <label>搜索 <input type="search" id="publicTargetSearch" aria-label="搜索公开数据指标" placeholder="指标名或 DCGM 字段"></label>
@@ -53,14 +62,15 @@
     </section>
     <section aria-labelledby="publicMethodsHeading">
       <h3 id="publicMethodsHeading">检测方法</h3>
-      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="公开数据检测方法">
+      <div class="table-scroll method-board-wrap" tabindex="0" aria-label="DCGM 检测方法">
         <table class="association-table method-board">
-          <thead><tr><th>方法</th><th>类型</th></tr></thead>
+          <thead><tr><th>方法</th><th>范围与训练</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="publicMethodRows"></tbody>
         </table>
       </div>
     </section>
   </div>
+  <p class="caption" id="dcgmMethodStatus" role="status"></p>
 </section>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
   <div class="panel-heading">
@@ -71,10 +81,6 @@
     <button type="button" id="publicAssociation">看多指标关联</button>
   </div>
   <a class="panel-link xid-study-link" href="/?source=public#association-compare">查看同卡 XID 预警评测 ↗</a>
-  <div class="controls" id="dcgmScope" hidden>
-    <label>节点 <select id="dcgmNode"></select></label>
-    <label id="dcgmCollectionControl">采集区间 <select id="dcgmCollection"></select></label>
-  </div>
   <div class="controls" id="dcgmTimeControl" hidden>
     <div class="dcgm-window-nav" role="group" aria-label="三小时时间窗口">
       <button type="button" id="dcgmPrevious" aria-label="上一窗口" title="上一窗口" disabled>‹</button>
@@ -96,6 +102,11 @@
     <p id="dcgmPoint" class="caption" aria-live="polite"></p>
     <div id="dcgmSummary" aria-label="当前时刻各算法的检测结果" hidden></div>
     <div id="publicInputCharts" class="dcgm-charts"></div>
+    <div class="monitor-input-card" id="dcgmScoreBox" hidden>
+      <h3>异常分数与阈值</h3>
+      <div class="legend"><span><i class="public-score-line"></i>异常分数</span><span><i class="red"></i>阈值</span></div>
+      <canvas id="dcgmScore" role="img" aria-label="异常分数与阈值"></canvas>
+    </div>
   </div>
 </section>
 <div id="error" class="notice error" hidden role="alert"></div><div id="liveScope"><div class="notice" id="scopeNote">当前为预览版本。模拟数据与真实未核验数据明确区分，未完成真实 H100 准入。</div>

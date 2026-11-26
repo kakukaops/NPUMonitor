@@ -30,6 +30,7 @@ from .monitor_view import monitor_view
 from .dcgm_detection import method_catalog, public_detection
 from .dcgm_sources import live_detection, train_live, activate_live
 from .dcgm_review import node_review
+from . import dcgm_workbench
 from .baseline import PRIMARY_METRICS,CONDITIONAL_METRICS,sample_count
 from .nightingale import Nightingale
 from . import __version__
@@ -235,6 +236,7 @@ def state(request:Request):
             'entities':entities,'tasks':tasks,'states':states,'models':models,
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
             'dcgm_methods':method_catalog(),
+            'dcgm_workbench':dcgm_workbench.catalog(),
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
@@ -540,6 +542,34 @@ def review_dcgm(request: Request, source: str, cluster: str = '', node: str = ''
                 collection: str = '', at: Optional[int] = None, scenario: str = 'normal'):
     user(request)
     return node_review(ENGINE, source, cluster, node, gpu, collection, at, scenario)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/workbench/state')
+def dcgm_workbench_state(request: Request, source: str, target: str, collection: str = '',
+                         cluster: str = '', node: str = '', gpu: str = ''):
+    user(request)
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    return dcgm_workbench.board_state(ENGINE, scope, target)
+
+
+@app.get('/api/gpu-ml/v1/dcgm/workbench/replay')
+def dcgm_workbench_replay(request: Request, source: str, target: str, method: str, start: int, end: int,
+                          collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
+                          at: Optional[int] = None):
+    user(request)
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at)
+
+
+@app.post('/api/gpu-ml/v1/dcgm/workbench/{operation}')
+def dcgm_workbench_update(request: Request, operation: str, source: str, target: str, method: str,
+                           collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
+                           start: int = 0, end: int = 0, at: Optional[int] = None):
+    actor = user(request, 'operator')
+    scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
+    if operation == 'review':
+        return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, review=True)
+    return dcgm_workbench.update(ENGINE, scope, target, method, operation, actor, end)
 
 
 @app.get('/api/gpu-ml/v1/dcgm/live')

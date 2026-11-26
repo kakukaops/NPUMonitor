@@ -19,29 +19,19 @@ const dcgmEventBands={xid:'#f2b5c2',alarm:'#f2c89b'};
 const dcgmEventColors={gap:'#37759e',unknown:'#737f8f'};
 const dcgmPriority=['DCGM_FI_DEV_GPU_TEMP','DCGM_FI_DEV_GPU_UTIL','DCGM_FI_DEV_POWER_USAGE','DCGM_FI_DEV_FB_USED'];
 const dcgmJointMethods=['shallow_tree','robust_range','pca_t2'];
-const dcgmView={catalog:null,catalogRequest:null,capture:null,result:null,windowKey:'',requestKey:'',generation:0,
- node:null,collection:null,windowIndex:0,at:null,metric:dcgmPriority[0],
- singleMethod:'pca_t2',jointMethod:'pca_t2',boardKey:'',pointAt:null};
+const dcgmView={catalog:null,catalogRequest:null,result:null,requestKey:'',generation:0,
+ publicNode:null,collection:null,windowIndex:0,simScope:null,simOffset:0,simAnchor:null,at:null,pointAt:null,
+ metric:dcgmPriority[0],jointTarget:'all',gpu:{},singleMethod:'pca_t2',jointMethod:'pca_t2',
+ simBoard:{baseline:false,scenarios:false},boardKey:'',stateKey:'',config:null,context:null,
+ pending:false,reviewResult:null};
 
 function dcgmMetricName(key){return dcgmLabel[key]||key.replace('DCGM_FI_DEV_','');}
+function dcgmMethodName(id){return dcgmMethodLabels[id]||algorithmLabel(id);}
 function dcgmOrderedMetrics(){
  const metrics=dcgmView.catalog.metrics;
  return [...dcgmPriority.filter(key=>metrics.includes(key)),...metrics.filter(key=>!dcgmPriority.includes(key))];
 }
 function dcgmTime(t){return new Date(t*1000).toISOString().slice(0,19).replace('T',' ')+' UTC';}
-function dcgmUnpack(series){
- if(series.b!==undefined){
-  const bytes=Uint8Array.from(atob(series.b),char=>char.charCodeAt(0));
-  const view=new DataView(bytes.buffer);
-  return Float64Array.from({length:bytes.byteLength/8},(_,i)=>view.getFloat64(i*8,true));
- }
- const result=new Float64Array(series.r.reduce((sum,value,i)=>i%2?sum:sum+value,0));
- let start=0;
- for(let i=0;i<series.r.length;i+=2){
-  result.fill(series.r[i+1]??NaN,start,start+series.r[i]);start+=series.r[i];
- }
- return result;
-}
 async function dcgmRead(name){
  const response=await fetch(dcgmAsset+name+'.json');
  if(!response.ok)throw Error('无法读取 GWDG v2 数据');
@@ -65,124 +55,288 @@ function dcgmWindow(row,index){
 function dcgmSelectCollection(row){
  const v=dcgmView;
  const position=row.id==='collection_7a246afef961d90a'?8951:Math.floor(row.n/2);
- v.capture=null;
  v.collection=row.id;
  v.at=row.start+position*10;
  v.windowIndex=dcgmWindow(row,Math.floor((v.at-row.start)/dcgmWindowSeconds)).index;
+ resetDcgmReplay();
 }
+function resetDcgmReplay(){
+ const v=dcgmView;
+ v.reviewResult=null;
+ v.requestKey='';
+}
+function dcgmLatestSimEnd(){return Math.floor(Date.now()/30000)*30;}
+
 function dcgmMoveWindow(direction){
  const v=dcgmView;
- const row=v.catalog?.collections.find(item=>item.id===v.collection);
- if(!row)return;
- const next=dcgmWindow(row,v.windowIndex+direction);
- if(next.index===v.windowIndex)return;
- v.windowIndex=next.index;
- v.at=next.start+Math.floor((next.end-next.start)/20)*10;
+ if(workspaceDataSource==='simulated'){
+  if(direction<0&&v.simAnchor===null)v.simAnchor=dcgmLatestSimEnd();
+  v.simOffset=Math.max(0,Math.min(671,v.simOffset-direction));
+  if(v.simOffset===0)v.simAnchor=null;
+  v.at=null;
+ }else{
+  const row=v.catalog?.collections.find(item=>item.id===v.collection);
+  if(!row)return;
+  const next=dcgmWindow(row,v.windowIndex+direction);
+  if(next.index===v.windowIndex)return;
+  v.windowIndex=next.index;
+  v.at=next.start+Math.floor((next.end-next.start)/20)*10;
+ }
+ resetDcgmReplay();
  renderDcgmView();
 }
 
-function renderPublicMethodBoard(multi,methods,method){
+function dcgmTargets(multi){
+ const models=data.dcgm_workbench;
+ if(!multi)return dcgmOrderedMetrics().map(key=>[key,dcgmMetricName(key),key]);
+ return [
+  ['all',dcgmView.catalog.metrics.length+' 项 DCGM 联合输入','节点级 · XID 同时刻检测'],
+  ['core','5 项核心 DCGM 联合输入','节点级 · 温度、功耗、利用率、显存活动、SM 时钟'],
+  ['gpu_joint','GPU 活动、功耗与时钟','卡级 · 黑盒关联'],
+  ...Object.entries(models.scenes).map(([key,scene])=>[key,scene.name,'卡级 · 白盒关系（回放参数）']),
+ ];
+}
+
+function dcgmSelectedScope(){
+ const v=dcgmView,source=workspaceDataSource;
+ let params, cards, window, identity;
+ if(source==='public'){
+  const collections=v.catalog.collections;
+  const nodes=Array.from(new Set(collections.map(row=>row.node)));
+  if(!nodes.includes(v.publicNode))v.publicNode=nodes.includes('node039ab2df8a6a')?'node039ab2df8a6a':nodes[0];
+  const rows=collections.filter(row=>row.node===v.publicNode);
+  const row=rows.find(row=>row.id===v.collection)||rows[0];
+  if(v.collection!==row.id)dcgmSelectCollection(row);
+  window=dcgmWindow(row,v.windowIndex);
+  params={source,collection:row.id};
+  identity=row.id;
+  cards=v.config?.scope===identity?v.config.cards:{};
+  dcgmRows(nodes.map(node=>[node,node]),'dcgmNode',v.publicNode);
+  dcgmRows(rows.map(item=>[item.id,dcgmTime(item.start)+' → '+dcgmTime(item.end)]),'dcgmCollection',row.id);
+  $('dcgmPrevious').disabled=window.index===0;
+  $('dcgmNext').disabled=window.index===window.total-1;
+ }else{
+  const scopes=new Map();
+  for(const entity of sourceEntities()){
+   const scope=JSON.stringify([entity.cluster,entity.node||'']);
+   if(!scopes.has(scope))scopes.set(scope,[]);
+   scopes.get(scope).push(entity);
+  }
+  if(!scopes.size)return null;
+  if(!scopes.has(v.simScope))v.simScope=scopes.keys().next().value;
+  const [cluster,node]=JSON.parse(v.simScope);
+  identity=v.simScope;
+  params={source,cluster,node};
+  cards=Object.fromEntries(scopes.get(v.simScope).map(e=>[e.uuid,e.uuid]));
+  const end=(v.simAnchor??dcgmLatestSimEnd())-v.simOffset*900;
+  window={start:end-900,end};
+  dcgmRows(Array.from(scopes.keys(),key=>{
+   const [cluster,node]=JSON.parse(key);
+   return [key,node?cluster+' / '+node:'模拟 GPU 组 · '+cluster];
+  }),'dcgmNode',v.simScope);
+  $('dcgmPrevious').disabled=v.simOffset===671;
+  $('dcgmNext').disabled=v.simOffset===0&&v.simAnchor===null;
+  $('dcgmNext').title=v.simOffset===0?'返回最近 15 分钟':'下一窗口';
+ }
+ if(!Object.hasOwn(cards,v.gpu[identity]))v.gpu[identity]=Object.keys(cards)[0]||'';
+ const gpu=v.gpu[identity];
+ dcgmRows(Object.entries(cards),'dcgmGpu',gpu);
+ $('dcgmCollectionControl').hidden=source!=='public';
+ $('dcgmGpuControl').hidden=!Object.keys(cards).length;
+ $('dcgmWindowRange').textContent=dcgmRange(window);
+ return {params,gpu,identity,...window,at:Math.max(window.start,Math.min(window.end,v.at??window.end))};
+}
+
+function dcgmSelection(multi){
+ const v=dcgmView,scope=dcgmSelectedScope();
+ if(!scope)return null;
+ const targetKey=multi?'jointTarget':'metric', methodKey=multi?'jointMethod':'singleMethod';
+ const targets=dcgmTargets(multi);
+ if(!targets.some(([key])=>key===v[targetKey]))v[targetKey]=targets[0][0];
+ const target=v[targetKey],scene=data.dcgm_workbench.scenes[target];
+ const methods=target==='all'||target==='core'?data.dcgm_methods.multi:
+  target==='gpu_joint'?data.dcgm_workbench.joint:
+  scene?[scene.method]:[...data.dcgm_methods.single,...data.dcgm_workbench.single];
+ if(!methods.includes(v[methodKey]))v[methodKey]=methods[0];
+ const method=v[methodKey];
+ return {...scope,multi,targetKey,methodKey,targets,target,methods,method,
+  nodeLevel:Object.hasOwn(dcgmMethodLabels,method)};
+}
+
+function dcgmQuery(context,method=context.method){
+ return {...context.params,target:context.target,method,gpu:context.gpu};
+}
+
+function dcgmBoardAction(context,method,op){
  const v=dcgmView;
- const terms=multi?[]:$('publicTargetSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
- const group=v.catalog.metrics.length+' 项 DCGM 联合输入';
- const metrics=multi?[]:dcgmOrderedMetrics().filter(metric=>{
-  const searchable=(dcgmMetricName(metric)+' '+metric).toLowerCase();
-  return terms.every(term=>searchable.includes(term));
- });
- const key=JSON.stringify([multi,v.metric,method,metrics,methods]);
- const title=multi?group:dcgmMetricName(v.metric);
- $('publicDataContext').textContent=title+' · '+(multi?'时间轴方法 ':'')+dcgmMethodLabels[method]
-  +' · 每 10 秒使用过去 5 分钟的数据检测当前时刻';
+ if(v.pending)return;
+ if(op==='train'){
+  const nodes=context.params.source==='public'&&Object.hasOwn(dcgmMethodLabels,method);
+  const description=el('p',nodes?
+   '用 GWDG 的其他节点训练与校准，当前节点整组留出。训练完成后，选择时段验证候选。':
+   '最多读取截止时刻之前 12 小时的历史。候选只在截止时刻 5 分钟后的数据上验证和启用。');
+  const fields=[description];
+  if(!nodes){
+   if(Object.hasOwn(dcgmMethodLabels,method)){
+    fields.push(el('p',dcgmReference.has(method)?'参考训练需要足够长的 XID=0 采集历史。':
+     '监督训练和校准段分别需要正常样本和至少两次独立异常。可在 GPU 设备的模拟控制中生成 XID 场景，或者先启用 GWDG 参考版本。'));
+   }
+   fields.push(field('训练截止','dcgmTrainEnd'));
+  }
+  openDialog('训练 '+dcgmMethodName(method),fields,async()=>{
+   const end=nodes?0:Math.floor(new Date($('dcgmTrainEnd').value).getTime()/10000)*10;
+   if(!nodes&&!Number.isFinite(end))throw Error('请选择有效的训练截止时间');
+   await dcgmMutate(context,method,op,{end});
+  },'开始训练');
+  if(!nodes){
+   const t=new Date((context.start-300)*1000);
+   $('dcgmTrainEnd').type='datetime-local';
+   $('dcgmTrainEnd').value=new Date(t.getTime()-t.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  }
+  return;
+ }
+ const window=op==='review'?{start:context.start,end:context.end,at:context.at}:{};
+ if(op==='review'&&context.params.source==='simulated'&&v.simAnchor===null)v.simAnchor=context.end;
+ dcgmMutate(context,method,op,window).catch(error=>toast(error.message));
+}
+
+async function dcgmMutate(context,method,op,params){
+ const v=dcgmView;
+ v.pending=true;
+ $('dcgmMethodStatus').textContent=op==='train'?'正在训练 '+dcgmMethodName(method)+'…':op==='review'?'正在验证候选…':'正在保存…';
+ renderDcgmView();
+ try{
+  const payload=await api('/dcgm/workbench/'+op+'?'+new URLSearchParams({...dcgmQuery(context,method),...params}),{method:'POST'});
+  if(v.context?.identity===context.identity&&v.context?.target===context.target&&v.context?.gpu===context.gpu){
+   const current=method===v.context.method||method===v[v.context.methodKey];
+   v.stateKey='';
+   if(current){
+    resetDcgmReplay();
+    if(op==='review')v.reviewResult={key:JSON.stringify([context.identity,context.target,method,context.gpu,context.start,context.end]),payload};
+   }
+  }
+  const status={train:'候选已训练，下一步验证',review:'验证通过，回放有有效评分。现在可以启用候选',enable:'已启用',pause:'已暂停',reference:'已启用 GWDG 参考模型'};
+  $('dcgmMethodStatus').textContent=dcgmMethodName(method)+' · '+status[op];
+  toast(status[op]);
+ }catch(error){
+  $('dcgmMethodStatus').textContent=error.message;
+  throw error;
+ }finally{
+  v.pending=false;
+  renderDcgmView();
+ }
+}
+
+function renderPublicMethodBoard(context){
+ const v=dcgmView,{multi,targets,target,methods,method}=context;
+ const search=$('publicTargetSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+ const matching=targets.filter(row=>search.every(word=>row.join(' ').toLowerCase().includes(word)));
+ const configs=v.config?.key===v.stateKey?v.config.methods:null;
+ const key=JSON.stringify([target,methods,method,matching,context.identity,context.gpu,configs,data.role,v.pending]);
+ const title=targets.find(([id])=>id===target)[1];
+ $('publicDataContext').textContent=title+' · '+dcgmMethodName(method)+' · '+(context.nodeLevel?
+  '节点级 · 每 10 秒使用过去 5 分钟检测当前时刻':'卡级 · '+(context.gpu||'请选择 GPU'));
  if(key===v.boardKey)return;
  v.boardKey=key;
- $('publicMethodFilters').hidden=multi;
  $('publicTargetHeading').textContent=multi?'指标组':'指标';
- $('publicMethodSummary').textContent=multi?'1 个指标组':metrics.length+' / '+v.catalog.metrics.length+' 个指标';
+ $('publicMethodSummary').textContent=matching.length+' / '+targets.length+(multi?' 个指标组':' 个指标');
  $('publicMethodsHeading').textContent=title+' · '+methods.length+' 种方法';
-
- const targetRows=multi?[['all',group,'节点级联合检测']]:
-  metrics.map(metric=>[metric,dcgmMetricName(metric),metric]);
- const targets=$('publicTargets');
- targets.replaceChildren(...(targetRows.length?targetRows.map(([id,label,subtitle])=>{
-  const row=el('li');
+ const targetList=$('publicTargets');
+ targetList.replaceChildren(...(matching.length?matching.map(([id,label,subtitle])=>{
+  const item=el('li');
   const button=uiButton(label,()=>{
-   if(multi||v.metric===id)return;
-   v.metric=id;
+   if(target===id)return;
+   v[context.targetKey]=id;
+   resetDcgmReplay();
    renderDcgmView();
-   targets.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+   targetList.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
   },'method-target');
-  button.setAttribute('aria-pressed',String(multi||v.metric===id));
+  button.setAttribute('aria-pressed',String(target===id));
   button.append(el('small',subtitle));
-  row.append(button);
-  return row;
- }):[el('li','没有匹配的指标','empty')]));
-
+  item.append(button);
+  return item;
+ }):[el('li','没有匹配的输入','empty')]));
  const rows=$('publicMethodRows');
  rows.replaceChildren(...methods.map(id=>{
   const selected=id===method;
   const row=el('tr',undefined,selected?'active-task':'');
-  const name=el('td');
-  const button=uiButton(dcgmMethodLabels[id],()=>{
+  const name=el('td'),state=el('td'),actions=el('td');
+  const button=uiButton(dcgmMethodName(id),()=>{
    if(selected)return;
-   v[multi?'jointMethod':'singleMethod']=id;
+   v[context.methodKey]=id;
+   resetDcgmReplay();
    renderDcgmView();
    rows.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
   },'text-button method-name');
   button.setAttribute('aria-pressed',String(selected));
   name.append(button);
-  row.append(name,el('td',dcgmReference.has(id)?'XID=0 正常参考':'监督'));
+  const node=Object.hasOwn(dcgmMethodLabels,id);
+  const config=configs?.[id],candidate=config?.candidate;
+  const canWrite=config&&!v.pending&&(node||context.gpu);
+  const controls=el('div',undefined,'controls');
+  function add(label,op){
+   const control=uiButton(label,()=>{
+    const fresh=v.context;
+    if(fresh?.identity===context.identity&&fresh.target===context.target){
+     if(fresh.method!==id){
+      v[context.methodKey]=id;
+      resetDcgmReplay();
+     }
+     dcgmBoardAction({...fresh,method:id},id,op);
+    }
+   },'write');
+   control.disabled=data.role==='viewer';
+   controls.append(control);
+  }
+  if(config){
+   state.append(badge(config.enabled?'已启用':config.active?'已暂停':'待训练',config.enabled?'green':'gray'));
+   if(config.active)state.append(el('small',config.active.version==='gwdg'?'GWDG 参考版本':'本数据源 · '+config.active.version.slice(0,8)));
+   if(candidate)state.append(el('small',(candidate.reviewed?'候选已验证':'候选待验证')+
+    ' · '+candidate.training+' 训练 / '+candidate.calibration+' 校准点'));
+  }else state.append(badge('读取状态…','gray'));
+  if(canWrite){
+   add('训练','train');
+   if(candidate)add('验证','review');
+   if(candidate?.reviewed)add(config.enabled?'启用候选':'启用','enable');
+   if(!config.enabled&&config.active&&!candidate?.reviewed)add(candidate?'启用已有版本':'启用','enable');
+   if(config.enabled)add('暂停','pause');
+   if(node&&!config.active&&context.params.source==='simulated')add('启用 GWDG 参考','reference');
+  }
+  actions.append(controls);
+  row.append(name,el('td',node?(dcgmReference.has(id)?'节点 · XID=0 参考':'节点 · XID 监督'):
+   data.dcgm_workbench.scenes[target]?'GPU · 负载条件白盒':'GPU · 历史参考'),state,actions);
   return row;
  }));
 }
 
-function dcgmSelection(multi){
- const v=dcgmView;
- const methodKey=multi?'jointMethod':'singleMethod';
- const methods=data.dcgm_methods?.[multi?'multi':'single']??(multi?dcgmJointMethods:Object.keys(dcgmMethodLabels));
- if(!methods.includes(v[methodKey]))v[methodKey]=methods[0];
- if(!v.catalog.metrics.includes(v.metric))v.metric=v.catalog.metrics[0];
- const method=v[methodKey];
- renderPublicMethodBoard(multi,methods,method);
- const common={metric:multi?'all':v.metric,method,mode:dcgmReference.has(method)?'reference':'supervised'};
-
- const collections=v.catalog.collections;
- const nodes=Array.from(new Set(collections.map(row=>row.node)));
- if(!nodes.includes(v.node))v.node=nodes.includes('node039ab2df8a6a')?'node039ab2df8a6a':nodes[0];
- const rows=collections.filter(row=>row.node===v.node);
- const row=rows.find(row=>row.id===v.collection)||rows[0];
- if(v.collection!==row.id)dcgmSelectCollection(row);
- const {start,end,index,total}=dcgmWindow(row,v.windowIndex);
- dcgmRows(nodes.map(node=>[node,node]),'dcgmNode',v.node);
- dcgmRows(rows.map(item=>[item.id,dcgmTime(item.start)+' → '+dcgmTime(item.end)]),'dcgmCollection',row.id);
- $('dcgmPrevious').disabled=index===0;
- $('dcgmNext').disabled=index===total-1;
- const range=$('dcgmWindowRange'),label=dcgmRange({start,end});
- if(range.textContent!==label)range.textContent=label;
- return {common,row,start,end,at:v.at};
-}
-
 function renderDcgmView(force=false){
- const v=dcgmView, charts=Boolean(monitorPrefs[page]);
- const visible=!$('publicDataPanel').hidden&&charts;
+ const v=dcgmView,visible=!$('publicDataPanel').hidden&&Boolean(monitorPrefs[page])&&Boolean(data.dcgm_workbench);
  $('publicMethodBoard').hidden=!visible||!v.catalog;
  if(!visible){
-  if(v.requestKey||v.result){
+  if(v.context){
    v.generation++;
+   v.context=null;
+   v.stateKey='';
    v.requestKey='';
    v.result=null;
+   v.reviewResult=null;
+   v.boardKey='';
   }
   $('dcgmResults').hidden=true;
   if(!$('publicDataPanel').hidden){
    $('publicDataActions').hidden=false;
-   $('dcgmScope').hidden=$('dcgmTimeControl').hidden=true;
+   $('dcgmTimeControl').hidden=true;
+   $('publicDataName').textContent='GWDG v2 · 公开 GPU 采集';
    $('publicDataContext').textContent='';
    $('publicDataRange').textContent='19 个节点 · 48 个采集区间';
   }
   return;
  }
  $('publicDataActions').hidden=true;
- $('dcgmScope').hidden=$('dcgmTimeControl').hidden=false;
- const multi=page==='scenarios';
+ $('dcgmTimeControl').hidden=false;
+ const isPublic=workspaceDataSource==='public';
+ $('publicDataName').textContent=isPublic?'GWDG v2 · 检测回放':'模拟采集 · DCGM 检测';
+ $('dcgmReviewSelected').hidden=!isPublic;
  if(!v.catalog){
   if(!v.catalogRequest){
    $('publicDataRange').textContent='正在读取 DCGM 数据索引…';
@@ -192,56 +346,65 @@ function renderDcgmView(force=false){
   }
   return;
  }
- const {row,common,start,end,at}=dcgmSelection(multi);
- const request={...common,start,end};
- const windowKey=JSON.stringify([page,row.id,request]);
- if(multi)Object.assign(request,{at,compare:true});
- const requestKey=multi?windowKey+'|'+at:windowKey;
+ const context=dcgmSelection(page==='scenarios');
+ v.context=context;
+ if(!context){
+  v.generation++;
+  v.requestKey='';
+  $('publicMethodBoard').hidden=true;
+  $('dcgmResults').hidden=true;
+  $('publicDataRange').textContent='等待模拟 GPU 接入';
+  return;
+ }
+ const stateKey=JSON.stringify([context.identity,context.target,context.gpu]);
+ if(v.stateKey!==stateKey){
+  v.stateKey=stateKey;
+  api('/dcgm/workbench/state?'+new URLSearchParams(dcgmQuery(context))).then(config=>{
+   if(v.stateKey!==stateKey)return;
+   v.config={...config,key:stateKey,scope:context.identity};
+   renderDcgmView();
+  }).catch(error=>{
+   if(v.stateKey===stateKey)$('dcgmMethodStatus').textContent=error.message;
+  });
+ }
+ renderPublicMethodBoard(context);
+ if(!context.nodeLevel&&!context.gpu){
+  v.generation++;
+  v.requestKey='';
+  $('dcgmResults').hidden=true;
+  $('publicDataRange').textContent='请选择 GPU';
+  return;
+ }
+ const {start,end,at,identity,target,method,gpu}=context;
+ const windowKey=JSON.stringify([identity,target,method,gpu,start,end]);
+ const review=v.reviewResult?.key===windowKey?v.reviewResult.payload:null;
+ if(review&&!force){
+  v.generation++;
+  v.result=review;
+  $('publicDataRange').textContent='候选验证回放 · 尚未切换当前启用版本';
+  dcgmPaint(at);
+  return;
+ }
+ if(force)v.reviewResult=null;
+ const requestKey=context.nodeLevel&&context.multi?windowKey+'|'+at:windowKey;
  if(!force&&requestKey===v.requestKey)return;
- v.requestKey=requestKey;
- const generation=++v.generation;
- if(v.windowKey!==windowKey){
-  v.windowKey=windowKey;
+ if(v.result&&v.result.windowKey!==windowKey){
   v.result=null;
   $('dcgmResults').hidden=true;
  }
- $('publicDataRange').textContent=v.result?'正在读取检测结果…':'正在读取曲线…';
- const promise=v.capture?.id===row.id?Promise.resolve(v.capture):dcgmRead(row.id).then(raw=>({
-  id:raw.id,start:raw.start,xid:dcgmUnpack(raw.xid),
-  labels:Object.fromEntries(raw.gpus.map(card=>[card.id,card.label])),
-  series:Object.fromEntries(Object.entries(raw.native).map(([metric,s])=>[metric,
-   Object.fromEntries(Object.entries(s.gpus).map(([card,encoded])=>[card,dcgmUnpack(encoded)]))])),
-  available:Object.values(raw.native).map(metric=>dcgmUnpack(metric.mean)),
- }));
- promise.then(capture=>{
+ v.requestKey=requestKey;
+ const generation=++v.generation;
+ $('publicDataRange').textContent='正在读取观测和检测结果…';
+ api('/dcgm/workbench/replay?'+new URLSearchParams({...dcgmQuery(context),start,end,at})).then(result=>{
   if(generation!==v.generation)return;
-  v.capture=capture;
-  if(!v.result){
-   const first=(start-capture.start)/10,last=(end-capture.start)/10+1;
-   const points=Array.from({length:last-first},(_,i)=>{
-    const k=first+i;
-    const state=capture.available.some(values=>Number.isFinite(values[k]))?(k<29?'warmup':'untrained'):'no_data';
-    return {t:capture.start+k*10,state};
-   });
-   const series=Object.fromEntries(Object.entries(capture.series).map(([metric,cards])=>[metric,
-    Object.fromEntries(Object.entries(cards).map(([card,values])=>[card,values.subarray(first,last)]))]));
-   v.result={start,end,xid:capture.xid.subarray(first,last),points,series,labels:capture.labels};
-   dcgmPaint(v.at);
-  }
-  $('publicDataRange').textContent='正在读取检测结果…';
-  return api('/dcgm/public/'+row.id+'?'+new URLSearchParams(request)).then(result=>{
-   if(generation!==v.generation)return;
-   Object.assign(v.result,result);
-   $('publicDataRange').textContent='独立节点回放';
-   dcgmPaint(v.at);
-  });
+  v.result={...result,windowKey};
+  $('publicDataRange').textContent=result.model_issue?'当前版本暂无法评分 · '+result.model_issue:
+   result.version?.version==='gwdg'?(isPublic?'GWDG 留出节点回放':'模拟采集 · GWDG 跨源参考回放'):
+   result.version?'所选数据源版本 · 回放评分':'当前方法未启用 · 原始观测';
+  dcgmPaint(v.context.at);
  }).catch(error=>{
   if(generation!==v.generation)return;
   $('publicDataRange').textContent=error.message;
-  if(v.result&&multi){
-   v.result.comparisonFailed=true;
-   dcgmPaint(at);
-  }
  });
 }
 
@@ -265,20 +428,21 @@ function dcgmState(result,i){
  if(p?.state==='alarm')groups.push('alarm');
  return groups;
 }
+const dcgmStatuses={alarm:'算法报警',scored:'算法未报警',no_data:'当前输入指标缺失',
+ warmup:'连续输入不足或超出参考范围',untrained:'尚未启用',before_model:'该时刻尚无适用模型',
+ unavailable:'暂无法评分',loading:'正在读取检测结果'};
+
 function dcgmPointSummary(result,point){
  const snapshot=result.comparison?.t===point.t?result.comparison:null;
  const state=point.state==='no_data'||point.state==='warmup'?point.state:
   result.comparisonFailed?'unavailable':'loading';
  const methods=snapshot?.methods||dcgmJointMethods.map(method=>({method,state}));
- const statuses={alarm:'节点报警',scored:'节点未报警',no_data:'当前无有效监测数据',
-  warmup:'5 分钟窗口尚未完整',untrained:'尚未启用',before_model:'该时刻尚无适用模型',
-  unavailable:'暂无法评分',loading:'正在读取检测结果'};
  const names={shallow_tree:'命中的决策树分裂条件',robust_range:'主要越界特征',pca_t2:'联合偏离的主要贡献特征'};
  const list=el('ul',undefined,'dcgm-methods');
  for(const item of methods){
   const row=el('li',undefined,'dcgm-method-result');
   row.dataset.state=item.state;
-  row.append(el('strong',dcgmMethodLabels[item.method]),el('span',statuses[item.state],'dcgm-method-state'));
+  row.append(el('strong',dcgmMethodName(item.method)),el('span',dcgmStatuses[item.state],'dcgm-method-state'));
   if(item.evidence?.length){
    const reasons=el('ul',undefined,'dcgm-evidence');
    for(const evidence of item.evidence){
@@ -292,6 +456,44 @@ function dcgmPointSummary(result,point){
  }
  return list;
 }
+
+function dcgmLine(ctx,result,x,y,values,color,dash=[]){
+ ctx.beginPath();ctx.strokeStyle=color;ctx.setLineDash(dash);ctx.lineWidth=1.35;
+ let gap=true;
+ for(const [i,value] of values.entries()){
+  if(!Number.isFinite(value)){gap=true;continue;}
+  const t=result.start+i*10;
+  if(gap)ctx.moveTo(x(t),y(value));else ctx.lineTo(x(t),y(value));
+  gap=false;
+ }
+ ctx.stroke();ctx.setLineDash([]);
+}
+
+function dcgmCursor(ctx,x,t,height){
+ ctx.strokeStyle='#7890ab';ctx.beginPath();ctx.moveTo(x(t),5);ctx.lineTo(x(t),height);ctx.stroke();
+}
+
+function dcgmScorePlot(result,selectedAt,seek){
+ const values=result.points.map(p=>p.score);
+ const box=$('dcgmScoreBox'),canvas=$('dcgmScore');
+ box.hidden=!Number.isFinite(result.threshold)||!values.some(Number.isFinite);
+ if(box.hidden)return;
+ const size=dcgmCanvas(canvas,110);
+ if(!size)return;
+ const {ctx,width}=size,x=dcgmX(width,result);
+ const hi=Math.max(result.threshold,...values.filter(Number.isFinite),1e-6)*1.12;
+ const y=value=>91-value*75/hi;
+ for(let i=0;i<=3;i++){
+  const value=i*hi/3;
+  ctx.fillStyle='#68758b';ctx.fillText(fmt(value,2),0,y(value));
+  ctx.strokeStyle='#e8edf5';ctx.beginPath();ctx.moveTo(x(result.start),y(value));ctx.lineTo(x(result.end),y(value));ctx.stroke();
+ }
+ dcgmLine(ctx,result,x,y,values,'#7651c8');
+ dcgmLine(ctx,result,x,y,values.map(value=>Number.isFinite(value)?result.threshold:null),'#d74e62',[5,4]);
+ dcgmCursor(ctx,x,selectedAt,98);
+ canvas.onclick=event=>seek(event,width);
+}
+
 function dcgmPaint(at){
  const v=dcgmView,result=v.result;
  if(!result)return;
@@ -303,22 +505,30 @@ function dcgmPaint(at){
  v.pointAt=selectedAt;
  const multi=page==='scenarios';
  $('dcgmResults').hidden=false;
- const text=[dcgmTime(result.start+i*step),result.xid[i]===1?'实际 XID 非零':
-  result.xid[i]===0?'实际 XID 为 0':'XID 未知'];
- if(p.state==='no_data')text.push(p.warning||'当前无有效监测数据');
- else if(!multi&&(p.state==='alarm'||p.state==='scored'))text.push(p.state==='alarm'?'算法报警':'算法未报警',
-  '得分 '+fmt(p.score,3)+' / 阈值 '+fmt(result.threshold,3));
- else if(p.state==='warmup')text.push('5 分钟输入窗口尚未完整');
+ const text=[dcgmTime(result.start+i*step),result.xid[i]===1?'节点 XID 非零':
+  result.xid[i]===0?'节点 XID 为 0':'节点 XID 未知',dcgmStatuses[p.state]];
+ if(Number.isFinite(p.score))text.push('得分 '+fmt(p.score,3)+' / 阈值 '+fmt(result.threshold,3));
  $('dcgmPoint').textContent=text.join(' · ');
  const summary=$('dcgmSummary');
- summary.hidden=!multi;
- if(multi)summary.replaceChildren(dcgmPointSummary(result,p));
+ const evidence=result.comparison||(result.evidenceAt===selectedAt&&result.evidence?.length)||
+  Object.keys(p.contributions||{}).length;
+ summary.hidden=!evidence;
+ if(result.comparison)summary.replaceChildren(dcgmPointSummary(result,p));
+ else if(evidence){
+  const list=el('ul',undefined,'dcgm-evidence');
+  for(const item of (result.evidenceAt===selectedAt?result.evidence:[])||[])list.append(el('li',dcgmMetricName(item.metric)+' · '+item.feature+
+   (item.condition?' · '+item.condition:'')+(item.imputed?'（使用填补值）':'')));
+  for(const [metric,score] of Object.entries(p.contributions||{}).sort((a,b)=>b[1]-a[1])){
+   list.append(el('li',dcgmMetricName(metric)+' · 贡献 '+fmt(score,3)));
+  }
+  summary.replaceChildren(list);
+ }
  function selectPoint(time){
   const next=Math.max(result.start,Math.min(result.end,time));
   if(next===v.at)return;
   v.at=next;
   dcgmPaint(next);
-  if(multi)renderDcgmView();
+  if(multi&&result.node_level)renderDcgmView();
  }
  function seek(event,width){
   const tick=Math.round((event.offsetX-60)/(width-75)*(result.points.length-1));
@@ -369,7 +579,8 @@ function dcgmPaint(at){
    selectPoint(selectedAt+(e.key==='ArrowLeft'?-step:step));
   };
  }
- const metrics=multi?dcgmOrderedMetrics():[v.metric];
+ dcgmScorePlot(result,selectedAt,seek);
+ const metrics=dcgmOrderedMetrics().filter(metric=>result.fields.includes(metric));
  const container=$('publicInputCharts');
  container.classList.toggle('dcgm-stacked',multi);
  container.replaceChildren();
@@ -377,7 +588,7 @@ function dcgmPaint(at){
  for(const metric of metrics){
   const card=el('section',undefined,'monitor-input-card'),heading=el('h3',dcgmMetricName(metric));
   const legend=el('div',undefined,'legend dcgm-gpus'),canvas=el('canvas');
-  canvas.setAttribute('role','img');canvas.setAttribute('aria-label',dcgmMetricName(metric)+' · GPU 原始曲线');
+  canvas.setAttribute('role','img');canvas.setAttribute('aria-label',dcgmMetricName(metric)+' · GPU 观测与模型参考');
   card.dataset.metric=metric;
   card.append(heading,legend);
   card.append(canvas);container.append(card);
@@ -393,6 +604,9 @@ function dcgmPaint(at){
   }
   let lo=Infinity,hi=-Infinity;
   for(const [,rows] of series)for(const value of rows)if(Number.isFinite(value)){lo=Math.min(lo,value);hi=Math.max(hi,value);}
+  const expected=result.points.map(p=>p.expected?.[metric]),bounds=result.points.map(p=>p.bounds?.[metric]);
+  for(const value of expected)if(Number.isFinite(value)){lo=Math.min(lo,value);hi=Math.max(hi,value);}
+  for(const pair of bounds)if(pair){lo=Math.min(lo,pair[0]);hi=Math.max(hi,pair[1]);}
   if(lo===Infinity){
    ctx.fillStyle='#68758b';ctx.fillText('此时段没有此指标的有效观测',0,65);continue;
   }
@@ -403,33 +617,53 @@ function dcgmPaint(at){
    ctx.fillText(Number(value.toPrecision(4)).toString(),0,y(value));
    ctx.strokeStyle='#e8edf5';ctx.beginPath();ctx.moveTo(x(result.start),y(value));ctx.lineTo(x(result.end),y(value));ctx.stroke();
   }
-  for(const [gpu,rows] of series){
-   const color=dcgmPalette[allCards.indexOf(gpu)%dcgmPalette.length];
-   ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.35;
-   let gap=true;
-   for(let j=0;j<rows.length;j++){
-    const value=rows[j],t=result.start+j*step;
-    if(!Number.isFinite(value)){gap=true;continue;}
-    if(gap)ctx.moveTo(x(t),y(value));else ctx.lineTo(x(t),y(value));
-    gap=false;
+  if(bounds.some(Boolean)){
+   legend.append(el('span','参考区间','dcgm-reference-color'));
+   ctx.fillStyle='#e0ecff';
+   for(let j=1;j<bounds.length;j++){
+    const a=bounds[j-1],b=bounds[j];
+    if(!a||!b)continue;
+    const left=x(result.start+(j-1)*step),right=x(result.start+j*step);
+    ctx.beginPath();ctx.moveTo(left,y(a[0]));ctx.lineTo(left,y(a[1]));
+    ctx.lineTo(right,y(b[1]));ctx.lineTo(right,y(b[0]));ctx.fill();
    }
-   ctx.stroke();
   }
-  ctx.strokeStyle='#7890ab';ctx.beginPath();ctx.moveTo(x(selectedAt),5);ctx.lineTo(x(selectedAt),124);ctx.stroke();
+  if(expected.some(Number.isFinite)){
+   const names={causal_forecast:'预测值',conditional_baseline:'条件参考',joint_reconstruction:'重构值'};
+   legend.append(el('span',names[result.reference_kind]||'参考值','dcgm-reference-color'));
+   dcgmLine(ctx,result,x,y,expected,'#6486c3',[4,3]);
+  }
+  for(const [gpu,rows] of series){
+   dcgmLine(ctx,result,x,y,rows,dcgmPalette[allCards.indexOf(gpu)%dcgmPalette.length]);
+  }
+  dcgmCursor(ctx,x,selectedAt,124);
  }
 }
 function bindDcgmView(){
  const v=dcgmView;
  $('publicTrend').onclick=()=>choosePage('baseline');
  $('publicAssociation').onclick=()=>chooseAssociationView('all');
- $('dcgmRefresh').onclick=()=>renderDcgmView(true);
+ $('dcgmRefresh').onclick=()=>{v.stateKey='';renderDcgmView(true);};
  $('dcgmPrevious').onclick=()=>dcgmMoveWindow(-1);
  $('dcgmNext').onclick=()=>dcgmMoveWindow(1);
- $('dcgmNode').onchange=event=>{v.node=event.target.value;renderDcgmView();};
+ $('dcgmWorkspaceCard').onclick=()=>{v.simBoard[page]=false;render();};
+ $('dcgmWorkspaceBench').onclick=()=>{v.simBoard[page]=true;render();};
+ $('dcgmNode').onchange=event=>{
+  if(workspaceDataSource==='public')v.publicNode=event.target.value;
+  else{v.simScope=event.target.value;v.at=null;}
+  resetDcgmReplay();
+  renderDcgmView();
+ };
  $('dcgmCollection').onchange=event=>{
   const row=v.catalog.collections.find(item=>item.id===event.target.value);
   if(!row)return;
   dcgmSelectCollection(row);
+  renderDcgmView();
+ };
+ $('dcgmGpu').onchange=event=>{
+  if(!v.context)return;
+  v.gpu[v.context.identity]=event.target.value;
+  resetDcgmReplay();
   renderDcgmView();
  };
  $('publicTargetSearch').oninput=()=>renderDcgmView();
