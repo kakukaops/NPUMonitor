@@ -130,8 +130,9 @@
       </details>
       <p class="guide-note"><strong>结果适用范围。</strong> 表中是公开数据的节点级模型结果。报告复用原模型得分并重新校准阈值，评测数据集中在故障相关区间。工作台使用自身拟合的版本，监督模型按验证 F1 定阈值，参考模型按验证参考分数的 P99 定阈值。节点联合复核使用五个输入字段。卡级趋势、提前预警和真实采集的效果需要各自的评测。</p>
       <p class="guide-sources">
-        <a class="guide-link" href="https://github.com/kakukaops/NPUMonitor/blob/9ce5e72d1f0cd070751984feb243a4f7e43e3a98/modules/devices/nvidia-gpu/ml/frontend/reports/model_report.html">原始报告 HTML</a>
-        <a class="guide-link" href="https://github.com/kakukaops/NPUMonitor/tree/9ce5e72d1f0cd070751984feb243a4f7e43e3a98/modules/devices/nvidia-gpu/ml/frontend/reports/model_report_assets/results">完整结果与阈值 CSV</a>
+        <a class="guide-link" href="/assets/reports/model_report.html">打开原始交互报告</a>
+        <a class="guide-link" href="/assets/reports/model_report.html#reproduce">下载完整结果与阈值 CSV</a>
+        <a class="guide-link" href="https://github.com/kakukaops/NPUMonitor/commit/9ce5e72d1f0cd070751984feb243a4f7e43e3a98">GitHub 来源提交</a>
       </p>
       <p>该提交包含报告和结果 CSV。报告中用于从原始得分重算结果的快照和脚本需要另外取得。</p>
     </section>
@@ -146,6 +147,7 @@
       </dl>
       <p>模拟与人工构造用于流程验证。真实采集的跨源参考分数用于影子复核。模型缺版本、历史不足或指标全缺时，页面显示对应状态，保留曲线缺口。</p>
       <p class="guide-note"><strong>公开与模拟采集的方法看板。</strong> 在单指标或多指标页面选择公开数据，或在模拟采集中打开「DCGM 方法看板」。点击「训练 → 验证 → 启用」切换候选版本。验证展示所选窗口中可评分的部分，且保留缺测和训练前的时间段。公开节点模型留出当前节点，卡级方法使用较早的同卡历史。模拟采集可启用 GWDG 参考模型，或在采集覆盖及标签足够后训练本数据源版本。这里的启用控制曲线回放，GPU 卡级在线任务仍在「GPU 卡级任务」中管理。</p>
+      <p>已训练版本收录在「模型库 → DCGM 回放模型」。点击「调用回放」可载入指定版本。候选通过独立窗口验证后可以启用，历史版本也可重新调用。<a class="guide-link" href="/#models">打开模型库</a></p>
     </section>
   </main>
 </body>

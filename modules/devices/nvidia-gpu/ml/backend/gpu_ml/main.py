@@ -237,6 +237,7 @@ def state(request:Request):
             'model_services':ENGINE.services.list(),'baseline_metrics':{'primary':PRIMARY_METRICS,'conditional':CONDITIONAL_METRICS},'jobs':STORE.list('job'),'model_backend':ENGINE.training.status,'dcgm_scenarios':DCGM_SCENARIOS,'algorithm_catalog':describe_algorithms(),'comparisons':STORE.list('comparison'),'templates':TEMPLATES,'metrics':METRICS,'algorithms':{**ALGORITHMS, **ADDITIONAL_ALGORITHMS},
             'dcgm_methods':method_catalog(),
             'dcgm_workbench':dcgm_workbench.catalog(),
+            'dcgm_models':dcgm_workbench.library(ENGINE),
             'training_algorithms':{key:available_algorithms(spec) for key,spec in TEMPLATES.items() if 'algorithms' in spec},
             'bindings':bindings,'sync_error':STORE.get('system','sync_error'),'nightingale':nightingale,'incident_queue':incident_queue,
             'source':ENGINE.source.stats,'inference':{'last_poll':ENGINE.last_poll,'error':ENGINE.error,
@@ -555,21 +556,21 @@ def dcgm_workbench_state(request: Request, source: str, target: str, collection:
 @app.get('/api/gpu-ml/v1/dcgm/workbench/replay')
 def dcgm_workbench_replay(request: Request, source: str, target: str, method: str, start: int, end: int,
                           collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
-                          at: Optional[int] = None):
+                          at: Optional[int] = None, version_id: Optional[str] = None):
     user(request)
     scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
-    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at)
+    return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, version_id=version_id)
 
 
 @app.post('/api/gpu-ml/v1/dcgm/workbench/{operation}')
 def dcgm_workbench_update(request: Request, operation: str, source: str, target: str, method: str,
                            collection: str = '', cluster: str = '', node: str = '', gpu: str = '',
-                           start: int = 0, end: int = 0, at: Optional[int] = None):
+                           start: int = 0, end: int = 0, at: Optional[int] = None, version_id: Optional[str] = None):
     actor = user(request, 'operator')
     scope = dcgm_workbench.scope_for(ENGINE, source, collection, cluster, node, gpu)
     if operation == 'review':
-        return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, review=True)
-    return dcgm_workbench.update(ENGINE, scope, target, method, operation, actor, end)
+        return dcgm_workbench.replay(ENGINE, scope, target, method, start, end, at, review=True, version_id=version_id)
+    return dcgm_workbench.update(ENGINE, scope, target, method, operation, actor, end, version_id)
 
 
 @app.get('/api/gpu-ml/v1/dcgm/live')
@@ -699,6 +700,8 @@ def backup(request:Request):
     with tarfile.open(archive,'w:gz') as tar:
         tar.add(folder/'gpu-ml.sqlite',arcname='gpu-ml.sqlite')
         tar.add(DATA/'models',arcname='models');tar.add(DATA/'snapshots',arcname='snapshots')
+        if (DATA/'dcgm-workbench').is_dir():
+            tar.add(DATA/'dcgm-workbench',arcname='dcgm-workbench')
     STORE.audit(actor,'backup',key)
     return {'id':key,'download':'/api/gpu-ml/v1/backups/'+key,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
             'remote_model_refs':[m['backend'] for m in STORE.list('model') if m.get('backend')],

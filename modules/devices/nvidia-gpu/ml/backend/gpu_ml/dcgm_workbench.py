@@ -30,6 +30,8 @@ CARD_FIELDS = ('gpu_temp', 'power', 'util', 'sm_clock', 'mem_util')
 METRIC_BY_KEY = {key: spec['name'] for key, spec in METRICS.items()}
 SCENES = CATALOG['scenarios']
 KIND = 'dcgm_workbench_method'
+VERSION_KIND = 'dcgm_workbench_version'
+REFERENCE_RELEASE = 'gwdg-v2-node-detector-v1'
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,9 @@ class Scope:
     def window(self, start, end):
         if not self.start <= start < end <= self.end or end - start > 10800 or start % STEP or end % STEP:
             raise ValueError('请选择有效的 10 秒对齐回放时段，最长 3 小时')
+
+    def binding(self):
+        return {key: getattr(self, key) for key in ('source', 'node', 'cluster', 'collection', 'gpu', 'fold')}
 
 
 def catalog():
@@ -168,6 +173,117 @@ def artifact(key, version):
     return DATA / 'dcgm-workbench' / (key + '-' + version + '.joblib')
 
 
+def reference_id(scope, target, method):
+    digest = sha256(json.dumps([REFERENCE_RELEASE, scope.fold, target, method]).encode()).hexdigest()
+    return 'ref-' + digest[:24]
+
+
+def version_path(record):
+    return artifact(record.get('binding_key', 'reference'), record['version'])
+
+
+def register_local(engine, scope, target, method, version):
+    record = dict(version, **scope.binding(), binding_key=scope.key(target, method), target=target,
+                  method=method, origin='trained', created_at=version.get('created_at', time.time()))
+    return engine.store.put(VERSION_KIND, version['version'], record)
+
+
+def reference_model(engine, scope, target, method):
+    identity = reference_id(scope, target, method)
+    record = engine.store.get(VERSION_KIND, identity)
+    path = artifact('reference', identity)
+    if record and path.is_file():
+        return joblib.load(path), record
+    with threadpool_limits(limits=1):
+        model = public_model(scope.fold, target, method, method_mode(method))
+    save_model(path, model)
+    record = engine.store.put(VERSION_KIND, identity, dict(
+        **scope.binding(), version=identity, origin='gwdg', release=REFERENCE_RELEASE, target=target, method=method,
+        reviewed=True, through=None, created_at=time.time(),
+        training=model['training_windows'], calibration=model['calibration_windows']))
+    return model, record
+
+
+def local_versions(config):
+    return [version for slot in ('active', 'candidate') if (version := config.get(slot))
+            and version['version'] != 'gwdg']
+
+
+def recover_library(engine, configs):
+    """Recover metadata for surviving artifacts created before the model library."""
+    pending = {row['id']: row for row in configs if not row.get('binding') and
+               any(artifact(row['id'], version['version']).is_file() for version in local_versions(row))}
+    if not pending:
+        return
+    metrics = public_catalog()['metrics']
+    targets = [*metrics, 'all', 'core', 'gpu_joint', *SCENES]
+    hints = {row['object_id']: json.loads(row.get('details') or '{}') for row in engine.store.audits()
+             if row['object_id'] in pending and row['action'].startswith('dcgm_workbench_')}
+    pairs = {(target, method) for target in targets for method in methods_for(target)}
+    if len(hints) == len(pending):
+        pairs &= {(hint.get('target'), hint.get('method')) for hint in hints.values()}
+
+    def find(scope, node_only):
+        for target, method in pairs:
+            if (method in SINGLE) != node_only:
+                continue
+            key = scope.key(target, method)
+            row = pending.pop(key, None)
+            if not row:
+                continue
+            for version in local_versions(row):
+                if artifact(key, version['version']).is_file():
+                    register_local(engine, scope, target, method, version)
+            engine.store.put(KIND, key, dict(row, binding=scope.binding(), target=target, method=method))
+
+    for row in public_catalog()['collections']:
+        if not pending:
+            return
+        args = ('public', row['node'], '', row['id'])
+        find(Scope(*args, '', row['fold']), True)
+        if pending and any(method not in SINGLE for _, method in pairs):
+            for gpu in collection_cards(row['id']):
+                find(Scope(*args, gpu, row['fold']), False)
+    for entity in engine.store.list('entity'):
+        if not pending:
+            return
+        if entity.get('source_type') != 'simulated':
+            continue
+        scope = Scope('simulated', entity.get('node') or '', entity['cluster'], '', entity['uuid'])
+        find(scope, True)
+        find(scope, False)
+
+
+def library(engine):
+    configs = engine.store.list(KIND)
+    if any(not row.get('binding') and local_versions(row) for row in configs):
+        with TRAINING_LOCK:
+            recover_library(engine, engine.store.list(KIND))
+    configs_by_key = {row['id']: row for row in configs}
+    result = []
+    for record in engine.store.list(VERSION_KIND):
+        config = configs_by_key.get(record.get('binding_key'))
+        if record['origin'] == 'gwdg':
+            scope = Scope(**{key: record[key] for key in ('source', 'node', 'cluster', 'collection', 'gpu', 'fold')})
+            config = configs_by_key.get(scope.key(record['target'], record['method']))
+        active_id = (config.get('active') or {}).get('version') if config else None
+        active_here = active_id == ('gwdg' if record['origin'] == 'gwdg' else record['version'])
+        status = ('missing' if not version_path(record).is_file() else
+                  ('enabled' if config['enabled'] else 'paused') if active_here else
+                  'ready' if record['reviewed'] else 'trained')
+        result.append(dict(record, status=status))
+    return sorted(result, key=lambda row: (row['created_at'], row['id']), reverse=True)
+
+
+def compatible_version(engine, scope, target, method, version_id):
+    record = engine.store.get(VERSION_KIND, version_id)
+    if (not record or record['target'] != target or record['method'] != method or
+        (record['version'] != reference_id(scope, target, method) if record['origin'] == 'gwdg'
+         else record['binding_key'] != scope.key(target, method)) or not version_path(record).is_file()):
+        raise ValueError('此模型版本不可用于当前来源、节点或指标')
+    return record
+
+
 def method_mode(method):
     return 'reference' if method in REFERENCE else 'supervised'
 
@@ -202,12 +318,17 @@ def train(engine, scope, target, method, end):
         return model, end
 
 
-def update(engine, scope, target, method, operation, actor, end=0):
+def update(engine, scope, target, method, operation, actor, end=0, version_id=None):
     if method not in methods_for(target):
         raise ValueError('模型与所选指标不匹配')
     key = scope.key(target, method)
     with TRAINING_LOCK:
         config = configuration(engine, scope, target, method)
+        for version in local_versions(config):
+            if not engine.store.get(VERSION_KIND, version['version']) and artifact(key, version['version']).is_file():
+                register_local(engine, scope, target, method, version)
+        if operation == 'prepare' and method in SINGLE:
+            return reference_model(engine, scope, target, method)[1]
         if operation == 'train':
             model, through = train(engine, scope, target, method, end)
             version = uuid.uuid4().hex
@@ -216,44 +337,48 @@ def update(engine, scope, target, method, operation, actor, end=0):
             else:
                 summary = {'training': model.report['train_samples'], 'calibration': model.report['calibration_samples']}
             save_model(artifact(key, version), model)
-            retired = config.get('candidate')
-            config['candidate'] = dict(version=version, through=through, reviewed=False, **summary)
+            config['candidate'] = dict(version=version, through=through, reviewed=False, created_at=time.time(), **summary)
+            register_local(engine, scope, target, method, config['candidate'])
         else:
-            retired = None
             if operation == 'enable':
-                candidate = config.get('candidate')
+                candidate = compatible_version(engine, scope, target, method, version_id) if version_id else config.get('candidate')
+                if version_id and not candidate['reviewed']:
+                    raise ValueError('请先验证所选模型版本')
                 if candidate and candidate['reviewed']:
-                    retired, config['active'] = config.get('active'), candidate
-                    config['candidate'] = None
+                    reference = candidate.get('origin') == 'gwdg'
+                    config['active'] = {'version': 'gwdg'} if reference else candidate
+                    if (config.get('candidate') or {}).get('version') == candidate['version']:
+                        config['candidate'] = None
                 if not config.get('active'):
                     raise ValueError('先训练并验证一个候选模型')
                 config['enabled'] = True
             elif operation == 'pause':
                 config['enabled'] = False
             elif operation == 'reference' and method in SINGLE:
-                retired = config.get('active')
+                reference_model(engine, scope, target, method)
                 config.update(active={'version': 'gwdg'}, enabled=True)
             else:
                 raise ValueError('未知的模型操作')
-        saved = engine.store.put(KIND, key, config)
-        if retired and retired['version'] != 'gwdg':
-            artifact(key, retired['version']).unlink(missing_ok=True)
+        saved = engine.store.put(KIND, key, dict(config, binding=scope.binding(), target=target, method=method))
         engine.store.audit(actor, 'dcgm_workbench_' + operation, key,
                            {'source': scope.source, 'node': scope.node, 'target': target, 'method': method})
         return saved
 
 
-def selected_model(engine, scope, target, method, review):
+def selected_model(engine, scope, target, method, review, version_id=None):
     with TRAINING_LOCK:
         config = configuration(engine, scope, target, method)
-        version = config.get('candidate') if review else config.get('active') if config['enabled'] else None
+        version = (compatible_version(engine, scope, target, method, version_id) if version_id else
+                   config.get('candidate') if review else config.get('active') if config['enabled'] else None)
         if not version:
             if review:
                 raise ValueError('此方法尚无训练候选')
             return None, None
         if version['version'] == 'gwdg':
-            with threadpool_limits(limits=1):
-                model = public_model(scope.fold, target, method, method_mode(method))
+            model, record = reference_model(engine, scope, target, method)
+            version = dict(version, origin='gwdg', library_id=record['id'])
+        elif version.get('origin') == 'gwdg':
+            model = joblib.load(version_path(version))
         else:
             model = joblib.load(artifact(scope.key(target, method), version['version']))
         return model, version
@@ -284,7 +409,7 @@ def number(value):
     return float(value) if np.isfinite(value) else None
 
 
-def replay(engine, scope, target, method, start, end, at=None, review=False):
+def replay(engine, scope, target, method, start, end, at=None, review=False, version_id=None):
     if method not in methods_for(target):
         raise ValueError('模型与所选指标不匹配')
     scope.window(start, end)
@@ -292,9 +417,9 @@ def replay(engine, scope, target, method, start, end, at=None, review=False):
         raise ValueError('选中时刻须位于回放范围内')
     issue = None
     try:
-        model, version = selected_model(engine, scope, target, method, review)
+        model, version = selected_model(engine, scope, target, method, review, version_id)
     except ValueError as exc:
-        if review:
+        if review or version_id:
             raise
         model, version, issue = None, configuration(engine, scope, target, method).get('active'), str(exc)
     node_level = method in SINGLE
@@ -353,8 +478,16 @@ def replay(engine, scope, target, method, start, end, at=None, review=False):
         with TRAINING_LOCK:
             config = configuration(engine, scope, target, method)
             candidate = config.get('candidate')
-            if not candidate or candidate['version'] != version['version']:
+            if version_id:
+                saved = compatible_version(engine, scope, target, method, version_id)
+            elif candidate and candidate['version'] == version['version']:
+                saved = candidate
+            else:
                 raise ValueError('候选版本已变化，请刷新后重新验证')
-            candidate.update(reviewed=True, review_points=scored)
-            engine.store.put(KIND, scope.key(target, method), config)
+            if saved.get('origin') != 'gwdg':
+                saved.update(reviewed=True, review_points=scored, review_start=start, review_end=end)
+                register_local(engine, scope, target, method, saved)
+                if candidate and candidate['version'] == saved['version']:
+                    config['candidate'] = saved
+                    engine.store.put(KIND, scope.key(target, method), config)
     return result

@@ -70,6 +70,7 @@
       </div>
     </section>
   </div>
+  <div id="dcgmLibrarySelection" class="notice" hidden></div>
   <p class="caption" id="dcgmMethodStatus" role="status"></p>
 </section>
 <section class="panel monitor-view public-data-panel" id="publicDataPanel" aria-labelledby="publicDataName" hidden>
@@ -416,6 +417,18 @@
 </details>
 </section>
 <section id="page-models" class="page" hidden>
+  <section class="panel" id="dcgmLibraryPanel" aria-labelledby="dcgmLibraryHeading" hidden>
+    <div class="panel-heading">
+      <div><h2 id="dcgmLibraryHeading">DCGM 回放模型</h2><p id="dcgmLibraryCount"></p></div>
+      <div class="controls">
+        <label>适用来源 <select id="dcgmLibrarySource"><option value="">全部来源</option><option value="public">公开数据</option><option value="simulated">模拟采集</option></select></label>
+        <label>搜索 <input id="dcgmLibrarySearch" type="search" placeholder="方法、字段、节点或 GPU"></label>
+      </div>
+    </div>
+    <div class="table-scroll" tabindex="0" aria-label="已训练 DCGM 回放模型">
+      <table><thead><tr><th>方法与输入</th><th>适用范围</th><th>训练来源</th><th>状态</th><th>操作</th></tr></thead><tbody id="dcgmLibraryRows"></tbody></table>
+    </div>
+  </section>
   <div class="panel"><div class="panel-heading"><h2>模型版本</h2></div>
     <div class="table-scroll"><table><thead><tr><th>模型与设备</th><th>方法</th><th>训练数据</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="modelRows"></tbody></table></div>
   </div>

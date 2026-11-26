@@ -108,6 +108,39 @@ class WorkbenchTest(unittest.TestCase):
         self.assertEqual(list(result['series'][METRIC]), [UUIDS[0]])
         self.assertFalse(workbench.board_state(self.engine, self.public, METRIC)['methods'][method]['candidate'])
 
+    def test_library_reuses_exact_versions_without_replacing_new_candidate(self):
+        scope, method = self.simulated, 'level_mad'
+        end = scope.end
+        first = workbench.update(self.engine, scope, METRIC, method, 'train', 'operator', end - 1800)['candidate']
+        first_id = first['version']
+        workbench.replay(self.engine, scope, METRIC, method, end - 600, end, review=True, version_id=first_id)
+        second = workbench.update(self.engine, scope, METRIC, method, 'train', 'operator', end - 900)['candidate']
+        rows = {row['id']: row for row in workbench.library(self.engine)}
+        self.assertEqual(rows[first_id]['status'], 'ready')
+        self.assertEqual(rows[second['version']]['status'], 'trained')
+        self.assertEqual(rows[first_id]['review_start'], end - 600)
+        preview = workbench.replay(self.engine, scope, METRIC, method, end - 600, end, version_id=first_id)
+        self.assertEqual(preview['version']['id'], first_id)
+        self.assertGreater(len(self.scored(preview)), 0)
+        config = workbench.update(self.engine, scope, METRIC, method, 'enable', 'operator', version_id=first_id)
+        self.assertEqual(config['candidate']['version'], second['version'])
+        self.assertEqual(config['active']['version'], first_id)
+        with self.assertRaisesRegex(ValueError, '先验证'):
+            workbench.update(self.engine, scope, METRIC, method, 'enable', 'operator', version_id=second['version'])
+        with self.assertRaisesRegex(ValueError, '不可用于'):
+            workbench.compatible_version(self.engine, self.public, METRIC, method, first_id)
+
+    def test_reference_registry_preserves_holdout_scope(self):
+        scope, method = self.public, 'shallow_tree'
+        prepared = workbench.update(self.engine, scope, 'core', method, 'prepare', 'operator')
+        self.assertEqual(prepared['fold'], scope.fold)
+        self.assertTrue(workbench.version_path(prepared).is_file())
+        self.assertEqual(workbench.library(self.engine)[0]['status'], 'ready')
+        self.assertEqual(workbench.compatible_version(self.engine, scope, 'core', method, prepared['id'])['id'],
+                         prepared['id'])
+        with self.assertRaisesRegex(ValueError, '不可用于'):
+            workbench.compatible_version(self.engine, self.simulated, 'core', method, prepared['id'])
+
 
 if __name__ == '__main__':
     unittest.main()

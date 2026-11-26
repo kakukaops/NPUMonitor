@@ -65,6 +65,7 @@ function switchWorkspaceSource(source){
   $('associationEntity').value='';
   monitorShown=null;
   dcgmView.at=null;
+  dcgmView.pinned=null;
   resetDcgmReplay();
   if(workspaceDataSource==='public'&&source==='simulated'&&monitorPrefs[page])dcgmView.simBoard[page]=true;
  }
@@ -825,6 +826,7 @@ function openModelActions(model,task){
 }
 
 function renderModels(){
+ renderDcgmLibrary();
  const rows=data.models.slice().sort((a,b)=>(b.created_at||0)-(a.created_at||0)).map(model=>{
   const task=data.tasks.find(row=>row.id===model.task);
   const row=el('tr'),name=el('td',modelTitle(model));
